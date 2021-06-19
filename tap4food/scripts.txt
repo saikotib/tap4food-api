@@ -1,0 +1,12 @@
+use tap4food;
+
+db.createCollection(
+          "userRoles"
+)
+
+db.userRoles.insertMany([
+   { name: "CUSTOMER" },
+   { name: "MERCHANT" },
+   { name: "ADMIN" },
+])
+
