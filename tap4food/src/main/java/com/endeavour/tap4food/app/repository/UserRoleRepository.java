@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-import com.endeavour.tap4food.app.enums.Role;
+import com.endeavour.tap4food.app.enums.UserRoleEnum;
 import com.endeavour.tap4food.app.security.model.UserRole;
 
 @Repository
@@ -18,7 +18,7 @@ public class UserRoleRepository {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public Optional<UserRole> findByRole(Role role){
+	public Optional<UserRole> findByRole(UserRoleEnum role){
 		
 		System.out.println("In repository role :" + role);
 		Query query = new Query();

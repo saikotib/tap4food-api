@@ -1,5 +1,10 @@
 package com.endeavour.tap4food.app.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.endeavour.tap4food.app.enums.OrderStatusEnum;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,15 +14,19 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@Document(collection = "orders")
 public class ItemOrder {
 
-	private long orderId;
+	@Id
+	private String id;
 	
-	private long itemId;
+	private Long orderNumber;
+	
+	private Long itemId;
 	
 	private String itemName;
 	
-	private double totalAmountPaid;
+	private Double totalAmountPaid;
 	
 	private String paymentMode;
 	
@@ -25,9 +34,9 @@ public class ItemOrder {
 	
 	private String tokenNumber;
 	
-	private long merchandId;
+	private Long merchandId;
 	
 	private String transactionNumber;
 	
-	private String orderStatus;
+	private OrderStatusEnum orderStatus;
 }

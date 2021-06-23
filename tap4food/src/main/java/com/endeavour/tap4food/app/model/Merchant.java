@@ -1,11 +1,18 @@
 package com.endeavour.tap4food.app.model;
 
 import org.bson.types.Binary;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
 @Data
+@Document(collection = "merchants")
 public class Merchant {
+	
+	@Id
+	private String id;
 
 	private String uniqId;
 	
@@ -20,6 +27,8 @@ public class Merchant {
 	private String city;
 	
 	private String businessUnitType;   // ShoppingMall/Theatre/Restaurant
+	
+	private String foodCourtName;
 	
 	private String foodStallName;
 	
@@ -39,7 +48,9 @@ public class Merchant {
 	
 	private String foodStallLicenseNumber;
 	
-	private String deliveryTime;  // This is food delivery time
+	private String deliveryTime;  // This is food delivery time (ex: 20 mins)
 	
+	@DBRef
+	private MerchantBankDetails bankDetails;
 	
 }

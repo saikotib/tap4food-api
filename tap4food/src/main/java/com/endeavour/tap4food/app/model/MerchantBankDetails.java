@@ -1,5 +1,8 @@
 package com.endeavour.tap4food.app.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +12,12 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@Document(collection = "merchantBankDetails")
 public class MerchantBankDetails {
 
+	@Id
+	private String id;
+	
 	private String merchantId;
 	
 	private String bankName;
