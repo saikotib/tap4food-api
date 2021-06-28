@@ -1,0 +1,19 @@
+package com.endeavour.tap4food.app.util;
+
+public class MongoCollectionConstant {
+
+	public static final String COLLECTION_MERCHANT = "merchants";
+	
+	public static final String COLLECTION_MERCHANT_UNIQUE_NUMBER = "merchantUniqueNumbers";
+	
+	public static final String COLLECTION_OTP = "otp";
+	
+	public static final String COLLECTION_USERROLES = "userRoles";
+	
+	public static final String COLLECTION_ORDERS = "orders";
+	
+	public static final String COLLECTION_MENU_CATEGORIES = "menuCategories";
+	
+	public static final String COLLECTION_MENU_SUB_CATEGORIES = "menuSubCategories";
+	
+}
