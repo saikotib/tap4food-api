@@ -70,6 +70,9 @@ public class AuthController {
 	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber) {
 
 		boolean smsSentFlag = customerService.sendOTPToPhone(phoneNumber);
+		if(smsSentFlag) {
+			
+		}
 		ResponseHolder response = null;
 		
 		if(smsSentFlag){
@@ -121,18 +124,28 @@ public class AuthController {
 		System.out.println(loginRequest.getPhoneNumber());
 		System.out.println(loginRequest.getOtp());
 		
-		Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(loginRequest.getPhoneNumber(), loginRequest.getOtp()));
+		ResponseEntity response = null;
+		if(customerService.verifyOTP(loginRequest.getPhoneNumber(), loginRequest.getOtp())) {
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(loginRequest.getPhoneNumber(), loginRequest.getOtp()));
 
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String jwt = jwtUtils.generateJwtToken(authentication);
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+			String jwt = jwtUtils.generateJwtToken(authentication);
 
-		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
-				.collect(Collectors.toList());
+			UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+			List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+					.collect(Collectors.toList());
+			
+			response = ResponseEntity.ok(
+					new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles,userDetails.getPhoneNumber())); 
+			
+		}else {
+			response = ResponseEntity.badRequest().body("Invalid OTP");
+		}
+		
+		
 
-		return ResponseEntity.ok(
-				new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
+		return response;
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)

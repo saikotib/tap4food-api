@@ -18,8 +18,6 @@ public class Customer {
 	@Id
 	private String id;
 	
-	private String uniqId;
-	
 	private String fullName;
 	
 	private String phoneNumber;

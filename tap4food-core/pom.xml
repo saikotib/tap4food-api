@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>tap4food-core</artifactId>
-	
+
 	<parent>
 		<groupId>com.endeavour</groupId>
 		<artifactId>tap4food</artifactId>

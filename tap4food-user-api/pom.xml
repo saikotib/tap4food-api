@@ -18,6 +18,12 @@
 			<artifactId>tap4food-core</artifactId>
 			<version>1.0</version>
 		</dependency>
+		
+		<!-- <dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>3.12.8</version>
+		</dependency> -->
 	</dependencies>
 
 	<build>

@@ -27,6 +27,8 @@ public class CustomerService {
 	
 	public boolean sendOTPToPhone(final String phoneNumber) {
 		
+		boolean flag = false;
+		
 		String otp = CommonUtil.generateOTP();
 		
 		Otp otpObject = new Otp();
@@ -44,7 +46,8 @@ public class CustomerService {
 		
 		log.info("The OTP generated : {}", otp);
 		
-		return true;		
+		flag = true;
+		return flag;		
 	}
 	
 	public boolean verifyOTP(final String phoneNumber, final String inputOTP) {
