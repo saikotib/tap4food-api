@@ -40,7 +40,7 @@ import com.endeavour.tap4food.app.service.MerchantService;
 import io.swagger.annotations.Api;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/merchant")
 @Api(tags = "AuthenticationController", description = "Authentication Controller for user loging & signup")
 public class AuthController {
 	
@@ -64,6 +64,30 @@ public class AuthController {
 	
 	@RequestMapping(value = "/phone-number-login", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber) {
+
+		boolean smsSentFlag = commonService.sendOTPToPhone(phoneNumber);
+		ResponseHolder response = null;
+		
+		if(smsSentFlag){
+			response = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("OTP has been delivered to customer registed phone number : " + phoneNumber)
+					.build();
+		}else {
+			response = ResponseHolder.builder()
+					.status("error")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("Problem occured while sending OTP to customer registed phone number : " + phoneNumber)
+					.build();
+		}
+		
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/forgot-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> forgotPassword(@RequestParam("phone-number") String phoneNumber) {
 
 		boolean smsSentFlag = commonService.sendOTPToPhone(phoneNumber);
 		ResponseHolder response = null;

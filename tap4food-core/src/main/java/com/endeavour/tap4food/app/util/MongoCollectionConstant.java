@@ -4,6 +4,8 @@ public class MongoCollectionConstant {
 
 	public static final String COLLECTION_MERCHANT = "merchants";
 	
+	public static final String COLLECTION_ADMIN_USERS = "adminUsers";
+	
 	public static final String COLLECTION_MERCHANT_UNIQUE_NUMBER = "merchantUniqueNumbers";
 	
 	public static final String COLLECTION_OTP = "otp";
@@ -15,5 +17,9 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_MENU_CATEGORIES = "menuCategories";
 	
 	public static final String COLLECTION_MENU_SUB_CATEGORIES = "menuSubCategories";
+	
+	public static final String COLLECTION_EMAILS = "emails";
+	
+	public static final String COLLECTION_EMAIL_TEMPLATES = "emailTemplates";
 	
 }

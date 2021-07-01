@@ -44,7 +44,7 @@ import com.endeavour.tap4food.app.service.UserService;
 import io.swagger.annotations.Api;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/user")
 @Api(tags = "AuthenticationController", description = "Authentication Controller for user loging & signup")
 public class AuthController {
 	
@@ -70,9 +70,6 @@ public class AuthController {
 	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber) {
 
 		boolean smsSentFlag = customerService.sendOTPToPhone(phoneNumber);
-		if(smsSentFlag) {
-			
-		}
 		ResponseHolder response = null;
 		
 		if(smsSentFlag){
@@ -124,28 +121,18 @@ public class AuthController {
 		System.out.println(loginRequest.getPhoneNumber());
 		System.out.println(loginRequest.getOtp());
 		
-		ResponseEntity response = null;
-		if(customerService.verifyOTP(loginRequest.getPhoneNumber(), loginRequest.getOtp())) {
-			Authentication authentication = authenticationManager.authenticate(
-					new UsernamePasswordAuthenticationToken(loginRequest.getPhoneNumber(), loginRequest.getOtp()));
+		Authentication authentication = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(loginRequest.getPhoneNumber(), loginRequest.getOtp()));
 
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-			String jwt = jwtUtils.generateJwtToken(authentication);
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		String jwt = jwtUtils.generateJwtToken(authentication);
 
-			UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-			List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
-					.collect(Collectors.toList());
-			
-			response = ResponseEntity.ok(
-					new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles,userDetails.getPhoneNumber())); 
-			
-		}else {
-			response = ResponseEntity.badRequest().body("Invalid OTP");
-		}
-		
-		
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+				.collect(Collectors.toList());
 
-		return response;
+		return ResponseEntity.ok(
+				new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)

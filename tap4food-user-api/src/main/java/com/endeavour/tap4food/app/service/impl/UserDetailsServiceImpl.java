@@ -24,9 +24,6 @@ import com.endeavour.tap4food.app.security.model.UserRole;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Autowired
-	private UserRepository userRepository;
-	
-	@Autowired
 	private CommonRepository commonRepository;
 	
 	@Autowired

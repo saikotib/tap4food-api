@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +10,12 @@ import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
+import com.endeavour.tap4food.app.util.EmailTemplateConstants;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j	
 public class MerchantService {
 
 	@Autowired
@@ -78,31 +83,39 @@ public class MerchantService {
 
 		if (inputOTP.equalsIgnoreCase(otp.getOtp())) {
 			otpMatch = true;
+		}else {
+			return otpMatch;
 		}
 
-		Long uniqNumber = this.getUniqueNumber();
-		
 		Optional<Merchant> merchantOptionalObject = merchantRepository.findByPhoneNumber(phoneNumber);
 		
 		if(merchantOptionalObject.isPresent()) {
 			
 			Merchant merchant = merchantOptionalObject.get();
 			
-			merchant.setUniqueNumber(uniqNumber);
-			
-			merchantRepository.updateUniqueNumber(merchant);
-			
-			System.out.println("Unique number is updated forthe merchant...");
+			if(Objects.isNull(merchant.getUniqueNumber())) {
+				
+				Long uniqNumber = this.getUniqueNumber();
+				
+				merchant.setUniqueNumber(uniqNumber);
+				
+				merchantRepository.updateUniqueNumber(merchant);
+				
+				System.out.println("Unique number is updated forthe merchant...");
+				
+				String merchantEmail = merchant.getEmail();
+				
+				String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber=" + uniqNumber;
+				
+				String message = commonService.getCreatePasswordHtmlContent().replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
+						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(uniqNumber));
+				
+				String subject = "Tap4Food registration successfull";
+				
+				commonService.sendEmail(merchantEmail, message, subject);
+			}
 		}
-		/*
-		String message = "http://localhost:3000/createPassword?uniqueNumber=" + uniqNumber;
 		
-		commonService.sendSMS(phoneNumber, message);
-		
-		*/
-
-		System.out.println("Unique Number : " + uniqNumber);
-
 		return otpMatch;
 	}
 
@@ -116,7 +129,6 @@ public class MerchantService {
 	public boolean createPassword(final Long uniqueNumber, final String password) {
 		
 		merchantRepository.createPassword(uniqueNumber, password);
-		
 		
 		return true;
 	}

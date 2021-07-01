@@ -1,14 +1,18 @@
 package com.endeavour.tap4food.app.security.model;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.endeavour.tap4food.app.enums.UserRoleEnum;
+import com.endeavour.tap4food.app.model.Admin;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
@@ -45,13 +49,18 @@ public class UserDetailsImpl implements UserDetails {
 		this.authorities = authorities;
 	}
 
-	public static UserDetailsImpl build(User user) {
+	public static UserDetailsImpl build(Admin admin) {
+		
+		Set<UserRole> roles = new HashSet<>();
+		UserRole userRole = new UserRole();
+		userRole.setName(UserRoleEnum.ADMIN);
+		roles.add(userRole);
 
-		List<GrantedAuthority> authorities = user.getRoles().stream()
+		List<GrantedAuthority> authorities = roles.stream()
 				.map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
 
-		return new UserDetailsImpl(user.getId(), user.getUserName(), user.getEmail(), user.getPassword(),
-				user.getPhoneNumber(), authorities);
+		return new UserDetailsImpl(admin.getId(), admin.getUserName(), admin.getEmail(), admin.getPassword(),
+				admin.getPhoneNumber(), authorities);
 	}
 
 	@Override

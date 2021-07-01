@@ -54,6 +54,8 @@ public class Merchant {
 	
 	private String password;
 	
+	private String createdBy;
+	
 	@DBRef
 	private MerchantBankDetails bankDetails;
 	

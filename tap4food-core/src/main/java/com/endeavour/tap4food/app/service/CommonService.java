@@ -2,12 +2,33 @@ package com.endeavour.tap4food.app.service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
@@ -21,6 +42,40 @@ public class CommonService {
 
 	@Autowired
 	private CommonRepository commonRepository;
+	
+	@Autowired
+	private JavaMailSender javaMailSender;
+	
+	@Value("${spring.mail.host}")
+	private String mailHost;
+	
+	@Value("${spring.mail.port}")
+	private int port;
+	
+	@Value("${spring.mail.username}")
+	private String userName;
+	
+	@Value("${spring.mail.password}")
+	private String password;
+	
+	@Bean
+	public String getCreatePasswordHtmlContent() {
+		
+		String template = null;
+		
+		Resource resource = new ClassPathResource("emailTemplates/createPasswordEmail_Merchant.txt");
+        try {
+			InputStream inputStream = resource.getInputStream();
+			
+			byte[] bdata = FileCopyUtils.copyToByteArray(inputStream);
+			template = new String(bdata, StandardCharsets.UTF_8);
+            
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return template;
+	}
 	
 	public boolean sendSMS(String phoneNumber,String message) {
 		String userId = "flyingkart";
@@ -86,4 +141,25 @@ public class CommonService {
 		
 		return otp;		
 	}
+	
+	public void sendEmail(final String reciepentMail, final String messageBody, final String subject) {
+		
+		MimeMessage message = javaMailSender.createMimeMessage();
+		
+		MimeMessageHelper helper = new MimeMessageHelper(message);
+
+		try {
+			helper.setTo(reciepentMail);
+			helper.setSubject(subject);
+			helper.setText(messageBody, true);
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+
+		javaMailSender.send(message);
+			 
+        
+        log.info("Mail is delivered to : {}", reciepentMail);
+	}
+	
 }

@@ -13,8 +13,11 @@
 	<artifactId>tap4food-admin-api</artifactId>
 
 	<dependencies>
-
-
+		<dependency>
+			<groupId>com.endeavour</groupId>
+			<artifactId>tap4food-core</artifactId>
+			<version>1.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
