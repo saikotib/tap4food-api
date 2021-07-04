@@ -26,68 +26,56 @@ public class MerchantRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	
+
 	private String merchantCollection = MongoCollectionConstant.COLLECTION_MERCHANT_UNIQUE_NUMBER;
-	
-	public Optional<Merchant> findByUserName(String userName){
+
+	public Optional<Merchant> findByUserName(String userName) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("userName").is(userName));
-		
+
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
-		
+
 		return Optional.ofNullable(merchant);
 	}
-	
-	public Optional<Merchant> findByEmailId(String emailId){
+
+	public Optional<Merchant> findByEmailId(String emailId) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("email").is(emailId));
-		
+
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
-		
+
 		return Optional.ofNullable(merchant);
 	}
-	
-	public Optional<Merchant> findByPhoneNumber(String phoneNumber){
+
+	public Optional<Merchant> findByPhoneNumber(String phoneNumber) {
 		Query query = new Query(Criteria.where("phoneNumber").is(phoneNumber));
-		
+
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
-		
+
 		return Optional.ofNullable(merchant);
 	}
-	
-	public Optional<Merchant> findByUniqueNumber(Long uniqueNumber){
+
+	public Optional<Merchant> findByUniqueNumber(Long uniqueNumber) {
 		Query query = new Query(Criteria.where("uniqueNumber").is(uniqueNumber));
-		
+
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
-		
+
 		System.out.println("Merchant : " + merchant);
-		
+
 		return Optional.ofNullable(merchant);
 	}
-	
+
 	public boolean save(Merchant merchant) {
 		boolean flag = false;
 		mongoTemplate.save(merchant);
 		System.out.println("After save: " + merchant);
-		if(merchant.getId() != null) {
+		if (merchant.getId() != null) {
 			flag = true;
 		}
 		return flag;
 	}
 	
-	public boolean updateUniqueNumber(Merchant merchant) {
-		
-//		Query query = new Query(Criteria.where("phoneNumber").is(merchant.getPhoneNumber()));
-		
-//		Update update = new Update();
-//		update.set("uniqueNumber", merchant.getUniqueNumber());
-		
-		
-		
-		mongoTemplate.save(merchant);
-		
-		return false;
-	}
+	
 	
 	@Transactional
 	public synchronized Long getRecentUniqueNumber() {
@@ -135,7 +123,44 @@ public class MerchantRepository {
 		mongoTemplate.save(merchant);
 		
 		flag = true;
-		
+
 		return flag;
+	}
+	
+	public Optional<Merchant> findByMerchantByPhoneNumber(String phoneNumber) {
+		Query query = new Query(Criteria.where("phoneNumber").is(phoneNumber));
+
+		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
+
+		return Optional.ofNullable(merchant);
+	}
+	
+	
+	public boolean createMerchant(Merchant merchant) {
+
+		boolean flag = false;
+		mongoTemplate.save(merchant);
+		if (merchant.getId() != null) {
+			flag = true;
+		}
+		return flag;
+	}
+
+	public boolean updateUniqueNumber(Merchant merchant) {
+
+//		Query query = new Query(Criteria.where("phoneNumber").is(merchant.getPhoneNumber()));
+
+//		Update update = new Update();
+//		update.set("uniqueNumber", merchant.getUniqueNumber());
+
+		mongoTemplate.save(merchant);
+
+		return false;
+	}
+
+	public Optional<Merchant> saveMerchant(Merchant merchant) {
+		Merchant merchantRes = mongoTemplate.save(merchant);
+		System.out.println(merchantRes);
+		return Optional.ofNullable(merchantRes);
 	}
 }

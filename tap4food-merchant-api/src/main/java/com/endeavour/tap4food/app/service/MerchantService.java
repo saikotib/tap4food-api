@@ -2,6 +2,10 @@ package com.endeavour.tap4food.app.service;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +14,7 @@ import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
+import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
 
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +63,7 @@ public class MerchantService {
 		Optional<Merchant> userByEmail = this.findByEmailId(emailId);
 
 		if (userByEmail.isPresent()) {
-			validationMessage = "The email id is already used.";
+			validationMessage = "The email id is already used..";
 
 			return validationMessage;
 		}
@@ -75,7 +80,7 @@ public class MerchantService {
 
 	}
 
-	public boolean verifyOTP(final String phoneNumber, final String inputOTP) {
+	public boolean verifyOTP(final String phoneNumber, final String inputOTP, final boolean forgotPasswordFlag) {
 
 		boolean otpMatch = false;
 
@@ -89,9 +94,89 @@ public class MerchantService {
 
 		Optional<Merchant> merchantOptionalObject = merchantRepository.findByPhoneNumber(phoneNumber);
 		
+		Merchant merchant = merchantOptionalObject.get();
+		
+		if(forgotPasswordFlag) {
+			
+			String merchantEmail = merchant.getEmail();
+			
+			String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber=" + merchant.getUniqueNumber();
+			
+			String message = commonService.getResetPasswordHtmlContent().replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
+					.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(merchant.getUniqueNumber()));
+			
+			String subject = "Tap4Food password reset";
+			
+			sendMail(merchantEmail, message, subject);
+			
+		}else if(merchantOptionalObject.isPresent()) {
+			
+			if(Objects.isNull(merchant.getUniqueNumber())) {
+				
+				Long uniqNumber = this.getUniqueNumber();
+				
+				merchant.setUniqueNumber(uniqNumber);
+				
+				Long currentTimeInMilli = System.currentTimeMillis();
+				
+				merchant.setCreatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
+				merchant.setLastUpdatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
+				
+				merchantRepository.updateUniqueNumber(merchant);
+				
+				System.out.println("Unique number is updated forthe merchant...");
+				
+				String merchantEmail = merchant.getEmail();
+				
+				String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber=" + uniqNumber;
+				
+				String message = commonService.getCreatePasswordHtmlContent().replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
+						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(uniqNumber));
+				
+				String subject = "Tap4Food registration successfull";
+				
+				sendMail(merchantEmail, message, subject);
+				
+			}
+		}
+		
+		return otpMatch;
+	}
+	
+	private void sendMail(String merchantEmail, String message, String subject) {
+		ExecutorService emailExecutor = Executors.newSingleThreadExecutor();
+        emailExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+            	commonService.sendEmail(merchantEmail, message, subject);
+            }
+        });
+        emailExecutor.shutdown();
+	}
+
+	private Long getUniqueNumber() {
+
+		Long uniqNumber = merchantRepository.getRecentUniqueNumber();
+
+		return uniqNumber;
+	}
+	
+	public boolean createPassword(final Long uniqueNumber, final String password) {
+		
+		merchantRepository.createPassword(uniqueNumber, password);
+		
+		return true;
+	}
+
+	public boolean createMerchant(Merchant merchant) {
+		boolean flag = false;
+		flag = merchantRepository.createMerchant(merchant);
+		
+		Optional<Merchant> merchantOptionalObject = merchantRepository.findByMerchantByPhoneNumber(merchant.getPhoneNumber());
+		
 		if(merchantOptionalObject.isPresent()) {
 			
-			Merchant merchant = merchantOptionalObject.get();
+			merchant = merchantOptionalObject.get();
 			
 			if(Objects.isNull(merchant.getUniqueNumber())) {
 				
@@ -112,25 +197,52 @@ public class MerchantService {
 				
 				String subject = "Tap4Food registration successfull";
 				
-				commonService.sendEmail(merchantEmail, message, subject);
+				// Below code is to run the mail sending logic in background. START
+				
+				ExecutorService emailExecutor = Executors.newSingleThreadExecutor();
+		        emailExecutor.execute(new Runnable() {
+		            @Override
+		            public void run() {
+		            	commonService.sendEmail(merchantEmail, message, subject);
+		            }
+		        });
+		        emailExecutor.shutdown();				
+				
+		        //Above code is to run the mail sending logic in background. END
 			}
 		}
-		
-		return otpMatch;
-	}
 
-	private Long getUniqueNumber() {
-
-		Long uniqNumber = merchantRepository.getRecentUniqueNumber();
-
-		return uniqNumber;
+		return flag;
 	}
 	
-	public boolean createPassword(final Long uniqueNumber, final String password) {
+	
+	public Merchant merchantStatusUpdate(Long uniqueNumber, String status) {
 		
-		merchantRepository.createPassword(uniqueNumber, password);
+		Merchant merchant = null;
 		
-		return true;
+		Optional<Merchant> merchantResponse = merchantRepository.findByUniqueNumber(uniqueNumber);
+		System.out.println("merchant response" + merchantResponse.get());
+		if(merchantResponse.isPresent()) {
+			
+			merchant = merchantResponse.get();
+			
+			merchant.setStatus(status);
+			
+			merchantResponse = merchantRepository.saveMerchant(merchant);
+		};
+		
+		//Mail has to go here.
+		
+
+		return merchant;
 	}
+
+	public Optional<Merchant> updateMerchant(@Valid Merchant merchant) {
+
+		return merchantRepository.saveMerchant(merchant);
+	}
+
+
+
 
 }

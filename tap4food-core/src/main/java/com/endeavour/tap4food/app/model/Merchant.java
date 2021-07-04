@@ -1,9 +1,16 @@
 package com.endeavour.tap4food.app.model;
 
+import java.time.ZonedDateTime;
+import java.util.Date;
+
 import org.bson.types.Binary;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
@@ -55,6 +62,12 @@ public class Merchant {
 	private String password;
 	
 	private String createdBy;
+	
+	private String status;
+	
+	private String createdDate;
+	
+	private String lastUpdatedDate;
 	
 	@DBRef
 	private MerchantBankDetails bankDetails;

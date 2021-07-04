@@ -38,10 +38,12 @@ public class UserDetailsImpl implements UserDetails {
 
 	@JsonIgnore
 	private String password;
+	
+	private String status;
 
 	private Collection<? extends GrantedAuthority> authorities;
 
-	public UserDetailsImpl(String id, String username, String email, String password, String phoneNumber, Long uniqueNumber,
+	public UserDetailsImpl(String id, String username, String email, String password, String phoneNumber, Long uniqueNumber, String status,
 			Collection<? extends GrantedAuthority> authorities) {
 		this.id = id;
 		this.username = username;
@@ -50,6 +52,7 @@ public class UserDetailsImpl implements UserDetails {
 		this.phoneNumber = phoneNumber;
 		this.uniqueNumber = uniqueNumber;
 		this.authorities = authorities;
+		this.status = status;
 	}
 
 	public static UserDetailsImpl build(Merchant merchant) {
@@ -63,7 +66,7 @@ public class UserDetailsImpl implements UserDetails {
 				.map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
 
 		return new UserDetailsImpl(merchant.getId(), merchant.getUserName(), merchant.getEmail(), merchant.getPassword(),
-				merchant.getPhoneNumber(), merchant.getUniqueNumber(), authorities);
+				merchant.getPhoneNumber(), merchant.getUniqueNumber(), merchant.getStatus(), authorities);
 	}
 
 	@Override

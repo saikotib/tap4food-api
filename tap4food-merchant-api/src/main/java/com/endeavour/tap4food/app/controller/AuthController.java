@@ -1,9 +1,12 @@
 package com.endeavour.tap4food.app.controller;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.enums.UserRoleEnum;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
@@ -87,52 +91,90 @@ public class AuthController {
 	}
 	
 	@RequestMapping(value = "/forgot-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> forgotPassword(@RequestParam("phone-number") String phoneNumber) {
+	public ResponseEntity<ResponseHolder> forgotPassword(@RequestParam("unique-number") Long uniqueNumber) {
 
-		boolean smsSentFlag = commonService.sendOTPToPhone(phoneNumber);
+		Optional<Merchant> merchantData = merchantService.findByUniqueNumber(uniqueNumber);
+		
 		ResponseHolder response = null;
 		
-		if(smsSentFlag){
-			response = ResponseHolder.builder()
-					.status("success")
-					.timestamp(String.valueOf(LocalDateTime.now()))
-					.data("OTP has been delivered to customer registed phone number : " + phoneNumber)
-					.build();
+		ResponseEntity<ResponseHolder> responseEntity = null;
+		
+		if(merchantData.isPresent()) {
+			Merchant merchant = merchantData.get();
+			
+			boolean smsSentFlag = commonService.sendOTPToPhone(merchant.getPhoneNumber());
+			
+			if(smsSentFlag){
+				
+				Map<String, String> dataMap = new HashMap<String, String>();
+				
+				dataMap.put("phoneNumber", merchant.getPhoneNumber());
+				dataMap.put("message", "OTP has been delivered to customer registed phone number : " + merchant.getPhoneNumber());
+				
+				response = ResponseHolder.builder()
+						.status("success")
+						.timestamp(String.valueOf(LocalDateTime.now()))
+						.data(dataMap)
+						.build();
+				
+				responseEntity = ResponseEntity.ok().body(response);
+			}else {
+				response = ResponseHolder.builder()
+						.status("error")
+						.timestamp(String.valueOf(LocalDateTime.now()))
+						.data("Problem occured while sending OTP to customer registed phone number : " + merchant.getPhoneNumber())
+						.build();
+				
+				responseEntity = ResponseEntity.badRequest().body(response);
+			}
+			
+			
 		}else {
+			
 			response = ResponseHolder.builder()
 					.status("error")
 					.timestamp(String.valueOf(LocalDateTime.now()))
-					.data("Problem occured while sending OTP to customer registed phone number : " + phoneNumber)
+					.data("No merchant found with the given merchant unique number : " + uniqueNumber)
 					.build();
+			
+			responseEntity = ResponseEntity.badRequest().body(response);
 		}
 		
 		
-		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		return responseEntity;
 	}
 	
 	@RequestMapping(value = "/verify-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> verifyOtp(@RequestParam("phone-number") String phoneNumber, @RequestParam("otp") String otp) {
+	public ResponseEntity<ResponseHolder> verifyOtp(@RequestParam(value = "phone-number", required = true) String phoneNumber, 
+			@RequestParam(value = "otp", required = true) String otp,
+			@RequestParam(value = "forgot-password", required = false) boolean forgotPasswordFlag) {
 
-		boolean isVerified = merchantService.verifyOTP(phoneNumber, otp);
+		boolean isVerified = merchantService.verifyOTP(phoneNumber, otp, forgotPasswordFlag);
 		
 		ResponseHolder response = null;
+		ResponseEntity<ResponseHolder> responseEntity = null;
+		
 		if(isVerified) {
 			response = ResponseHolder.builder()
 					.status("success")
 					.timestamp(String.valueOf(LocalDateTime.now()))
 					.data("OTP verified successfully!")
 					.build();
+			
+			responseEntity = ResponseEntity.ok(response);
+			
 		}else {
 			response = ResponseHolder.builder()
 					.status("error")
 					.timestamp(String.valueOf(LocalDateTime.now()))
 					.data("Invalid OTP.")
 					.build();
+			
+			responseEntity = ResponseEntity.badRequest().body(response);
 		}
 		
-		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		return responseEntity;
 	}
-	
 	
 
 	@RequestMapping(value = "/signin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -148,11 +190,28 @@ public class AuthController {
 		String jwt = jwtUtils.generateJwtToken(authentication);
 
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
-				.collect(Collectors.toList());
-
-		return ResponseEntity.ok(
-				new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
+		
+		System.out.println("Status : " + userDetails.getStatus());
+		
+		ResponseEntity response = null;
+		
+		if (!Objects.isNull(userDetails)) {
+			if (userDetails.getStatus().equalsIgnoreCase(AccountStatusEnum.INACTIVE.name())) {
+				response = ResponseEntity.badRequest().body("Your account is not activated.");
+			}else {
+				List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+						.collect(Collectors.toList());
+				
+				if(Objects.nonNull(userDetails)) {
+					response =ResponseEntity.ok(
+							new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
+				}else {
+					response = ResponseEntity.badRequest().body("Error occured during merchant login");
+				}
+			}
+		}
+		
+		return response;
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -237,16 +296,27 @@ public class AuthController {
 	}
 	
 	@RequestMapping(value = "/create-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> createPassword(@RequestParam("uniqueNumber") Long uniqueNumber, @RequestParam("password") String password){
+	public ResponseEntity<ResponseHolder> createPassword(@RequestParam("uniqueNumber") Long uniqueNumber,
+			@RequestParam("password") String password) {
 		
-		merchantService.createPassword(uniqueNumber, encoder.encode(password));
+		ResponseEntity<ResponseHolder> responseEntity = null;
+		ResponseHolder response = null;
 		
-		ResponseHolder response = ResponseHolder.builder()
-				.status("success")
-				.timestamp(String.valueOf(LocalDateTime.now()))
-				.data("The password has been created succesfully..")
-				.build();
+		if(merchantService.createPassword(uniqueNumber, encoder.encode(password))) {
+			response  = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("The password has been created succesfully..")
+					.build();
+			responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		
-		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			response  = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("Error occured while creating password")
+					.build();
+			responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		
+
+		return responseEntity;
 	}
 }

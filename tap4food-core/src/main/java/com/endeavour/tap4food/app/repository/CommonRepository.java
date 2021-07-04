@@ -47,7 +47,6 @@ public class CommonRepository {
 		
 		Otp otp = mongoTemplate.findOne(query, Otp.class, "otp");
 		
-		
 		return otp;
 	}
 	

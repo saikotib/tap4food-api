@@ -2,6 +2,9 @@ package com.endeavour.tap4food.app.repository;
 
 import static com.mongodb.client.model.Sorts.descending;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.bson.Document;
@@ -30,7 +33,7 @@ public class AdminRepository {
 
 	private String merchantCollection = MongoCollectionConstant.COLLECTION_MERCHANT_UNIQUE_NUMBER;
 
-	public Optional<Admin> findByUserName(String userName) {
+	public Optional<Admin> findAdminByUserName(String userName) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("userName").is(userName));
 
@@ -39,7 +42,7 @@ public class AdminRepository {
 		return Optional.ofNullable(admin);
 	}
 
-	public Optional<Admin> findByEmailId(String emailId) {
+	public Optional<Admin> findAdminByEmailId(String emailId) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("email").is(emailId));
 
@@ -48,7 +51,7 @@ public class AdminRepository {
 		return Optional.ofNullable(admin);
 	}
 
-	public Optional<Admin> findByPhoneNumber(String phoneNumber) {
+	public Optional<Admin> findAdminByPhoneNumber(String phoneNumber) {
 		Query query = new Query(Criteria.where("phoneNumber").is(phoneNumber));
 
 		Admin admin = mongoTemplate.findOne(query, Admin.class);
@@ -66,7 +69,7 @@ public class AdminRepository {
 		return Optional.ofNullable(admin);
 	}
 
-	public Optional<Merchant> findByMerchantByPhoneNumber(String phoneNumber) {
+	public Optional<Merchant> findMerchantByPhoneNumber(String phoneNumber) {
 		Query query = new Query(Criteria.where("phoneNumber").is(phoneNumber));
 
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
@@ -82,6 +85,14 @@ public class AdminRepository {
 			flag = true;
 		}
 		return flag;
+	}
+
+	public Optional<Merchant> findMerchantByEmail(final String merchantEmail) {
+		Query query = new Query(Criteria.where("email").is(merchantEmail));
+
+		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
+
+		return Optional.ofNullable(merchant);
 	}
 
 	@Transactional
@@ -119,13 +130,32 @@ public class AdminRepository {
 
 	public boolean updateUniqueNumber(Merchant merchant) {
 
-//		Query query = new Query(Criteria.where("phoneNumber").is(merchant.getPhoneNumber()));
-
-//		Update update = new Update();
-//		update.set("uniqueNumber", merchant.getUniqueNumber());
-
 		mongoTemplate.save(merchant);
 
 		return false;
+	}
+
+	public List<Merchant> fetchMerchants() {
+
+		List<Merchant> merchants = mongoTemplate.findAll(Merchant.class);
+
+		return merchants;
+	}
+
+	public boolean createAdminPassword(final String userName, final String password) {
+
+		boolean flag = false;
+
+		Query query = new Query(Criteria.where("userName").is(userName));
+
+		Admin admin = mongoTemplate.findOne(query, Admin.class);
+
+		admin.setPassword(password);
+
+		mongoTemplate.save(admin);
+
+		flag = true;
+
+		return flag;
 	}
 }

@@ -9,6 +9,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -77,6 +79,25 @@ public class CommonService {
 		return template;
 	}
 	
+	@Bean
+	public String getResetPasswordHtmlContent() {
+		
+		String template = null;
+		
+		Resource resource = new ClassPathResource("emailTemplates/resetPasswordEmail_Merchant.txt");
+        try {
+			InputStream inputStream = resource.getInputStream();
+			
+			byte[] bdata = FileCopyUtils.copyToByteArray(inputStream);
+			template = new String(bdata, StandardCharsets.UTF_8);
+            
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return template;
+	}
+	
 	public boolean sendSMS(String phoneNumber,String message) {
 		String userId = "flyingkart";
 		String password = "krish";
@@ -126,7 +147,15 @@ public class CommonService {
 		
 		String message = String.format("%s is the OTP to login to your Tap4Food.please enter the OTP to verify your mobile number.", otp).replaceAll("\\s", "%20");
 
-		sendSMS(phoneNumber, message);
+		ExecutorService emailExecutor = Executors.newSingleThreadExecutor();
+        emailExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                sendSMS(phoneNumber, message);
+            }
+        });
+        emailExecutor.shutdown();
+		
 		
 		log.info("The OTP generated : {}", otp);
 		
