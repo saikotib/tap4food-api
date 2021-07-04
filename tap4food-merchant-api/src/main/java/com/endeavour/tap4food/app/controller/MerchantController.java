@@ -1,19 +1,26 @@
 package com.endeavour.tap4food.app.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.endeavour.tap4food.app.model.MenuCategory;
+import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.MerchantService;
@@ -27,6 +34,7 @@ public class MerchantController {
 
 	@RequestMapping(value = "/update-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> merchantStatusUpdate(@RequestParam Long uniqueNumber, @RequestParam String status) {
+
 		ResponseEntity<ResponseHolder> responseEntity = null;
 		
 		Merchant merchant = merchantService.merchantStatusUpdate(uniqueNumber, status);
@@ -55,7 +63,6 @@ public class MerchantController {
 	}
 
 	@RequestMapping(value = "/create-merchant", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-
 	public ResponseEntity<?> createMerchant(@Valid @RequestBody Merchant merchant) {
 
 		/* merchant.setCreatedBy("Admin"); */
@@ -87,5 +94,58 @@ public class MerchantController {
 		}
 
 		return response;
+	}
+	
+	@RequestMapping(path = "/add-category", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> createMenuCategory(@Valid @RequestBody MenuCategory menuCategory){
+			
+		merchantService.createMenuCategory(menuCategory);
+			
+			ResponseHolder response = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data(menuCategory)
+					.build();
+			
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+	} 
+	
+	@RequestMapping(path = "/add-subcategory", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> createMenuSubCategory(@Valid @RequestBody MenuSubCategory menuSubCategories){
+			
+		merchantService.createMenuSubCategory(menuSubCategories);
+			
+			ResponseHolder response = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data(menuSubCategories)
+					.build();
+			
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	} 
+	
+	@RequestMapping(value = "/fetch-categories", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getAllCategories(){
+		List<MenuCategory> categoryName = merchantService.getAllCategories();
+		ResponseHolder response = ResponseHolder.builder()
+				.status("Done")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(categoryName)
+				.build();
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+	}
+	
+	@RequestMapping(value = "/{category-id}/fetch-sub-categories", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getAllSubCategories(@Valid @PathVariable("category-id") String id){
+		Set<MenuSubCategory> subCategories = merchantService.getAllSubCategories(id);
+		ResponseHolder response = ResponseHolder.builder()
+				.status("Done")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(subCategories)
+				.build();
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
 	}
 }

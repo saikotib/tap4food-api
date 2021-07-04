@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.repository;
 
 import static com.mongodb.client.model.Sorts.descending;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.bson.Document;
@@ -14,6 +15,8 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.endeavour.tap4food.app.model.MenuCategory;
+import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.UniqueNumber;
@@ -162,5 +165,31 @@ public class MerchantRepository {
 		Merchant merchantRes = mongoTemplate.save(merchant);
 		System.out.println(merchantRes);
 		return Optional.ofNullable(merchantRes);
+	}
+	
+	public void addMenuCategory(MenuCategory menuCategory) {
+		mongoTemplate.save(menuCategory);
+	}
+
+	public void addMenuSubCategory(MenuSubCategory categories) {
+		mongoTemplate.save(categories);
+	}
+	
+	public Optional<List<MenuCategory>> findAllCategories(){
+		
+		List<MenuCategory> menu = mongoTemplate.findAll(MenuCategory.class, "menuCategories");
+		
+		return Optional.ofNullable(menu);
+	}
+
+
+	public Optional<MenuCategory> findAllSubCategories(String id){
+		
+		Query query = new Query();
+		query.addCriteria(Criteria.where("id").is(id));
+		
+		MenuCategory menu = mongoTemplate.findOne(query, MenuCategory.class);
+		
+		return Optional.ofNullable(menu);
 	}
 }

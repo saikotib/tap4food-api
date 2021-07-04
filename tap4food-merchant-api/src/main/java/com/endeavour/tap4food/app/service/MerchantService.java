@@ -1,7 +1,11 @@
 package com.endeavour.tap4food.app.service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -10,6 +14,8 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.endeavour.tap4food.app.model.MenuCategory;
+import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
@@ -243,6 +249,34 @@ public class MerchantService {
 	}
 
 
+	public void createMenuCategory(@Valid MenuCategory menuCategory) {
+		
+		 merchantRepository.addMenuCategory(menuCategory); 
+	}
 
+	public void createMenuSubCategory(@Valid MenuSubCategory menuSubCategory) {
+		
+		merchantRepository.addMenuSubCategory(menuSubCategory);
+	}
+	
+	public List<MenuCategory> getAllCategories() {
+		Optional<List<MenuCategory>> categoryId = merchantRepository.findAllCategories();
+		if (categoryId.isPresent()) {
+			
+			return categoryId.get();
+		} else {
+			return new ArrayList<MenuCategory>();
+		}
+	}
+
+	public Set<MenuSubCategory> getAllSubCategories(String id) {
+		Optional<MenuCategory> categoryId = merchantRepository.findAllSubCategories(id);
+		if (categoryId.isPresent()) {
+			
+			return categoryId.get().getSubCategories();
+		} else {
+			return new HashSet<MenuSubCategory>();
+		}
+	}
 
 }
