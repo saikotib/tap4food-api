@@ -139,7 +139,7 @@ public class MerchantController {
 
 	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST)
 	public ResponseEntity<ResponseHolder> uploadProdilePic(@Valid @PathVariable("merchant-id") String id,
-			@RequestParam(value = "pic", required = false) MultipartFile pic, String type) {
+			@RequestParam(value = "pic", required = true) MultipartFile pic,@RequestParam(required = true) String type) {
 
 		ResponseEntity<ResponseHolder> response = null;
 		Optional<Merchant> merchantResponse = null;
@@ -156,7 +156,7 @@ public class MerchantController {
 		if (merchantResponse.isPresent()) {
 
 			response = ResponseEntity.ok(ResponseHolder.builder().status(type + " succesfully uploaded")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse).build());
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse.get()).build());
 		} else {
 			response = ResponseEntity.badRequest()
 					.body(ResponseHolder.builder().status("Error occurred while uploading " + type)
