@@ -136,8 +136,14 @@ public class AdminRepository {
 	}
 
 	public List<Merchant> fetchMerchants() {
+		
+		Query query = new Query(
+				new Criteria().andOperator(
+				        Criteria.where("uniqueNumber").exists(true),
+				        Criteria.where("uniqueNumber").ne("")
+				    ));
 
-		List<Merchant> merchants = mongoTemplate.findAll(Merchant.class);
+		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
 
 		return merchants;
 	}

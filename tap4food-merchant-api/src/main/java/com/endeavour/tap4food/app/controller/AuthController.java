@@ -241,6 +241,7 @@ public class AuthController {
 			merchant.setUserName(signUpRequest.getUsername());
 			merchant.setEmail(signUpRequest.getEmail());
 			merchant.setPhoneNumber(signUpRequest.getPhoneNumber());
+			merchant.setStatus(AccountStatusEnum.INACTIVE.name());
 			
 //			User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(), signUpRequest.getPhoneNumber());
 

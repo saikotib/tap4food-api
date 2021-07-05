@@ -60,6 +60,10 @@ public class MerchantService {
 	}
 
 	public void saveUser(Merchant merchant) {
+		
+		Long uniqNumber = this.getUniqueNumber();
+
+		merchant.setUniqueNumber(uniqNumber);
 
 		boolean isUserSaved = merchantRepository.save(merchant);
 
