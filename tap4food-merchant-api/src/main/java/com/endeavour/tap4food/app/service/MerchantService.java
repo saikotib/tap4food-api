@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +44,9 @@ public class MerchantService {
 
 	@Autowired
 	private CommonService commonService;
+	
+	@Autowired
+	PasswordEncoder encoder;
 
 	public Optional<Merchant> findByEmailId(String emailId) {
 
@@ -62,16 +66,36 @@ public class MerchantService {
 	public void saveUser(Merchant merchant) {
 		
 		Long uniqNumber = this.getUniqueNumber();
+		
+		Long currentTimeInMilli = System.currentTimeMillis();
 
 		merchant.setUniqueNumber(uniqNumber);
+		merchant.setCreatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
+		merchant.setLastUpdatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
 
 		boolean isUserSaved = merchantRepository.save(merchant);
+		
 
 		if (isUserSaved) {
 			commonService.sendOTPToPhone(merchant.getPhoneNumber());
 		}
 	}
-
+	
+	public boolean resentOtp(final String phoneNumber) {
+		boolean flag = false;
+		
+		Optional<Merchant> merchantData = merchantRepository.findByPhoneNumber(phoneNumber);
+		
+		if(merchantData.isPresent()) {
+			
+			if(commonService.sendOTPToPhone(phoneNumber)) {
+				flag = true;
+			}
+		}
+		
+		return flag;
+	}
+	
 	public String validateSignupData(final String emailId, final String phoneNumber) {
 
 		String validationMessage = null;
@@ -109,55 +133,42 @@ public class MerchantService {
 		}
 
 		Optional<Merchant> merchantOptionalObject = merchantRepository.findByPhoneNumber(phoneNumber);
-
-		Merchant merchant = merchantOptionalObject.get();
-
-		if (forgotPasswordFlag) {
-
+		
+		if(merchantOptionalObject.isPresent()) {
+			Merchant merchant = merchantOptionalObject.get();
+			
 			String merchantEmail = merchant.getEmail();
+			
+			String createPasswordLink = null;
+			
+			String message = null;
+			
+			String subject = null;
+			
+			if (forgotPasswordFlag) {
 
-			String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
-					+ merchant.getUniqueNumber();
+				subject = "Tap4Food merchant password reset";
 
-			String message = commonService.getResetPasswordHtmlContent()
-					.replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
-					.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(merchant.getUniqueNumber()));
-
-			String subject = "Tap4Food password reset";
-
-			sendMail(merchantEmail, message, subject);
-
-		} else if (merchantOptionalObject.isPresent()) {
-
-			if (Objects.isNull(merchant.getUniqueNumber())) {
-
-				Long uniqNumber = this.getUniqueNumber();
-
-				merchant.setUniqueNumber(uniqNumber);
-
-				Long currentTimeInMilli = System.currentTimeMillis();
-
-				merchant.setCreatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
-				merchant.setLastUpdatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
-
-				merchantRepository.updateUniqueNumber(merchant);
-
-				System.out.println("Unique number is updated forthe merchant...");
-
-				String merchantEmail = merchant.getEmail();
-
-				String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
-						+ uniqNumber;
-
-				String message = commonService.getCreatePasswordHtmlContent()
+				createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
+						+ merchant.getUniqueNumber();
+				
+				message = commonService.getResetPasswordHtmlContent()
 						.replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
-						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(uniqNumber));
+						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(merchant.getUniqueNumber()));
+				
 
-				String subject = "Tap4Food registration successfull";
+			}else {
+				createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
+						+ merchant.getUniqueNumber();
 
-				sendMail(merchantEmail, message, subject);
+				message = commonService.getCreatePasswordHtmlContent()
+						.replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
+						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(merchant.getUniqueNumber()));
 
+				subject = "Tap4Food registration successfull";
 			}
+			
+			sendMail(merchantEmail, message, subject);
 		}
 
 		return otpMatch;
@@ -318,5 +329,31 @@ public class MerchantService {
 
 		return merchant;
 	}
-
+	
+	public String changePassword(final Long uniqueNumber, final String oldPassword, final String newPassword) {
+		
+		String message = null;
+		
+		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueNumber);
+		
+		if(merchantData.isPresent()) {
+			Merchant merchant = merchantData.get();
+			
+			System.out.println("Is password matched :" + encoder.matches(oldPassword, merchant.getPassword()));
+			
+			if(encoder.matches(oldPassword, merchant.getPassword())) {
+				
+				merchant.setPassword(encoder.encode(newPassword));
+				
+				merchantRepository.saveMerchant(merchant);
+				
+				message = "Password is changed successfully";
+			}else {
+				message = "Old password is incorrect";
+			}
+		}
+		
+		return message;
+	}
+	
 }

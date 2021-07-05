@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.enums.UserRoleEnum;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.payload.request.ChangePasswordRequest;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
 import com.endeavour.tap4food.app.payload.request.SignupRequest;
 import com.endeavour.tap4food.app.payload.response.JwtResponse;
@@ -88,6 +89,35 @@ public class AuthController {
 		
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/change-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+		
+		String message = merchantService.changePassword(changePasswordRequest.getUniqueNumber(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+		
+		ResponseEntity<ResponseHolder> response = null;
+		
+		if(Objects.isNull(message)) {
+			ResponseHolder responseHolder = ResponseHolder.builder()
+					.status("error")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("No merchant found with the input unique number")
+					.build();
+			
+			response = ResponseEntity.badRequest().body(responseHolder);
+			
+		}else {
+			ResponseHolder responseHolder = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data(message)
+					.build();
+			
+			response = ResponseEntity.badRequest().body(responseHolder);
+		}
+		
+		return response;
 	}
 	
 	@RequestMapping(value = "/forgot-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -212,6 +242,36 @@ public class AuthController {
 		}
 		
 		return response;
+	}
+	
+	@RequestMapping(value = "/resent-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber){
+		
+		ResponseHolder responseHolder = null;
+		
+		ResponseEntity<ResponseHolder> responseEntity = null;
+		
+		boolean isOTPDelivered = merchantService.resentOtp(phoneNumber);
+		
+		if(isOTPDelivered) {
+			responseHolder = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("OTP is sent again")
+					.build();
+			
+			responseEntity = ResponseEntity.ok().body(responseHolder);
+		}else {
+			responseHolder = ResponseHolder.builder()
+					.status("error")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("Couldn't send OTP.")
+					.build();
+			
+			responseEntity = ResponseEntity.badRequest().body(responseHolder);
+		}
+		
+		return responseEntity;
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
