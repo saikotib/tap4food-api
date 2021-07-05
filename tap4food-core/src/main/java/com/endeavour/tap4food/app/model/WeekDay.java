@@ -12,6 +12,8 @@ public class WeekDay {
 	@Id
 	private String id;
 	
+	private String weekDayName;
+	
 	private Boolean opened24Hours;
 	
 	private Boolean closed;
