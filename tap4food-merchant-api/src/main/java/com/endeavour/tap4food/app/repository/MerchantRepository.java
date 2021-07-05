@@ -5,6 +5,8 @@ import static com.mongodb.client.model.Sorts.descending;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,5 +193,13 @@ public class MerchantRepository {
 		MenuCategory menu = mongoTemplate.findOne(query, MenuCategory.class);
 		
 		return Optional.ofNullable(menu);
+	}
+
+	public Optional<Merchant> findMerchantById( String id) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("id").is(id));
+		
+		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
+		return Optional.ofNullable(merchant);
 	}
 }
