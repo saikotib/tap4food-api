@@ -72,4 +72,7 @@ public class Merchant {
 	@DBRef
 	private MerchantBankDetails bankDetails;
 	
+	@DBRef
+	private FoodStallTimings foodStallTimings;
+	
 }
