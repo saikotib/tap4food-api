@@ -143,7 +143,7 @@ public class MerchantController {
 
 	}
 
-	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST)
+	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadProdilePic(@Valid @PathVariable("merchant-id") Long id,
 			@RequestParam(value = "pic", required = true) MultipartFile pic,
 			@RequestParam(required = true) String type) {
@@ -177,7 +177,7 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{merchant-unique-number}/add-bank-details", method = RequestMethod.POST)
+	@RequestMapping(value = "/{merchant-unique-number}/add-bank-details", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> addBankDetails(@Valid @PathVariable("merchant-unique-number") Long uniqueId,
 			@RequestBody MerchantBankDetails merchantBankDetails) {
 
@@ -198,7 +198,7 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{merchant-unique-number}/add-foodstall-timings", method = RequestMethod.POST)
+	@RequestMapping(value = "/{merchant-unique-number}/add-foodstall-timings", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> saveFoodStallTimings(
 			@Valid @PathVariable("merchant-unique-number") Long uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
 
@@ -221,7 +221,7 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{merchant-unique-number}/update-bank-details", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{merchant-unique-number}/update-bank-details", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateBankDetails(
 			@Valid @PathVariable("merchant-unique-number") Long uniqueId,
 			@RequestBody MerchantBankDetails merchantBankDetails) {
@@ -243,7 +243,7 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{food-court-unique-number}/update-foodstall-timings", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{food-court-unique-number}/update-foodstall-timings", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodStallTimings(
 			@Valid @PathVariable("food-court-unique-number") String uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
 
@@ -263,7 +263,7 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{food-court-unique-number}/get-foodstall-timings", method = RequestMethod.GET)
+	@RequestMapping(value = "/{food-court-unique-number}/get-foodstall-timings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodStallTimingsByUniqueId(
 			@Valid @PathVariable("food-court-unique-number") String uniqueId) {
 
@@ -286,7 +286,7 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{merchant-unique-number}/get-bank-details", method = RequestMethod.GET)
+	@RequestMapping(value = "/{merchant-unique-number}/get-bank-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getBankDetailsByUniqueId(
 			@Valid @PathVariable("merchant-unique-number") Long uniqueId) {
 
