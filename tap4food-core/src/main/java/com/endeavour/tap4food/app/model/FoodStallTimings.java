@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.model;
 
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
@@ -15,9 +16,11 @@ public class FoodStallTimings {
 	@Id
 	private String id;
 	
+	private Long merchantId;
+	
 	private String foodStalltId;
 	
 	@DBRef
-	private Set<WeekDay> days;
+	private List<WeekDay> days;
 	
 }

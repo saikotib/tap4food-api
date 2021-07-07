@@ -21,4 +21,6 @@ public class WeekDay {
 	private String openTime;
 	
 	private String closeTime;
+	
+	private String foodStallId;
 }

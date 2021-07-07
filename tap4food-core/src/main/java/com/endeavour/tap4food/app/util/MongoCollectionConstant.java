@@ -22,4 +22,6 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_EMAIL_TEMPLATES = "emailTemplates";
 	
+	public static final String COLLECTION_FOOD_COURT_UNIQUE_NUMBER = "foodCourtUniqueNumber";
+	
 }

@@ -1,7 +1,9 @@
 package com.endeavour.tap4food.app.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +24,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.MenuCategory;
 import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.MerchantBankDetails;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.MerchantService;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -138,18 +144,22 @@ public class MerchantController {
 	}
 
 	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST)
-	public ResponseEntity<ResponseHolder> uploadProdilePic(@Valid @PathVariable("merchant-id") String id,
-			@RequestParam(value = "pic", required = true) MultipartFile pic,@RequestParam(required = true) String type) {
+	public ResponseEntity<ResponseHolder> uploadProdilePic(@Valid @PathVariable("merchant-id") Long id,
+			@RequestParam(value = "pic", required = true) MultipartFile pic,
+			@RequestParam(required = true) String type) {
 
 		ResponseEntity<ResponseHolder> response = null;
 		Optional<Merchant> merchantResponse = null;
 
 		System.out.println(pic.getSize());
 		String picType = pic.getOriginalFilename().split("\\.")[1];
+		System.out.println(picType);
 		if (!Arrays.asList(ImageConstants.IMAGE_JPEG, ImageConstants.IMAGE_PNG, ImageConstants.IMAGE_JPG)
 				.contains(picType)) {
+			System.out.println("inf");
 			throw new IllegalStateException("File must be an Image");
 		} else {
+			System.out.println("else");
 			merchantResponse = merchantService.uploadProfilePic(id, pic, type);
 		}
 
@@ -166,4 +176,135 @@ public class MerchantController {
 
 		return response;
 	}
+
+	@RequestMapping(value = "/{merchant-unique-number}/add-bank-details", method = RequestMethod.POST)
+	public ResponseEntity<ResponseHolder> addBankDetails(@Valid @PathVariable("merchant-unique-number") Long uniqueId,
+			@RequestBody MerchantBankDetails merchantBankDetails) {
+
+		Optional<Merchant> merchantBankDetailsResponse = merchantService.saveMerchantBankDetails(uniqueId,
+				merchantBankDetails);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantBankDetailsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Bank Details saved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse.get()).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while saving Merchant Bank Details")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse).build());
+
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/{merchant-unique-number}/add-foodstall-timings", method = RequestMethod.POST)
+	public ResponseEntity<ResponseHolder> saveFoodStallTimings(
+			@Valid @PathVariable("merchant-unique-number") Long uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
+
+		Optional<FoodStallTimings> merchantFoodStallTimingsResponse = merchantService.saveFoodCourtTimings(uniqueId,
+				weekDay);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantFoodStallTimingsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
+					.build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while saving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
+							.build());
+
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/{merchant-unique-number}/update-bank-details", method = RequestMethod.PUT)
+	public ResponseEntity<ResponseHolder> updateBankDetails(
+			@Valid @PathVariable("merchant-unique-number") Long uniqueId,
+			@RequestBody MerchantBankDetails merchantBankDetails) {
+
+		Optional<Merchant> merchantBankDetailsResponse = merchantService.saveMerchantBankDetails(uniqueId,
+				merchantBankDetails);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantBankDetailsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Bank Details updated succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse.get()).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while updating Merchant Bank Details")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse).build());
+
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/{food-court-unique-number}/update-foodstall-timings", method = RequestMethod.PUT)
+	public ResponseEntity<ResponseHolder> updateFoodStallTimings(
+			@Valid @PathVariable("food-court-unique-number") String uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
+
+		Collection<WeekDay> merchantFoodStallTimingsResponse = merchantService.updateFoodCourtTimings(uniqueId, weekDay);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (!ObjectUtils.isEmpty(merchantFoodStallTimingsResponse)) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while saving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse)
+							.build());
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/{food-court-unique-number}/get-foodstall-timings", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getFoodStallTimingsByUniqueId(
+			@Valid @PathVariable("food-court-unique-number") String uniqueId) {
+
+		List<WeekDay> weekDayRes = merchantService
+				.getFoodCourtTimingsByUniqueId(uniqueId);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (!ObjectUtils.isEmpty(weekDayRes)) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings retrieved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes)
+					.build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes)
+							.build());
+
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/{merchant-unique-number}/get-bank-details", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getBankDetailsByUniqueId(
+			@Valid @PathVariable("merchant-unique-number") Long uniqueId) {
+
+		Optional<List<MerchantBankDetails>> merchantBankDetailsResponse = merchantService
+				.getBankDetailsByUniqueId(uniqueId);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantBankDetailsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Bank Details retrieved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse.get()).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while retrieving Merchant Bank Details")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse).build());
+
+		}
+		return response;
+	}
+
 }
