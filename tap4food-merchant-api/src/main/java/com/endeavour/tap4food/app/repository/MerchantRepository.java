@@ -209,9 +209,9 @@ public class MerchantRepository {
 		return Optional.ofNullable(merchant);
 	}
 	
-	public Optional<Merchant> findMerchantByUniqueId(Long id) {
+	public Optional<Merchant> findMerchantByUniqueId(final Long id) {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("unique").is(id));
+		query.addCriteria(Criteria.where("uniqueNumber").is(id));
 
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
 		return Optional.ofNullable(merchant);
