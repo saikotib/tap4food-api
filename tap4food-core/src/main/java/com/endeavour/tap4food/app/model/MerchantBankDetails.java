@@ -18,7 +18,7 @@ public class MerchantBankDetails {
 	@Id
 	private String id;
 	
-	private String merchantId;
+	private Long merchantId;
 	
 	private String bankName;
 	

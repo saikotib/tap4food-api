@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -19,10 +21,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.MenuCategory;
 import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.Otp;
+import com.endeavour.tap4food.app.model.UniqueNumber;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
 import com.endeavour.tap4food.app.util.AppConstants;
@@ -30,6 +36,7 @@ import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
 import com.endeavour.tap4food.app.util.AppConstants;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -44,7 +51,7 @@ public class MerchantService {
 
 	@Autowired
 	private CommonService commonService;
-	
+
 	@Autowired
 	PasswordEncoder encoder;
 
@@ -64,9 +71,9 @@ public class MerchantService {
 	}
 
 	public void saveUser(Merchant merchant) {
-		
+
 		Long uniqNumber = this.getUniqueNumber();
-		
+
 		Long currentTimeInMilli = System.currentTimeMillis();
 
 		merchant.setUniqueNumber(uniqNumber);
@@ -74,28 +81,27 @@ public class MerchantService {
 		merchant.setLastUpdatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
 
 		boolean isUserSaved = merchantRepository.save(merchant);
-		
 
 		if (isUserSaved) {
 			commonService.sendOTPToPhone(merchant.getPhoneNumber());
 		}
 	}
-	
+
 	public boolean resentOtp(final String phoneNumber) {
 		boolean flag = false;
-		
+
 		Optional<Merchant> merchantData = merchantRepository.findByPhoneNumber(phoneNumber);
-		
-		if(merchantData.isPresent()) {
-			
-			if(commonService.sendOTPToPhone(phoneNumber)) {
+
+		if (merchantData.isPresent()) {
+
+			if (commonService.sendOTPToPhone(phoneNumber)) {
 				flag = true;
 			}
 		}
-		
+
 		return flag;
 	}
-	
+
 	public String validateSignupData(final String emailId, final String phoneNumber) {
 
 		String validationMessage = null;
@@ -133,31 +139,30 @@ public class MerchantService {
 		}
 
 		Optional<Merchant> merchantOptionalObject = merchantRepository.findByPhoneNumber(phoneNumber);
-		
-		if(merchantOptionalObject.isPresent()) {
+
+		if (merchantOptionalObject.isPresent()) {
 			Merchant merchant = merchantOptionalObject.get();
-			
+
 			String merchantEmail = merchant.getEmail();
-			
+
 			String createPasswordLink = null;
-			
+
 			String message = null;
-			
+
 			String subject = null;
-			
+
 			if (forgotPasswordFlag) {
 
 				subject = "Tap4Food merchant password reset";
 
 				createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
 						+ merchant.getUniqueNumber();
-				
+
 				message = commonService.getResetPasswordHtmlContent()
 						.replaceAll(EmailTemplateConstants.CREATE_NEW_PASSWORD_LINK, createPasswordLink)
 						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(merchant.getUniqueNumber()));
-				
 
-			}else {
+			} else {
 				createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
 						+ merchant.getUniqueNumber();
 
@@ -167,7 +172,7 @@ public class MerchantService {
 
 				subject = "Tap4Food registration successfull";
 			}
-			
+
 			sendMail(merchantEmail, message, subject);
 		}
 
@@ -305,10 +310,10 @@ public class MerchantService {
 		}
 	}
 
-	public Optional<Merchant> uploadProfilePic(final String id, MultipartFile image, String imagetype) {
+	public Optional<Merchant> uploadProfilePic(final Long id, MultipartFile image, String imagetype) {
 
 		Merchant merchantObj = new Merchant();
-		Optional<Merchant> merchant = merchantRepository.findMerchantById(id);
+		Optional<Merchant> merchant = merchantRepository.findMerchantByUniqueId(id);
 
 		if (merchant.isPresent()
 				&& (imagetype.equals(AppConstants.PROFILE_PIC) || imagetype.equals(AppConstants.PERSONAL_ID))) {
@@ -316,6 +321,7 @@ public class MerchantService {
 
 			try {
 				if (imagetype.equals(AppConstants.PROFILE_PIC)) {
+					System.out.println("servoce if");
 					merchantObj.setProfilePic(new Binary(BsonBinarySubType.BINARY, image.getBytes()));
 				} else if (imagetype.equals(AppConstants.PERSONAL_ID)) {
 					merchantObj.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY, image.getBytes()));
@@ -329,31 +335,87 @@ public class MerchantService {
 
 		return merchant;
 	}
-	
+
 	public String changePassword(final Long uniqueNumber, final String oldPassword, final String newPassword) {
-		
+
 		String message = null;
-		
+
 		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueNumber);
-		
-		if(merchantData.isPresent()) {
+
+		if (merchantData.isPresent()) {
 			Merchant merchant = merchantData.get();
-			
+
 			System.out.println("Is password matched :" + encoder.matches(oldPassword, merchant.getPassword()));
-			
-			if(encoder.matches(oldPassword, merchant.getPassword())) {
-				
+
+			if (encoder.matches(oldPassword, merchant.getPassword())) {
+
 				merchant.setPassword(encoder.encode(newPassword));
-				
+
 				merchantRepository.saveMerchant(merchant);
-				
+
 				message = "Password is changed successfully";
-			}else {
+			} else {
 				message = "Old password is incorrect";
 			}
 		}
-		
+
 		return message;
 	}
-	
+
+	public Optional<Merchant> saveMerchantBankDetails(@Valid Long uniqueId, MerchantBankDetails merchantBankDetails) {
+
+		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
+		// Optional<MerchantBankDetails> merchantBankDetailsRes =
+		// merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
+		if (merchantData.isPresent()) {
+			Merchant merchant = merchantData.get();
+			merchantBankDetails.setMerchantId(uniqueId);
+			merchantBankDetails = merchantRepository.saveMerchantBankDetails(merchantBankDetails);
+			merchant.setBankDetails(merchantBankDetails);
+			merchantRepository.save(merchant);
+		}
+
+		return Optional.ofNullable(merchantData.get());
+	}
+
+	public Optional<FoodStallTimings> saveFoodCourtTimings(Long uniqueId, ArrayList<WeekDay> weekDay) {
+
+		FoodStallTimings foodStallTimings = new FoodStallTimings();
+		foodStallTimings.setMerchantId(uniqueId);
+		foodStallTimings.setFoodStalltId(merchantRepository.getFoodCourtUniqueNumber());
+		foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
+
+		for (int i = 0; i < weekDay.size(); i++) {
+			weekDay.get(i).setFoodStallId(foodStallTimings.getFoodStalltId());
+			merchantRepository.saveOneWeekDay(weekDay.get(i));
+		}
+
+		/* Collection<WeekDay> res = merchantRepository.saveWeekDay(); */
+
+		foodStallTimings.setDays(weekDay);
+
+		return Optional.ofNullable(foodStallTimings);
+	}
+
+	public List<WeekDay> getFoodCourtTimingsByUniqueId(final String uniqueId) {
+
+		return merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
+	}
+
+	public Optional<List<MerchantBankDetails>> getBankDetailsByUniqueId(final Long uniqueId) {
+
+		return merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
+	}
+
+	public Collection<WeekDay> updateFoodCourtTimings(final String uniqueId, ArrayList<WeekDay> weekDay) {
+		List<WeekDay> weekRes = merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
+		for (int i = 0; i < weekRes.size(); i++) {
+			/* WeekDay weekDayObj = weekRes.get(i); */
+			weekDay.get(i).setId(weekRes.get(i).getId());
+			merchantRepository.saveOneWeekDay(weekDay.get(i));
+		}
+
+		return weekRes.stream().collect(Collectors.toSet());
+	}
+
 }
