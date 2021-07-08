@@ -19,6 +19,7 @@ import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.model.FoodStallTimings;
@@ -365,34 +366,45 @@ public class MerchantService {
 	public Optional<Merchant> saveMerchantBankDetails(@Valid Long uniqueId, MerchantBankDetails merchantBankDetails) {
 
 		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
-		// Optional<MerchantBankDetails> merchantBankDetailsRes =
-		// merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
-		if (merchantData.isPresent()) {
+		Optional<List<MerchantBankDetails>> merchantBankDetailsRes = merchantRepository
+				.findMerchantBankDetailsByUniqueNumber(uniqueId);
+		System.out.println("merchant bank Details" + merchantBankDetailsRes.get());
+		if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.get())) {
+			System.out.println("if");
 			Merchant merchant = merchantData.get();
 			merchantBankDetails.setMerchantId(uniqueId);
 			merchantBankDetails = merchantRepository.saveMerchantBankDetails(merchantBankDetails);
 			merchant.setBankDetails(merchantBankDetails);
 			merchantRepository.save(merchant);
+		}else {
+			merchantData = null;
 		}
+		
+		 System.out.println("new Data  "  + ( merchantRepository.findByUniqueNumber(uniqueId)).get());
+		
+		
 
 		return Optional.ofNullable(merchantData.get());
 	}
 
 	public Optional<FoodStallTimings> saveFoodCourtTimings(Long uniqueId, ArrayList<WeekDay> weekDay) {
 
+		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
 		FoodStallTimings foodStallTimings = new FoodStallTimings();
-		foodStallTimings.setMerchantId(uniqueId);
-		foodStallTimings.setFoodStalltId(merchantRepository.getFoodCourtUniqueNumber());
-		foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
+		if (merchantData.isPresent()) {	
+			foodStallTimings.setMerchantId(uniqueId);
+			foodStallTimings.setFoodStalltId(merchantRepository.getFoodCourtUniqueNumber());
+			foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
+			for (int i = 0; i < weekDay.size(); i++) {
+				weekDay.get(i).setFoodStallId(foodStallTimings.getFoodStalltId());
+				merchantRepository.saveOneWeekDay(weekDay.get(i));
+			}
 
-		for (int i = 0; i < weekDay.size(); i++) {
-			weekDay.get(i).setFoodStallId(foodStallTimings.getFoodStalltId());
-			merchantRepository.saveOneWeekDay(weekDay.get(i));
+			/* Collection<WeekDay> res = merchantRepository.saveWeekDay(); */
+
+			foodStallTimings.setDays(weekDay);
 		}
-
-		/* Collection<WeekDay> res = merchantRepository.saveWeekDay(); */
-
-		foodStallTimings.setDays(weekDay);
+	
 
 		return Optional.ofNullable(foodStallTimings);
 	}
@@ -416,6 +428,11 @@ public class MerchantService {
 		}
 
 		return weekRes.stream().collect(Collectors.toSet());
+	}
+
+	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) {
+		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueNumber);
+		return merchantData;
 	}
 
 }

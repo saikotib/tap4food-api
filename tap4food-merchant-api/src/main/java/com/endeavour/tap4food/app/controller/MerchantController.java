@@ -143,7 +143,7 @@ public class MerchantController {
 
 	}
 
-	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadProdilePic(@Valid @PathVariable("merchant-id") Long id,
 			@RequestParam(value = "pic", required = true) MultipartFile pic,
 			@RequestParam(required = true) String type) {
@@ -185,7 +185,7 @@ public class MerchantController {
 				merchantBankDetails);
 		ResponseEntity<ResponseHolder> response = null;
 
-		if (merchantBankDetailsResponse.isPresent()) {
+		if (Objects.nonNull(merchantBankDetailsResponse.get().getBankDetails())) {
 
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Bank Details saved succesfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse.get()).build());
@@ -247,7 +247,8 @@ public class MerchantController {
 	public ResponseEntity<ResponseHolder> updateFoodStallTimings(
 			@Valid @PathVariable("food-court-unique-number") String uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
 
-		Collection<WeekDay> merchantFoodStallTimingsResponse = merchantService.updateFoodCourtTimings(uniqueId, weekDay);
+		Collection<WeekDay> merchantFoodStallTimingsResponse = merchantService.updateFoodCourtTimings(uniqueId,
+				weekDay);
 		ResponseEntity<ResponseHolder> response = null;
 
 		if (!ObjectUtils.isEmpty(merchantFoodStallTimingsResponse)) {
@@ -267,20 +268,17 @@ public class MerchantController {
 	public ResponseEntity<ResponseHolder> getFoodStallTimingsByUniqueId(
 			@Valid @PathVariable("food-court-unique-number") String uniqueId) {
 
-		List<WeekDay> weekDayRes = merchantService
-				.getFoodCourtTimingsByUniqueId(uniqueId);
+		List<WeekDay> weekDayRes = merchantService.getFoodCourtTimingsByUniqueId(uniqueId);
 		ResponseEntity<ResponseHolder> response = null;
 
 		if (!ObjectUtils.isEmpty(weekDayRes)) {
 
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings retrieved succesfully")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes)
-					.build());
+					.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes).build());
 		} else {
 			response = ResponseEntity.badRequest()
 					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes)
-							.build());
+							.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes).build());
 
 		}
 		return response;
@@ -302,6 +300,25 @@ public class MerchantController {
 			response = ResponseEntity.badRequest()
 					.body(ResponseHolder.builder().status("Error occurred while retrieving Merchant Bank Details")
 							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse).build());
+
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/get-merchant-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getMerchantDetailsByUniqueId(@Valid @RequestParam Long uniqueNumber) {
+
+		Optional<Merchant> merchantDetailsResponse = merchantService.getMerchantDetailsByUniqueId(uniqueNumber);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantDetailsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Details retrieved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantDetailsResponse.get()).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while retrieving Merchant Details")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantDetailsResponse).build());
 
 		}
 		return response;
