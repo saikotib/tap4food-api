@@ -441,12 +441,17 @@ public class MerchantService {
 	}
 
 	public Collection<WeekDay> updateFoodCourtTimings(final String uniqueId, ArrayList<WeekDay> weekDay) {
+		
 		List<WeekDay> weekRes = merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
+		//Optional<Merchant> merchant = merchantRepository.findByUniqueNumber(uniqueNumber)
+		
 		for (int i = 0; i < weekRes.size(); i++) {
 			/* WeekDay weekDayObj = weekRes.get(i); */
 			weekDay.get(i).setId(weekRes.get(i).getId());
 			merchantRepository.saveOneWeekDay(weekDay.get(i));
 		}
+		
+		
 
 		return weekRes.stream().collect(Collectors.toSet());
 	}
