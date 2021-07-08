@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.controller;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,8 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +35,7 @@ import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.MerchantService;
+import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.ImageConstants;
 /*import org.apache.http.entity.ContentType;*/
 
@@ -72,6 +76,13 @@ public class MerchantController {
 	public ResponseEntity<?> createMerchant(@Valid @RequestBody Merchant merchant) {
 
 		/* merchant.setCreatedBy("Admin"); */
+		try {
+			merchant.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+			merchant.setProfilePic(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+		} catch (IOException e) {
+
+		}
+
 		boolean createMerchantResFlag = merchantService.createMerchant(merchant);
 		ResponseEntity response = null;
 
@@ -143,8 +154,8 @@ public class MerchantController {
 
 	}
 
-	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadProdilePic(@Valid @PathVariable("merchant-id") Long id,
+	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> uploadProfilePic(@Valid @PathVariable("merchant-id") Long id,
 			@RequestParam(value = "pic", required = true) MultipartFile pic,
 			@RequestParam(required = true) String type) {
 
@@ -152,7 +163,7 @@ public class MerchantController {
 		Optional<Merchant> merchantResponse = null;
 
 		System.out.println(pic.getSize());
-		String picType = pic.getOriginalFilename().split("\\.")[1];
+		String picType = pic.getOriginalFilename().split("\\.")[1].toLowerCase();
 		System.out.println(picType);
 		if (!Arrays.asList(ImageConstants.IMAGE_JPEG, ImageConstants.IMAGE_PNG, ImageConstants.IMAGE_JPG)
 				.contains(picType)) {
@@ -185,7 +196,7 @@ public class MerchantController {
 				merchantBankDetails);
 		ResponseEntity<ResponseHolder> response = null;
 
-		if (merchantBankDetailsResponse.isPresent()) {
+		if (Objects.nonNull(merchantBankDetailsResponse.get().getBankDetails())) {
 
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Bank Details saved succesfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse.get()).build());
@@ -247,7 +258,8 @@ public class MerchantController {
 	public ResponseEntity<ResponseHolder> updateFoodStallTimings(
 			@Valid @PathVariable("food-court-unique-number") String uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
 
-		Collection<WeekDay> merchantFoodStallTimingsResponse = merchantService.updateFoodCourtTimings(uniqueId, weekDay);
+		Collection<WeekDay> merchantFoodStallTimingsResponse = merchantService.updateFoodCourtTimings(uniqueId,
+				weekDay);
 		ResponseEntity<ResponseHolder> response = null;
 
 		if (!ObjectUtils.isEmpty(merchantFoodStallTimingsResponse)) {
@@ -267,20 +279,17 @@ public class MerchantController {
 	public ResponseEntity<ResponseHolder> getFoodStallTimingsByUniqueId(
 			@Valid @PathVariable("food-court-unique-number") String uniqueId) {
 
-		List<WeekDay> weekDayRes = merchantService
-				.getFoodCourtTimingsByUniqueId(uniqueId);
+		List<WeekDay> weekDayRes = merchantService.getFoodCourtTimingsByUniqueId(uniqueId);
 		ResponseEntity<ResponseHolder> response = null;
 
 		if (!ObjectUtils.isEmpty(weekDayRes)) {
 
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings retrieved succesfully")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes)
-					.build());
+					.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes).build());
 		} else {
 			response = ResponseEntity.badRequest()
 					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes)
-							.build());
+							.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes).build());
 
 		}
 		return response;
@@ -290,8 +299,7 @@ public class MerchantController {
 	public ResponseEntity<ResponseHolder> getBankDetailsByUniqueId(
 			@Valid @PathVariable("merchant-unique-number") Long uniqueId) {
 
-		Optional<List<MerchantBankDetails>> merchantBankDetailsResponse = merchantService
-				.getBankDetailsByUniqueId(uniqueId);
+		Optional<MerchantBankDetails> merchantBankDetailsResponse = merchantService.getBankDetailsByUniqueId(uniqueId);
 		ResponseEntity<ResponseHolder> response = null;
 
 		if (merchantBankDetailsResponse.isPresent()) {
@@ -306,5 +314,51 @@ public class MerchantController {
 		}
 		return response;
 	}
+
+	@RequestMapping(value = "/get-merchant-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getMerchantDetailsByUniqueId(@Valid @RequestParam Long uniqueNumber) {
+
+		Optional<Merchant> merchantDetailsResponse = merchantService.getMerchantDetailsByUniqueId(uniqueNumber);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantDetailsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Merchant Details retrieved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantDetailsResponse.get()).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while retrieving Merchant Details")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantDetailsResponse).build());
+
+		}
+		return response;
+	}
+	
+	
+	
+	
+	@RequestMapping(value = "/{merchant-id}/delete-pic", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteProfilePic(@Valid @PathVariable("merchant-id") Long id,
+			@RequestParam(required = true) String type) {
+
+		ResponseEntity<ResponseHolder> response = null;
+		Optional<Merchant> merchantResponse = null;
+
+			merchantResponse = merchantService.deleteProfilePic(id,type);
+
+		if (merchantResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status(type + " succesfully deleted")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse.get()).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while uploading " + type)
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse).build());
+
+		}
+
+		return response;
+	}
+
 
 }

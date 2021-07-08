@@ -19,6 +19,7 @@ import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.model.FoodStallTimings;
@@ -32,6 +33,7 @@ import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
 import com.endeavour.tap4food.app.util.AppConstants;
+import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
 import com.endeavour.tap4food.app.util.AppConstants;
@@ -331,6 +333,8 @@ public class MerchantService {
 			}
 
 			merchantRepository.save(merchantObj);
+		}else {
+			merchant = null;
 		}
 
 		return merchant;
@@ -365,34 +369,63 @@ public class MerchantService {
 	public Optional<Merchant> saveMerchantBankDetails(@Valid Long uniqueId, MerchantBankDetails merchantBankDetails) {
 
 		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
-		// Optional<MerchantBankDetails> merchantBankDetailsRes =
-		// merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
-		if (merchantData.isPresent()) {
-			Merchant merchant = merchantData.get();
-			merchantBankDetails.setMerchantId(uniqueId);
-			merchantBankDetails = merchantRepository.saveMerchantBankDetails(merchantBankDetails);
-			merchant.setBankDetails(merchantBankDetails);
-			merchantRepository.save(merchant);
+		Optional<MerchantBankDetails> merchantBankDetailsRes = merchantRepository
+				.findMerchantBankDetailsByUniqueNumber(uniqueId);
+		
+		
+		System.out.println("merchant bank Details" + merchantBankDetailsRes.get());
+		
+		
+		if(ObjectUtils.isEmpty(merchantBankDetailsRes.get())){
+			if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.get())) {
+				System.out.println("if");
+				Merchant merchant = merchantData.get();
+				merchantBankDetails.setMerchantId(uniqueId);
+				merchantBankDetails = merchantRepository.saveMerchantBankDetails(merchantBankDetails);
+				merchant.setBankDetails(merchantBankDetails);
+				merchantRepository.save(merchant);
+			}else {
+				merchantData = null;
+			}
+		}else {
+			if (merchantData.isPresent()) {
+				
+				merchantBankDetails.setId(merchantBankDetailsRes.get().getId());
+				merchantRepository.saveMerchantBankDetails(merchantBankDetails);
+				
+				merchantData.get().setBankDetails(merchantBankDetails);
+				
+				merchantRepository.save(merchantData.get());
+			}
+			
 		}
+		
+		
+		 System.out.println("new Data  "  + ( merchantRepository.findByUniqueNumber(uniqueId)).get());
+		
+		
 
 		return Optional.ofNullable(merchantData.get());
 	}
 
 	public Optional<FoodStallTimings> saveFoodCourtTimings(Long uniqueId, ArrayList<WeekDay> weekDay) {
 
+		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
 		FoodStallTimings foodStallTimings = new FoodStallTimings();
-		foodStallTimings.setMerchantId(uniqueId);
-		foodStallTimings.setFoodStalltId(merchantRepository.getFoodCourtUniqueNumber());
-		foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
+		if (merchantData.isPresent()) {	
+			foodStallTimings.setMerchantId(uniqueId);
+			foodStallTimings.setFoodStalltId(merchantRepository.getFoodCourtUniqueNumber());
+			foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
+			for (int i = 0; i < weekDay.size(); i++) {
+				weekDay.get(i).setFoodStallId(foodStallTimings.getFoodStalltId());
+				merchantRepository.saveOneWeekDay(weekDay.get(i));
+			}
 
-		for (int i = 0; i < weekDay.size(); i++) {
-			weekDay.get(i).setFoodStallId(foodStallTimings.getFoodStalltId());
-			merchantRepository.saveOneWeekDay(weekDay.get(i));
+			/* Collection<WeekDay> res = merchantRepository.saveWeekDay(); */
+
+			foodStallTimings.setDays(weekDay);
 		}
-
-		/* Collection<WeekDay> res = merchantRepository.saveWeekDay(); */
-
-		foodStallTimings.setDays(weekDay);
+	
 
 		return Optional.ofNullable(foodStallTimings);
 	}
@@ -402,20 +435,58 @@ public class MerchantService {
 		return merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
 	}
 
-	public Optional<List<MerchantBankDetails>> getBankDetailsByUniqueId(final Long uniqueId) {
+	public Optional<MerchantBankDetails> getBankDetailsByUniqueId(final Long uniqueId) {
 
 		return merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
 	}
 
 	public Collection<WeekDay> updateFoodCourtTimings(final String uniqueId, ArrayList<WeekDay> weekDay) {
+		
 		List<WeekDay> weekRes = merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
+		//Optional<Merchant> merchant = merchantRepository.findByUniqueNumber(uniqueNumber)
+		
 		for (int i = 0; i < weekRes.size(); i++) {
 			/* WeekDay weekDayObj = weekRes.get(i); */
 			weekDay.get(i).setId(weekRes.get(i).getId());
 			merchantRepository.saveOneWeekDay(weekDay.get(i));
 		}
+		
+		
 
 		return weekRes.stream().collect(Collectors.toSet());
+	}
+
+	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) {
+		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueNumber);
+		return merchantData;
+	}
+
+	public Optional<Merchant> deleteProfilePic(@Valid Long id, String type) {
+
+		Merchant merchantObj = new Merchant();
+		Optional<Merchant> merchant = merchantRepository.findMerchantByUniqueId(id);
+
+		if (merchant.isPresent()
+				&& (type.equals(AppConstants.PROFILE_PIC) || type.equals(AppConstants.PERSONAL_ID))) {
+			merchantObj = merchant.get();
+
+			try {
+				if (type.equals(AppConstants.PROFILE_PIC)) {
+
+					merchantObj.setProfilePic(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+				} else if (type.equals(AppConstants.PERSONAL_ID)) {
+					merchantObj.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			merchantRepository.save(merchantObj);
+		}else {
+			merchant = null;
+		}
+
+		return merchant;
 	}
 
 }
