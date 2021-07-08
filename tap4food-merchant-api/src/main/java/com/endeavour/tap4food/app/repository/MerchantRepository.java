@@ -235,11 +235,11 @@ public class MerchantRepository {
 		return Optional.ofNullable(foodStallTimingsRes);
 	}
 
-	public Optional<List<MerchantBankDetails>> findMerchantBankDetailsByUniqueNumber(Long uniqueId) {
+	public Optional<MerchantBankDetails> findMerchantBankDetailsByUniqueNumber(Long uniqueId) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("merchantId").is(uniqueId));
 
-		List<MerchantBankDetails> merchantBankDetailsRes = mongoTemplate.find(query, MerchantBankDetails.class);
+		MerchantBankDetails merchantBankDetailsRes = mongoTemplate.findOne(query, MerchantBankDetails.class);
 
 		return Optional.ofNullable(merchantBankDetailsRes);
 	}

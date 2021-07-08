@@ -33,6 +33,7 @@ import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
 import com.endeavour.tap4food.app.util.AppConstants;
+import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
 import com.endeavour.tap4food.app.util.AppConstants;
@@ -332,6 +333,8 @@ public class MerchantService {
 			}
 
 			merchantRepository.save(merchantObj);
+		}else {
+			merchant = null;
 		}
 
 		return merchant;
@@ -366,19 +369,37 @@ public class MerchantService {
 	public Optional<Merchant> saveMerchantBankDetails(@Valid Long uniqueId, MerchantBankDetails merchantBankDetails) {
 
 		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
-		Optional<List<MerchantBankDetails>> merchantBankDetailsRes = merchantRepository
+		Optional<MerchantBankDetails> merchantBankDetailsRes = merchantRepository
 				.findMerchantBankDetailsByUniqueNumber(uniqueId);
+		
+		
 		System.out.println("merchant bank Details" + merchantBankDetailsRes.get());
-		if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.get())) {
-			System.out.println("if");
-			Merchant merchant = merchantData.get();
-			merchantBankDetails.setMerchantId(uniqueId);
-			merchantBankDetails = merchantRepository.saveMerchantBankDetails(merchantBankDetails);
-			merchant.setBankDetails(merchantBankDetails);
-			merchantRepository.save(merchant);
+		
+		
+		if(ObjectUtils.isEmpty(merchantBankDetailsRes.get())){
+			if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.get())) {
+				System.out.println("if");
+				Merchant merchant = merchantData.get();
+				merchantBankDetails.setMerchantId(uniqueId);
+				merchantBankDetails = merchantRepository.saveMerchantBankDetails(merchantBankDetails);
+				merchant.setBankDetails(merchantBankDetails);
+				merchantRepository.save(merchant);
+			}else {
+				merchantData = null;
+			}
 		}else {
-			merchantData = null;
+			if (merchantData.isPresent()) {
+				
+				merchantBankDetails.setId(merchantBankDetailsRes.get().getId());
+				merchantRepository.saveMerchantBankDetails(merchantBankDetails);
+				
+				merchantData.get().setBankDetails(merchantBankDetails);
+				
+				merchantRepository.save(merchantData.get());
+			}
+			
 		}
+		
 		
 		 System.out.println("new Data  "  + ( merchantRepository.findByUniqueNumber(uniqueId)).get());
 		
@@ -414,7 +435,7 @@ public class MerchantService {
 		return merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
 	}
 
-	public Optional<List<MerchantBankDetails>> getBankDetailsByUniqueId(final Long uniqueId) {
+	public Optional<MerchantBankDetails> getBankDetailsByUniqueId(final Long uniqueId) {
 
 		return merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
 	}
@@ -433,6 +454,34 @@ public class MerchantService {
 	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) {
 		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueNumber);
 		return merchantData;
+	}
+
+	public Optional<Merchant> deleteProfilePic(@Valid Long id, String type) {
+
+		Merchant merchantObj = new Merchant();
+		Optional<Merchant> merchant = merchantRepository.findMerchantByUniqueId(id);
+
+		if (merchant.isPresent()
+				&& (type.equals(AppConstants.PROFILE_PIC) || type.equals(AppConstants.PERSONAL_ID))) {
+			merchantObj = merchant.get();
+
+			try {
+				if (type.equals(AppConstants.PROFILE_PIC)) {
+
+					merchantObj.setProfilePic(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+				} else if (type.equals(AppConstants.PERSONAL_ID)) {
+					merchantObj.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			merchantRepository.save(merchantObj);
+		}else {
+			merchant = null;
+		}
+
+		return merchant;
 	}
 
 }
