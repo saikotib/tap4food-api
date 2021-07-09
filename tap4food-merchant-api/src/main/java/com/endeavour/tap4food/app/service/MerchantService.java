@@ -376,8 +376,8 @@ public class MerchantService {
 
 		
 		
-		if(ObjectUtils.isEmpty(merchantBankDetailsRes.isPresent())){
-			if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.isPresent())) {
+		if(!merchantBankDetailsRes.isPresent()){
+			if (merchantData.isPresent() && !merchantBankDetailsRes.isPresent()) {
 				System.out.println("if");
 				Merchant merchant = merchantData.get();
 				merchantBankDetails.setMerchantId(uniqueId);
@@ -388,7 +388,7 @@ public class MerchantService {
 				merchantData = null;
 			}
 		}else {
-			if (merchantData.isPresent()) {
+			if (merchantData.isPresent() && merchantBankDetailsRes.isPresent()) {
 				
 				merchantBankDetails.setId(merchantBankDetailsRes.get().getId());
 				merchantRepository.saveMerchantBankDetails(merchantBankDetails);
