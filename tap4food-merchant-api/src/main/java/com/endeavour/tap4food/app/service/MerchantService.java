@@ -373,11 +373,11 @@ public class MerchantService {
 				.findMerchantBankDetailsByUniqueNumber(uniqueId);
 		
 		
-		System.out.println("merchant bank Details" + merchantBankDetailsRes.get());
+
 		
 		
-		if(ObjectUtils.isEmpty(merchantBankDetailsRes.get())){
-			if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.get())) {
+		if(!merchantBankDetailsRes.isPresent()){
+			if (merchantData.isPresent() && !merchantBankDetailsRes.isPresent()) {
 				System.out.println("if");
 				Merchant merchant = merchantData.get();
 				merchantBankDetails.setMerchantId(uniqueId);
@@ -388,7 +388,7 @@ public class MerchantService {
 				merchantData = null;
 			}
 		}else {
-			if (merchantData.isPresent()) {
+			if (merchantData.isPresent() && merchantBankDetailsRes.isPresent()) {
 				
 				merchantBankDetails.setId(merchantBankDetailsRes.get().getId());
 				merchantRepository.saveMerchantBankDetails(merchantBankDetails);
@@ -399,9 +399,6 @@ public class MerchantService {
 			}
 			
 		}
-		
-		
-		 System.out.println("new Data  "  + ( merchantRepository.findByUniqueNumber(uniqueId)).get());
 		
 		
 
