@@ -373,11 +373,11 @@ public class MerchantService {
 				.findMerchantBankDetailsByUniqueNumber(uniqueId);
 		
 		
-		System.out.println("merchant bank Details" + merchantBankDetailsRes.get());
+
 		
 		
-		if(ObjectUtils.isEmpty(merchantBankDetailsRes.get())){
-			if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.get())) {
+		if(ObjectUtils.isEmpty(merchantBankDetailsRes.isPresent())){
+			if (merchantData.isPresent() && ObjectUtils.isEmpty(merchantBankDetailsRes.isPresent())) {
 				System.out.println("if");
 				Merchant merchant = merchantData.get();
 				merchantBankDetails.setMerchantId(uniqueId);
