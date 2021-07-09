@@ -401,9 +401,6 @@ public class MerchantService {
 		}
 		
 		
-		 System.out.println("new Data  "  + ( merchantRepository.findByUniqueNumber(uniqueId)).get());
-		
-		
 
 		return Optional.ofNullable(merchantData.get());
 	}
