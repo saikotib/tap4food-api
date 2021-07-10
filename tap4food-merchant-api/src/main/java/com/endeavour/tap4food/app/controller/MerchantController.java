@@ -183,7 +183,8 @@ public class MerchantController {
 					.body(ResponseHolder.builder().status("Error occurred while uploading " + type)
 							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse).build());
 
-		}
+		} 
+		
 
 		return response;
 	}
