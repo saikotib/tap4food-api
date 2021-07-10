@@ -3,10 +3,13 @@ package com.endeavour.tap4food.app.service;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.endeavour.tap4food.app.model.Admin;
+import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.AdminRepository;
@@ -231,5 +235,19 @@ public class AdminService {
 			}
 		});
 		emailExecutor.shutdown();
+	}
+
+	public BusinessUnit saveBusinessUnits(@Valid BusinessUnit businessUnit) {
+		
+		return adminRepository.saveBusinessUnit(businessUnit);
+	}
+
+	public boolean deleteBusinessUnitById(final String businessUnitId) {
+		
+		return adminRepository.deleteBusinessUnitById(businessUnitId);
+	}
+
+	public Optional<List<BusinessUnit>> getBusinessUnits(Map businessObject) {
+		return Optional.ofNullable(adminRepository.findBusinessUnitsByFilter(businessObject));
 	}
 }

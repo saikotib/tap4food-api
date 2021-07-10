@@ -4,8 +4,11 @@ import static com.mongodb.client.model.Sorts.descending;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import javax.validation.Valid;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.endeavour.tap4food.app.model.Admin;
+import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
@@ -136,12 +140,9 @@ public class AdminRepository {
 	}
 
 	public List<Merchant> fetchMerchants() {
-		
-		Query query = new Query(
-				new Criteria().andOperator(
-				        Criteria.where("uniqueNumber").exists(true),
-				        Criteria.where("uniqueNumber").ne("")
-				    ));
+
+		Query query = new Query(new Criteria().andOperator(Criteria.where("uniqueNumber").exists(true),
+				Criteria.where("uniqueNumber").ne("")));
 
 		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
 
@@ -163,5 +164,45 @@ public class AdminRepository {
 		flag = true;
 
 		return flag;
+	}
+
+	public BusinessUnit saveBusinessUnit(@Valid BusinessUnit businessUnit) {
+		// TODO Auto-generated method stub
+		return mongoTemplate.save(businessUnit);
+	}
+
+	public boolean deleteBusinessUnitById(String businessUnitId) {
+		boolean flag = false;
+		mongoTemplate.remove(Query.query(Criteria.where("id").is(businessUnitId)), BusinessUnit.class);
+		flag = true;
+		return flag;
+	}
+
+
+
+	public List<BusinessUnit> findBusinessUnitsByFilter(Map businessObject) {
+
+		final Query query = new Query();
+		List<BusinessUnit> res = null;
+		final List<Criteria> criteria = new ArrayList<>();
+		
+		if (businessObject.get("name") != null) {
+			System.out.println("name");
+			criteria.add(Criteria.where("name").is(businessObject.get("name")));
+		}
+		if (businessObject.get("type") != null) {
+			System.out.println("type");
+			criteria.add(Criteria.where("type").is(businessObject.get("type")));
+		}
+
+		if (!criteria.isEmpty()) {
+			query.addCriteria(new Criteria().andOperator(criteria.toArray(new Criteria[criteria.size()])));
+			res = mongoTemplate.find(query, BusinessUnit.class);
+		}else {
+			res = mongoTemplate.findAll(BusinessUnit.class);
+		}
+
+		System.out.println(query);
+		return res;
 	}
 }
