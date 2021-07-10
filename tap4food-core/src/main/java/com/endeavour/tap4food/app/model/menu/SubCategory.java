@@ -1,4 +1,4 @@
-package com.endeavour.tap4food.app.model;
+package com.endeavour.tap4food.app.model.menu;
 
 import java.time.ZonedDateTime;
 
@@ -8,13 +8,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
 @Data
-@Document(collection = "menuCustomizeDetails")
-public class MenuCustomizeDetails {
+@Document(collection = "menuSubCategories")
+public class SubCategory {
 
 	@Id
 	private String id;
 	
-	private String customizeType;
+	private String subCategory;
 	
 	private ZonedDateTime createdTime;
+	
+	private Boolean visible;
 }

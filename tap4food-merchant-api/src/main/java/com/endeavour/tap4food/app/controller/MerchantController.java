@@ -28,11 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.model.FoodStallTimings;
-import com.endeavour.tap4food.app.model.MenuCategory;
-import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.WeekDay;
+import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.MerchantService;
 import com.endeavour.tap4food.app.util.AvatarImage;
@@ -114,7 +114,7 @@ public class MerchantController {
 	}
 
 	@RequestMapping(path = "/add-category", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> createMenuCategory(@Valid @RequestBody MenuCategory menuCategory) {
+	public ResponseEntity<ResponseHolder> createMenuCategory(@Valid @RequestBody Category menuCategory) {
 
 		merchantService.createMenuCategory(menuCategory);
 
@@ -126,7 +126,7 @@ public class MerchantController {
 	}
 
 	@RequestMapping(path = "/add-subcategory", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> createMenuSubCategory(@Valid @RequestBody MenuSubCategory menuSubCategories) {
+	public ResponseEntity<ResponseHolder> createMenuSubCategory(@Valid @RequestBody SubCategory menuSubCategories) {
 
 		merchantService.createMenuSubCategory(menuSubCategories);
 
@@ -138,7 +138,7 @@ public class MerchantController {
 
 	@RequestMapping(value = "/fetch-categories", method = RequestMethod.GET)
 	public ResponseEntity<ResponseHolder> getAllCategories() {
-		List<MenuCategory> categoryName = merchantService.getAllCategories();
+		List<Category> categoryName = merchantService.getAllCategories();
 		ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
 				.data(categoryName).build();
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
@@ -147,7 +147,7 @@ public class MerchantController {
 
 	@RequestMapping(value = "/{category-id}/fetch-sub-categories", method = RequestMethod.GET)
 	public ResponseEntity<ResponseHolder> getAllSubCategories(@Valid @PathVariable("category-id") String id) {
-		Set<MenuSubCategory> subCategories = merchantService.getAllSubCategories(id);
+		Set<SubCategory> subCategories = merchantService.getAllSubCategories(id);
 		ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
 				.data(subCategories).build();
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
