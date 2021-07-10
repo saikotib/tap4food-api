@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.model;
 
 import java.util.List;
 
+import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -25,11 +26,12 @@ public class BusinessUnit {
 	
 	private String name;
 	
-	private String logo;
+	private Binary logo;
 	
-	private BusinessUnitEnum businesUnit;
+	private BusinessUnitEnum type;
 	
-	@DBRef
-	private List<Merchant> merchants;
+	private String address;
+	
+	private String pincode;
 }
 
