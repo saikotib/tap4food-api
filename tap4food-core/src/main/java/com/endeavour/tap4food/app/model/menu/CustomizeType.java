@@ -6,10 +6,12 @@ import java.util.Set;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.endeavour.tap4food.app.util.MongoCollectionConstant;
+
 import lombok.Data;
 
 @Data
-@Document(collection = "menuCustomizeDetails")
+@Document(collection = MongoCollectionConstant.COLLECTION_MENU_CUSTOMIZE_TYPE)
 public class CustomizeType {
 
 	@Id

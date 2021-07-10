@@ -24,4 +24,9 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_FOOD_COURT_UNIQUE_NUMBER = "foodCourtUniqueNumber";
 	
+	public static final String COLLECTION_MENU_CUISINE = "cuisines";
+	
+	public static final String COLLECTION_MENU_CUSTOMIZE_TYPE = "customizeTypes";	
+	
+	public static final String COLLECTION_MENU_LISTINGS = "menuListings";	
 }

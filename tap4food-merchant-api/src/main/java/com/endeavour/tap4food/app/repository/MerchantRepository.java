@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.repository;
 
 import static com.mongodb.client.model.Sorts.descending;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,8 @@ import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.Cuisine;
+import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
@@ -173,27 +177,107 @@ public class MerchantRepository {
 		return Optional.ofNullable(merchantRes);
 	}
 
-	public void addMenuCategory(Category menuCategory) {
+	public void saveCategory(Category menuCategory) {
+		
+//		Query query = new Query().addCriteria(Criteria.where("category").is(menuCategory.getCategory()));
+//		
+//		mongoTemplate.save(query);
+		//String categoryName = menuCategory.getCategory();
+//		List<Category> menu = mongoTemplate.findAll(Category.class, "menuCategories");
+//		
+//		if (!menu.contains(menuCategory.getCategory())) {
+//			System.out.println(menu);
+//			mongoTemplate.save(menuCategory);
+//		} else {
+//			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category already exists");
+//		}
 		mongoTemplate.save(menuCategory);
+		//mongoTemplate.indexOps("menuCategories").ensureIndex(new Index("category", Direction.ASC).unique());
+//		categories.add(categoryName);
+//		for (String items : categories) {
+//			if (!categories.contains(items)) {
+//				categories.add(items);
+//			}
+//			mongoTemplate.save(menuCategory);
+//		}
+		
+		
+		//List<String> newListUsingSteram = categories.stream().distinct().collect(Collectors.toList());
+		
+//		Set<String> category = new HashSet<String>();
+//		String categoryName = menuCategory.getCategory();
+//		
+//		
+//		if (!category.contains(menuCategory.getCategory())) {
+//				category.add(categoryName);		
+//					mongoTemplate.save(menuCategory);
+//				}
+				
+	//		String 
+//		if (!category.contains(menuCategory)) {
+//			category.add(menuCategory);
+//			mongoTemplate.save(category);
+//		} else {
+//			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category already exists");
+//		}
+		
 	}
 
-	public void addMenuSubCategory(SubCategory categories) {
+	public void saveSubCategory(SubCategory categories) {
 		mongoTemplate.save(categories);
 	}
-
+	
+	public void saveCustomizeType(CustomizeType customizeType) {
+		mongoTemplate.save(customizeType);
+	}
+	
+//	public void editCategory(Category category) {
+////		
+////		Query query = new Query().addCriteria(Criteria.where("category").is(category));
+////		 
+////		Update updatedName = new Update().set(categoryName, category.getCategory());
+////		mongoTemplate.findAndModify(query, updatedName, Category.class);
+//		
+//		
+//		mongoTemplate.save(category);
+//		
+//	}
+	
+//	public void editSubCategory(SubCategory subCategory) {
+//		String subCategoryName = subCategory.getSubCategory();
+//		Query query = new Query().addCriteria(Criteria.where("subCategory").is(subCategoryName));
+//		
+//		Update updatedName = new Update().set(subCategoryName, subCategory.getSubCategory());
+//		//mongoTemplate.findAndModify(query, updatedName, SubCategory.class);
+//		mongoTemplate.findAndReplace(query, updatedName);
+//	}
+	
+	public void deleteCategory(Category category) {		
+//		String categoryName = category.getCategory();
+//		
+//		Query query = new Query().addCriteria(Criteria.where("category").is(categoryName));
+		//mongoTemplate.findAndRemove(query, Category.class);
+		mongoTemplate.remove(category);
+	}
+	
+	public void deleteSubCategory(SubCategory subCategory) {
+//		String subCategoryName = subCategory.getSubCategory();
+//		Query query = new Query().addCriteria(Criteria.where("subCategory").is(subCategoryName));
+//		mongoTemplate.findAndRemove(query, SubCategory.class);
+		mongoTemplate.remove(subCategory);
+	}
+	
 	public Optional<List<Category>> findAllCategories() {
 
-		List<Category> menu = mongoTemplate.findAll(Category.class, "menuCategories");
+		List<Category> menu = mongoTemplate.findAll(Category.class, MongoCollectionConstant.COLLECTION_MENU_CATEGORIES);
+		
 
 		return Optional.ofNullable(menu);
 	}
 
-	public Optional<Category> findAllSubCategories(String id) {
+	public Optional<List<SubCategory>> findAllSubCategories() {
 
-		Query query = new Query();
-		query.addCriteria(Criteria.where("id").is(id));
-
-		Category menu = mongoTemplate.findOne(query, Category.class);
+		List<SubCategory> menu = mongoTemplate.findAll(SubCategory.class, MongoCollectionConstant.COLLECTION_MENU_SUB_CATEGORIES);
 
 		return Optional.ofNullable(menu);
 	}
@@ -298,6 +382,37 @@ public class MerchantRepository {
 
 	public void saveOneWeekDay(WeekDay weekDayObj) {
 		 mongoTemplate.save(weekDayObj);
+		
+	}
+
+	public void removeCustomizeType(@Valid CustomizeType customizeType) {
+		mongoTemplate.remove(customizeType);
+	}
+
+	public void hideCategory(Category category) {
+		mongoTemplate.save(category);
+		
+	}
+
+	public void hideCategory(SubCategory subCategory) {
+		mongoTemplate.save(subCategory);
+		
+	}
+
+	public void hideCustomizeType(@Valid CustomizeType customizeType) {
+		mongoTemplate.save(customizeType);
+	}
+
+	public void saveCuisine(@Valid Cuisine cuisine) {
+		mongoTemplate.save(cuisine);
+	}
+
+	public void removeCuisine(@Valid Cuisine cuisine) {
+		mongoTemplate.remove(cuisine);
+	}
+
+	public void hideCuisine(@Valid Cuisine cuisine) {
+		mongoTemplate.remove(cuisine);
 		
 	}
 
