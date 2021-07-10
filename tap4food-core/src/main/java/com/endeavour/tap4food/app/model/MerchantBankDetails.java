@@ -31,4 +31,10 @@ public class MerchantBankDetails {
 	private String city;
 	
 	private String country;
+	
+	private String accountHolderName;
+	
+	private String accountNumber;
+	
+	private String upiId;
 }
