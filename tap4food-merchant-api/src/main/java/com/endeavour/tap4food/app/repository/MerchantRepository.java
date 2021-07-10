@@ -15,20 +15,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import com.endeavour.tap4food.app.model.FoodCourtUniqueNumber;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
-import com.endeavour.tap4food.app.model.MenuCategory;
-import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
-import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
+import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -176,27 +173,27 @@ public class MerchantRepository {
 		return Optional.ofNullable(merchantRes);
 	}
 
-	public void addMenuCategory(MenuCategory menuCategory) {
+	public void addMenuCategory(Category menuCategory) {
 		mongoTemplate.save(menuCategory);
 	}
 
-	public void addMenuSubCategory(MenuSubCategory categories) {
+	public void addMenuSubCategory(SubCategory categories) {
 		mongoTemplate.save(categories);
 	}
 
-	public Optional<List<MenuCategory>> findAllCategories() {
+	public Optional<List<Category>> findAllCategories() {
 
-		List<MenuCategory> menu = mongoTemplate.findAll(MenuCategory.class, "menuCategories");
+		List<Category> menu = mongoTemplate.findAll(Category.class, "menuCategories");
 
 		return Optional.ofNullable(menu);
 	}
 
-	public Optional<MenuCategory> findAllSubCategories(String id) {
+	public Optional<Category> findAllSubCategories(String id) {
 
 		Query query = new Query();
 		query.addCriteria(Criteria.where("id").is(id));
 
-		MenuCategory menu = mongoTemplate.findOne(query, MenuCategory.class);
+		Category menu = mongoTemplate.findOne(query, Category.class);
 
 		return Optional.ofNullable(menu);
 	}

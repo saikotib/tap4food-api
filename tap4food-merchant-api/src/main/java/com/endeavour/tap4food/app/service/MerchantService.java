@@ -19,26 +19,22 @@ import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.model.FoodStallTimings;
-import com.endeavour.tap4food.app.model.MenuCategory;
-import com.endeavour.tap4food.app.model.MenuSubCategory;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.Otp;
-import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
+import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
 import com.endeavour.tap4food.app.util.AppConstants;
 import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
-import com.endeavour.tap4food.app.util.AppConstants;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -282,33 +278,34 @@ public class MerchantService {
 		return merchantRepository.saveMerchant(merchant);
 	}
 
-	public void createMenuCategory(@Valid MenuCategory menuCategory) {
+	public void createMenuCategory(@Valid Category menuCategory) {
 
 		merchantRepository.addMenuCategory(menuCategory);
 	}
 
-	public void createMenuSubCategory(@Valid MenuSubCategory menuSubCategory) {
+	public void createMenuSubCategory(@Valid SubCategory menuSubCategory) {
 
 		merchantRepository.addMenuSubCategory(menuSubCategory);
 	}
 
-	public List<MenuCategory> getAllCategories() {
-		Optional<List<MenuCategory>> categoryId = merchantRepository.findAllCategories();
+	public List<Category> getAllCategories() {
+		Optional<List<Category>> categoryId = merchantRepository.findAllCategories();
 		if (categoryId.isPresent()) {
 
 			return categoryId.get();
 		} else {
-			return new ArrayList<MenuCategory>();
+			return new ArrayList<Category>();
 		}
 	}
 
-	public Set<MenuSubCategory> getAllSubCategories(String id) {
-		Optional<MenuCategory> categoryId = merchantRepository.findAllSubCategories(id);
+	public Set<SubCategory> getAllSubCategories(String id) {
+		Optional<Category> categoryId = merchantRepository.findAllSubCategories(id);
 		if (categoryId.isPresent()) {
 
-			return categoryId.get().getSubCategories();
+//			return categoryId.get().getSubCategories();
+			return null;
 		} else {
-			return new HashSet<MenuSubCategory>();
+			return new HashSet<SubCategory>();
 		}
 	}
 
