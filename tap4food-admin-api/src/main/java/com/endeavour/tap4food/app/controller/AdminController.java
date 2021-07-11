@@ -105,7 +105,7 @@ public class AdminController {
 
 		BusinessUnit businessUniRes = adminService.saveBusinessUnits(businessUnit);
 
-		ResponseEntity response = null;
+		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(businessUniRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Business Unit saved successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(businessUniRes).build());
@@ -124,7 +124,7 @@ public class AdminController {
 
 		BusinessUnit businessUniRes = adminService.saveBusinessUnits(businessUnit);
 
-		ResponseEntity response = null;
+		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(businessUniRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Business Unit updated successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(businessUniRes).build());
@@ -145,7 +145,7 @@ public class AdminController {
 
 		boolean flag = adminService.deleteBusinessUnitById(businessUnitId);
 
-		ResponseEntity response = null;
+		ResponseEntity<ResponseHolder> response = null;
 		if (flag) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data("Business Unit Deleted successfully").build());
@@ -168,7 +168,7 @@ public class AdminController {
 
 		Optional<List<BusinessUnit>> businessUnitRes = adminService.getBusinessUnits(businessObject);
 
-		ResponseEntity response = null;
+		ResponseEntity<ResponseHolder> response = null;
 		if (businessUnitRes.isPresent()) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Business Units retrieved successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(businessUnitRes).build());

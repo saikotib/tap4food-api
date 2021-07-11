@@ -1,13 +1,8 @@
 package com.endeavour.tap4food.app.model;
 
-import java.util.List;
-
-import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,29 +13,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-@Document(collection = "businessUnits")
-public class BusinessUnit {
+@Document(collection = "foodStalls")
+public class FoodStall {
 
 	@Id
 	private String id;
-	
-	private String name;
-	
-	private Binary logo;
-	
-	private BusinessUnitEnum type;
-	
-	private String address;
-	
-	private String pincode;
-	
-	private String city;
-	
-	private String state;
-	
-	private String country;
 
+	private String foodStallName;
+	
+	private Long foodStallId;
+
+	private String gstNumber; // GST number
+
+	private String taxIdentificationNumber; // Tax Identification Number
+
+	private String foodStallLicenseNumber;
+
+	private String deliveryTime; // This is food delivery time (ex: 20 mins)
+	
 	@DBRef
-	private List<FoodCourt> foodCourts;
+	private FoodStallTimings foodStallTimings;
 }
-

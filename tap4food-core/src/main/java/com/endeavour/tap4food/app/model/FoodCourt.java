@@ -7,8 +7,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,8 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-@Document(collection = "businessUnits")
-public class BusinessUnit {
+@Document(collection = "foodCourt")
+public class FoodCourt {
 
 	@Id
 	private String id;
@@ -28,19 +26,6 @@ public class BusinessUnit {
 	
 	private Binary logo;
 	
-	private BusinessUnitEnum type;
-	
-	private String address;
-	
-	private String pincode;
-	
-	private String city;
-	
-	private String state;
-	
-	private String country;
-
 	@DBRef
-	private List<FoodCourt> foodCourts;
+	private List<FoodStall> foodStalls;
 }
-

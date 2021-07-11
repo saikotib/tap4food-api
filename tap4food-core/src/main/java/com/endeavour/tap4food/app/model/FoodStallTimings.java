@@ -1,7 +1,6 @@
 package com.endeavour.tap4food.app.model;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -17,8 +16,6 @@ public class FoodStallTimings {
 	private String id;
 	
 	private Long merchantId;
-	
-	private String foodStalltId;
 	
 	@DBRef
 	private List<WeekDay> days;
