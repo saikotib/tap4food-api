@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
@@ -16,7 +17,7 @@ public class CustomizeType {
 
 	@Id
 	private String id;
-	
+	@Indexed(unique = true)
 	private String type;
 	
 	private ZonedDateTime createdTime;

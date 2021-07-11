@@ -2,7 +2,6 @@ package com.endeavour.tap4food.app.repository;
 
 import static com.mongodb.client.model.Sorts.descending;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -12,12 +11,10 @@ import javax.validation.Valid;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.hibernate.jdbc.Expectations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -180,25 +177,18 @@ public class MerchantRepository {
 
 	public void saveCategory(@Valid Category menuCategory) {
 		
-		List<Category> categories = mongoTemplate.findAll(Category.class);
-		if (!categories.contains(menuCategory.getCategory())) {
+		
 			mongoTemplate.save(menuCategory);
 		} 
-	}
-
+	
 	public void saveSubCategory(@Valid SubCategory subCategory) {
-		List<SubCategory> subCategories = mongoTemplate.findAll(SubCategory.class);
-		if (!subCategories.contains(subCategory.getSubCategory())) {
-			mongoTemplate.save(subCategory);
-		} 
+		mongoTemplate.save(subCategory);
 	}
 	
 	public void saveCustomizeType(@Valid CustomizeType customizeType) {
-		List<CustomizeType> customizeTypes = mongoTemplate.findAll(CustomizeType.class);
-		if (!customizeTypes.contains(customizeType.getType())) {
-			mongoTemplate.save(customizeType);
-		} 
 		
+		mongoTemplate.save(customizeType);
+
 	}
 	
 	public void deleteCategory(@Valid Category category) {		
@@ -334,17 +324,20 @@ public class MerchantRepository {
 	}
 
 		public Cuisine saveCuisine(@Valid Cuisine cuisine) throws Exception {
-		List<Cuisine> cuisineNames = mongoTemplate.findAll(Cuisine.class);
-		if (!cuisineNames.contains(cuisine.getName())) {
+		
 			Cuisine save = mongoTemplate.save(cuisine);
 			return save;
-		} else {
-			throw new Exception("Cuisine name already exists");
-		}
+		
 	}
 
 	public void removeCuisine(@Valid Cuisine cuisine) {
 		mongoTemplate.remove(cuisine);
+	}
+
+	public Optional<List<Cuisine>> findAllCuisines() {
+		
+		List<Cuisine> cuisineNames = mongoTemplate.findAll(Cuisine.class);
+		return Optional.ofNullable(cuisineNames);
 	}
 
 }

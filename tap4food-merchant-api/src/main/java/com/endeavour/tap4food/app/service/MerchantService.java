@@ -3,11 +3,10 @@ package com.endeavour.tap4food.app.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -17,13 +16,11 @@ import javax.validation.Valid;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Update;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.endeavour.tap4food.app.model.DatabaseSequence;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
@@ -582,6 +579,16 @@ public class MerchantService {
 		}  else {
 			cuisine.setVisible(true);
 			merchantRepository.saveCuisine(cuisine);
+		}
+	}
+
+	public List<Cuisine> getAllCuisines() {
+		Optional<List<Cuisine>> cuisines = merchantRepository.findAllCuisines();
+		if (cuisines.isPresent()) {
+
+			return cuisines.get();
+		} else {
+			return new ArrayList<Cuisine>();
 		}
 	}
 

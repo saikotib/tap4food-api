@@ -361,6 +361,22 @@ public class MerchantController {
 		
 
 	}
+	
+	@RequestMapping(value = "/fetch-cuisines", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getAllCuisines() {
+		List<Cuisine> cuisines = merchantService.getAllCuisines();
+		if (!cuisines.isEmpty()) {
+			ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(cuisines).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			ResponseHolder response = ResponseHolder.builder().status("no subcategories available").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(cuisines).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+		
+
+	}
 
 	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadProfilePic(@Valid @PathVariable("merchant-id") Long id,
