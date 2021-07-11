@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -32,6 +31,8 @@ import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.Cuisine;
+import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.MerchantService;
@@ -114,43 +115,266 @@ public class MerchantController {
 	}
 
 	@RequestMapping(path = "/add-category", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> createMenuCategory(@Valid @RequestBody Category menuCategory) {
+	public ResponseEntity<ResponseHolder> addCategory(@Valid @RequestBody Category category) {
+		
+		ResponseHolder response = null;
+		try {
+			merchantService.addCategory(category);
+			
+			 response = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
 
-		merchantService.createMenuCategory(menuCategory);
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response = ResponseHolder.builder().status("Category already exits")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
+
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+		
+
+		
+
+	}
+	
+	@RequestMapping(path = "/edit-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> editCategory(@Valid @RequestBody Category category) {
+
+		merchantService.editCategory(category);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
-				.timestamp(String.valueOf(LocalDateTime.now())).data(menuCategory).build();
+				.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+	}
+	
+	@RequestMapping(path = "/remove-category", method = RequestMethod.DELETE)
+	public ResponseEntity<ResponseHolder> removeCategory(@Valid @RequestBody Category category) {
+
+		merchantService.deleteCategory(category);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+	}
+	
+	@RequestMapping(path = "/toggle-visible-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> hideCategory(@Valid @RequestBody Category category) {
+
+		merchantService.hideCategory(category);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
 
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 
 	}
 
 	@RequestMapping(path = "/add-subcategory", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> createMenuSubCategory(@Valid @RequestBody SubCategory menuSubCategories) {
+	public ResponseEntity<ResponseHolder> addSubCategory(@Valid @RequestBody SubCategory menuSubCategories) {
+	
+		ResponseHolder response = null;
+		try {
+			merchantService.addSubCategory(menuSubCategories);
+			
+			 response = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(menuSubCategories).build();
 
-		merchantService.createMenuSubCategory(menuSubCategories);
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response = ResponseHolder.builder().status("Sub Category already exits")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(menuSubCategories).build();
+
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@RequestMapping(path = "/edit-subcategory", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> editSubCategory(@Valid @RequestBody SubCategory subCategory) {
+
+		merchantService.editSubCategory(subCategory);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(subCategory).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/remove-subcategory", method = RequestMethod.DELETE)
+	public ResponseEntity<ResponseHolder> removeSubCategory(@Valid @RequestBody SubCategory subCategory) {
+
+		merchantService.deleteSubCategory(subCategory);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(subCategory).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/toggle-visible-subcategory", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> hideSubCategory(@Valid @RequestBody SubCategory menuSubCategories) {
+
+		merchantService.hideSubCategory(menuSubCategories);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(menuSubCategories).build();
 
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(path = "/add-cuisine", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addCuisineType(@Valid @RequestBody Cuisine cuisine) {
+	
+		ResponseHolder response = null;
+		try {
+			merchantService.addCuisineName(cuisine);
+		
+			 response = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
+
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response = ResponseHolder.builder().status("cuisine name already exits")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
+
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@RequestMapping(path = "/edit-cuisine", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> editCuisineName(@Valid @RequestBody Cuisine cuisine) throws Exception {
+
+		merchantService.editCusine(cuisine);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/remove-cuisine", method = RequestMethod.DELETE)
+	public ResponseEntity<ResponseHolder> removeCuisine(@Valid @RequestBody  Cuisine cuisine) {
+
+		merchantService.deleteCustomizeType(cuisine);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/toggle-visible-cuisine", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> hideCuisine(@Valid @RequestBody Cuisine cuisine) throws Exception {
+
+		merchantService.hideCustomizeType(cuisine);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+
+	@RequestMapping(path = "/add-customize-type", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addCustomizeType(@Valid @RequestBody CustomizeType customizeType) {
+	
+		ResponseHolder response = null;
+		try {
+			merchantService.addCustomizeType(customizeType);
+
+			
+			 response = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
+
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response = ResponseHolder.builder().status("customize type already exits")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
+
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@RequestMapping(path = "/edit-customize-type", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> editCustomizeType(@Valid @RequestBody CustomizeType customizeType) {
+
+		merchantService.editCustomizeType(customizeType);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/remove-customize-type", method = RequestMethod.DELETE)
+	public ResponseEntity<ResponseHolder> removeCustomizeType(@Valid @RequestBody CustomizeType customizeType) {
+
+		merchantService.deleteCustomizeType(customizeType);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/toggle-visible-customize-type", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> hideCustomizeType(@Valid @RequestBody CustomizeType customizeType) {
+
+		merchantService.hideCustomizeType(customizeType);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
 
 	@RequestMapping(value = "/fetch-categories", method = RequestMethod.GET)
 	public ResponseEntity<ResponseHolder> getAllCategories() {
-		List<Category> categoryName = merchantService.getAllCategories();
-		ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
-				.data(categoryName).build();
-		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		List<Category> categoryNames = merchantService.getAllCategories();
+		if (!categoryNames.isEmpty()) {
+			ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(categoryNames).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			ResponseHolder response = ResponseHolder.builder().status("no categories are available").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(categoryNames).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 
 	}
 
-	@RequestMapping(value = "/{category-id}/fetch-sub-categories", method = RequestMethod.GET)
-	public ResponseEntity<ResponseHolder> getAllSubCategories(@Valid @PathVariable("category-id") String id) {
-		Set<SubCategory> subCategories = merchantService.getAllSubCategories(id);
-		ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
-				.data(subCategories).build();
-		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	@RequestMapping(value = "/fetch-sub-categories", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getAllSubCategories() {
+		List<SubCategory> subCategories = merchantService.getAllSubCategories();
+		if (!subCategories.isEmpty()) {
+			ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(subCategories).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			ResponseHolder response = ResponseHolder.builder().status("no subcategories available").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(subCategories).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+		
+
+	}
+	
+	@RequestMapping(value = "/fetch-cuisines", method = RequestMethod.GET)
+	public ResponseEntity<ResponseHolder> getAllCuisines() {
+		List<Cuisine> cuisines = merchantService.getAllCuisines();
+		if (!cuisines.isEmpty()) {
+			ResponseHolder response = ResponseHolder.builder().status("Done").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(cuisines).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			ResponseHolder response = ResponseHolder.builder().status("no subcategories available").timestamp(String.valueOf(LocalDateTime.now()))
+					.data(cuisines).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 
 	}
 
@@ -184,6 +408,8 @@ public class MerchantController {
 							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse).build());
 
 		} 
+		
+		//test
 		
 
 		return response;

@@ -3,11 +3,10 @@ package com.endeavour.tap4food.app.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -17,6 +16,7 @@ import javax.validation.Valid;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +27,8 @@ import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.Cuisine;
+import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
@@ -278,14 +280,58 @@ public class MerchantService {
 		return merchantRepository.saveMerchant(merchant);
 	}
 
-	public void createMenuCategory(@Valid Category menuCategory) {
+	public void addCategory(@Valid Category category) {
 
-		merchantRepository.addMenuCategory(menuCategory);
+		merchantRepository.saveCategory(category);
 	}
 
-	public void createMenuSubCategory(@Valid SubCategory menuSubCategory) {
-
-		merchantRepository.addMenuSubCategory(menuSubCategory);
+	
+	public void addSubCategory(@Valid SubCategory subCategory) {
+		merchantRepository.saveSubCategory(subCategory);
+	}
+	
+	public void editCategory(@Valid Category category) {
+		
+//		List<Category> categoriesList = merchantRepository.findAllCategories();
+//		String categoryName = category.getCategory();
+//		if (categoriesList.contains(categoryName)) {
+//			categoriesList.remove(categoryName);
+//		}
+		
+		//category.setCategory(categoryName);
+		merchantRepository.saveCategory(category);
+	}
+	
+	public void editSubCategory(@Valid SubCategory subCategory) {
+		merchantRepository.saveSubCategory(subCategory);
+	}
+	
+	public void deleteCategory(@Valid Category category) {
+		merchantRepository.deleteCategory(category);
+	}
+	
+	public void deleteSubCategory(@Valid SubCategory subCategory) {
+		merchantRepository.deleteSubCategory(subCategory);
+	}
+	
+	public void hideCategory(@Valid Category category) {
+		if (category.getVisible().equals(false)) {
+			category.setVisible(false);
+			merchantRepository.saveCategory(category);
+		} else {
+			category.setVisible(true);
+			merchantRepository.saveCategory(category);
+		}
+	}
+	
+	public void hideSubCategory(@Valid SubCategory subCategory) {
+		if (subCategory.getVisible().equals(false)) {
+			subCategory.setVisible(false);
+			merchantRepository.saveSubCategory(subCategory);
+		} else {
+			subCategory.setVisible(true);
+			merchantRepository.saveSubCategory(subCategory);
+		}
 	}
 
 	public List<Category> getAllCategories() {
@@ -298,14 +344,14 @@ public class MerchantService {
 		}
 	}
 
-	public Set<SubCategory> getAllSubCategories(String id) {
-		Optional<Category> categoryId = merchantRepository.findAllSubCategories(id);
-		if (categoryId.isPresent()) {
+	public List<SubCategory> getAllSubCategories() {
+		Optional<List<SubCategory>> categoriesList = merchantRepository.findAllSubCategories();
+		if (categoriesList.isPresent()) {
 
-//			return categoryId.get().getSubCategories();
-			return null;
+			return categoriesList.get();
+			
 		} else {
-			return new HashSet<SubCategory>();
+			return new ArrayList<SubCategory>();
 		}
 	}
 
@@ -478,6 +524,69 @@ public class MerchantService {
 		}
 
 		return merchant;
+	}
+
+	public void addCustomizeType(@Valid CustomizeType customizeType) {
+		
+		merchantRepository.saveCustomizeType(customizeType);
+	}
+
+	public void editCustomizeType(@Valid CustomizeType customizeType) {
+		merchantRepository.saveCustomizeType(customizeType);
+	}
+
+	public void deleteCustomizeType(@Valid CustomizeType customizeType) {
+		merchantRepository.removeCustomizeType(customizeType);
+	}
+
+	public void hideCustomizeType(@Valid CustomizeType customizeType) {
+		if (customizeType.getVisible().equals(false)) {
+			customizeType.setVisible(false);
+			merchantRepository.saveCustomizeType(customizeType);
+			
+		} else {
+			customizeType.setVisible(true);
+			merchantRepository.saveCustomizeType(customizeType);
+		}
+		
+	}
+
+	public Cuisine addCuisineName(@Valid Cuisine cuisine) throws Exception {
+		Cuisine saveCuisine = merchantRepository.saveCuisine(cuisine);
+		return saveCuisine;
+		
+	}
+
+	public void editCusine(@Valid Cuisine cuisine) throws Exception {
+		merchantRepository.saveCuisine(cuisine);
+		
+	}
+
+	public void deleteCustomizeType(@Valid Cuisine cuisine) {
+		merchantRepository.removeCuisine(cuisine);
+		
+	}
+
+	public void hideCustomizeType(@Valid Cuisine cuisine) throws Exception {
+		
+		if (cuisine.getVisible().equals(false)) {
+			cuisine.setVisible(false);
+			merchantRepository.saveCuisine(cuisine);
+			
+		}  else {
+			cuisine.setVisible(true);
+			merchantRepository.saveCuisine(cuisine);
+		}
+	}
+
+	public List<Cuisine> getAllCuisines() {
+		Optional<List<Cuisine>> cuisines = merchantRepository.findAllCuisines();
+		if (cuisines.isPresent()) {
+
+			return cuisines.get();
+		} else {
+			return new ArrayList<Cuisine>();
+		}
 	}
 
 }

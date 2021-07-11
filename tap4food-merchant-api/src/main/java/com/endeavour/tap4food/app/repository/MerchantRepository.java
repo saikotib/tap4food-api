@@ -25,6 +25,8 @@ import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
+import com.endeavour.tap4food.app.model.menu.Cuisine;
+import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
@@ -173,27 +175,43 @@ public class MerchantRepository {
 		return Optional.ofNullable(merchantRes);
 	}
 
-	public void addMenuCategory(Category menuCategory) {
-		mongoTemplate.save(menuCategory);
+	public void saveCategory(@Valid Category menuCategory) {
+		
+		
+			mongoTemplate.save(menuCategory);
+		} 
+	
+	public void saveSubCategory(@Valid SubCategory subCategory) {
+		mongoTemplate.save(subCategory);
 	}
+	
+	public void saveCustomizeType(@Valid CustomizeType customizeType) {
+		
+		mongoTemplate.save(customizeType);
 
-	public void addMenuSubCategory(SubCategory categories) {
-		mongoTemplate.save(categories);
 	}
+	
+	public void deleteCategory(@Valid Category category) {		
 
+		mongoTemplate.remove(category);
+	}
+	
+	public void deleteSubCategory(@Valid SubCategory subCategory) {
+
+		mongoTemplate.remove(subCategory);
+	}
+	
 	public Optional<List<Category>> findAllCategories() {
 
-		List<Category> menu = mongoTemplate.findAll(Category.class, "menuCategories");
+		List<Category> menu = mongoTemplate.findAll(Category.class, MongoCollectionConstant.COLLECTION_MENU_CATEGORIES);
+		
 
 		return Optional.ofNullable(menu);
 	}
 
-	public Optional<Category> findAllSubCategories(String id) {
+	public Optional<List<SubCategory>> findAllSubCategories() {
 
-		Query query = new Query();
-		query.addCriteria(Criteria.where("id").is(id));
-
-		Category menu = mongoTemplate.findOne(query, Category.class);
+		List<SubCategory> menu = mongoTemplate.findAll(SubCategory.class, MongoCollectionConstant.COLLECTION_MENU_SUB_CATEGORIES);
 
 		return Optional.ofNullable(menu);
 	}
@@ -301,6 +319,25 @@ public class MerchantRepository {
 		
 	}
 
+	public void removeCustomizeType(@Valid CustomizeType customizeType) {
+		mongoTemplate.remove(customizeType);
+	}
 
+		public Cuisine saveCuisine(@Valid Cuisine cuisine) throws Exception {
+		
+			Cuisine save = mongoTemplate.save(cuisine);
+			return save;
+		
+	}
+
+	public void removeCuisine(@Valid Cuisine cuisine) {
+		mongoTemplate.remove(cuisine);
+	}
+
+	public Optional<List<Cuisine>> findAllCuisines() {
+		
+		List<Cuisine> cuisineNames = mongoTemplate.findAll(Cuisine.class);
+		return Optional.ofNullable(cuisineNames);
+	}
 
 }
