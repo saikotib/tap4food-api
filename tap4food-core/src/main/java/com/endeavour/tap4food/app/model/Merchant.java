@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.app.model;
 
+import java.util.List;
+
 import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -50,6 +52,6 @@ public class Merchant {
 	private MerchantBankDetails bankDetails;
 	
 	@DBRef
-	private FoodStallTimings foodStallTimings;
+	private List<FoodStall> foodStalls;
 	
 }

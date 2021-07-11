@@ -15,8 +15,6 @@ public class FoodStallTimings {
 	@Id
 	private String id;
 	
-	private Long merchantId;
-	
 	@DBRef
 	private List<WeekDay> days;
 	

@@ -18,11 +18,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.UniqueNumber;
+import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -186,13 +188,13 @@ public class AdminRepository {
 		List<BusinessUnit> res = null;
 		final List<Criteria> criteria = new ArrayList<>();
 		
-		if (businessObject.get("name") != null) {
-			System.out.println("name");
-			criteria.add(Criteria.where("name").is(businessObject.get("name")));
+		if (businessObject.containsKey(BusinessUnitCollectionConstants.NAME)) {
+			System.out.println(BusinessUnitCollectionConstants.NAME);
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.NAME).is(businessObject.get("name")));
 		}
-		if (businessObject.get("type") != null) {
-			System.out.println("type");
-			criteria.add(Criteria.where("type").is(businessObject.get("type")));
+		if (StringUtils.hasText(String.valueOf(businessObject.get("type")))) {
+			System.out.println(BusinessUnitCollectionConstants.TYPE);
+			criteria.add(Criteria.where("type").is(businessObject.get(BusinessUnitCollectionConstants.TYPE)));
 		}
 
 		if (!criteria.isEmpty()) {

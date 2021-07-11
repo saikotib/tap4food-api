@@ -24,6 +24,8 @@ public class BusinessUnit {
 	@Id
 	private String id;
 	
+	private String businessUnitId;
+	
 	private String name;
 	
 	private Binary logo;
@@ -40,6 +42,9 @@ public class BusinessUnit {
 	
 	private String country;
 
+	
+	//If teh Business Unit is Restaurant then no foodcourts 
+	
 	@DBRef
 	private List<FoodCourt> foodCourts;
 }

@@ -22,6 +22,8 @@ public class FoodCourt {
 	@Id
 	private String id;
 	
+	private Long foodCourtId;
+	
 	private String name;
 	
 	private Binary logo;
