@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
@@ -180,5 +181,19 @@ public class AdminController {
 
 		return response;
 
+	}
+	
+	@RequestMapping(value = "/get-dashboard-data", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAdminDashboardData(){
+		
+		AdminDashboardData adminDashboardData = adminService.loadAdminDashboardData();
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(adminDashboardData)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 }
