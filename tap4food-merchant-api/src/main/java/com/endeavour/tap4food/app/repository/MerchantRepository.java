@@ -12,6 +12,7 @@ import javax.validation.Valid;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.hibernate.jdbc.Expectations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -177,93 +178,36 @@ public class MerchantRepository {
 		return Optional.ofNullable(merchantRes);
 	}
 
-	public void saveCategory(Category menuCategory) {
+	public void saveCategory(@Valid Category menuCategory) {
 		
-//		Query query = new Query().addCriteria(Criteria.where("category").is(menuCategory.getCategory()));
-//		
-//		mongoTemplate.save(query);
-		//String categoryName = menuCategory.getCategory();
-//		List<Category> menu = mongoTemplate.findAll(Category.class, "menuCategories");
-//		
-//		if (!menu.contains(menuCategory.getCategory())) {
-//			System.out.println(menu);
-//			mongoTemplate.save(menuCategory);
-//		} else {
-//			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category already exists");
-//		}
-		mongoTemplate.save(menuCategory);
-		//mongoTemplate.indexOps("menuCategories").ensureIndex(new Index("category", Direction.ASC).unique());
-//		categories.add(categoryName);
-//		for (String items : categories) {
-//			if (!categories.contains(items)) {
-//				categories.add(items);
-//			}
-//			mongoTemplate.save(menuCategory);
-//		}
-		
-		
-		//List<String> newListUsingSteram = categories.stream().distinct().collect(Collectors.toList());
-		
-//		Set<String> category = new HashSet<String>();
-//		String categoryName = menuCategory.getCategory();
-//		
-//		
-//		if (!category.contains(menuCategory.getCategory())) {
-//				category.add(categoryName);		
-//					mongoTemplate.save(menuCategory);
-//				}
-				
-	//		String 
-//		if (!category.contains(menuCategory)) {
-//			category.add(menuCategory);
-//			mongoTemplate.save(category);
-//		} else {
-//			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category already exists");
-//		}
-		
+		List<Category> categories = mongoTemplate.findAll(Category.class);
+		if (!categories.contains(menuCategory.getCategory())) {
+			mongoTemplate.save(menuCategory);
+		} 
 	}
 
-	public void saveSubCategory(SubCategory categories) {
-		mongoTemplate.save(categories);
+	public void saveSubCategory(@Valid SubCategory subCategory) {
+		List<SubCategory> subCategories = mongoTemplate.findAll(SubCategory.class);
+		if (!subCategories.contains(subCategory.getSubCategory())) {
+			mongoTemplate.save(subCategory);
+		} 
 	}
 	
-	public void saveCustomizeType(CustomizeType customizeType) {
-		mongoTemplate.save(customizeType);
+	public void saveCustomizeType(@Valid CustomizeType customizeType) {
+		List<CustomizeType> customizeTypes = mongoTemplate.findAll(CustomizeType.class);
+		if (!customizeTypes.contains(customizeType.getType())) {
+			mongoTemplate.save(customizeType);
+		} 
+		
 	}
 	
-//	public void editCategory(Category category) {
-////		
-////		Query query = new Query().addCriteria(Criteria.where("category").is(category));
-////		 
-////		Update updatedName = new Update().set(categoryName, category.getCategory());
-////		mongoTemplate.findAndModify(query, updatedName, Category.class);
-//		
-//		
-//		mongoTemplate.save(category);
-//		
-//	}
-	
-//	public void editSubCategory(SubCategory subCategory) {
-//		String subCategoryName = subCategory.getSubCategory();
-//		Query query = new Query().addCriteria(Criteria.where("subCategory").is(subCategoryName));
-//		
-//		Update updatedName = new Update().set(subCategoryName, subCategory.getSubCategory());
-//		//mongoTemplate.findAndModify(query, updatedName, SubCategory.class);
-//		mongoTemplate.findAndReplace(query, updatedName);
-//	}
-	
-	public void deleteCategory(Category category) {		
-//		String categoryName = category.getCategory();
-//		
-//		Query query = new Query().addCriteria(Criteria.where("category").is(categoryName));
-		//mongoTemplate.findAndRemove(query, Category.class);
+	public void deleteCategory(@Valid Category category) {		
+
 		mongoTemplate.remove(category);
 	}
 	
-	public void deleteSubCategory(SubCategory subCategory) {
-//		String subCategoryName = subCategory.getSubCategory();
-//		Query query = new Query().addCriteria(Criteria.where("subCategory").is(subCategoryName));
-//		mongoTemplate.findAndRemove(query, SubCategory.class);
+	public void deleteSubCategory(@Valid SubCategory subCategory) {
+
 		mongoTemplate.remove(subCategory);
 	}
 	
@@ -389,33 +333,18 @@ public class MerchantRepository {
 		mongoTemplate.remove(customizeType);
 	}
 
-	public void hideCategory(Category category) {
-		mongoTemplate.save(category);
-		
-	}
-
-	public void hideCategory(SubCategory subCategory) {
-		mongoTemplate.save(subCategory);
-		
-	}
-
-	public void hideCustomizeType(@Valid CustomizeType customizeType) {
-		mongoTemplate.save(customizeType);
-	}
-
-	public void saveCuisine(@Valid Cuisine cuisine) {
-		mongoTemplate.save(cuisine);
+		public Cuisine saveCuisine(@Valid Cuisine cuisine) throws Exception {
+		List<Cuisine> cuisineNames = mongoTemplate.findAll(Cuisine.class);
+		if (!cuisineNames.contains(cuisine.getName())) {
+			Cuisine save = mongoTemplate.save(cuisine);
+			return save;
+		} else {
+			throw new Exception("Cuisine name already exists");
+		}
 	}
 
 	public void removeCuisine(@Valid Cuisine cuisine) {
 		mongoTemplate.remove(cuisine);
 	}
-
-	public void hideCuisine(@Valid Cuisine cuisine) {
-		mongoTemplate.remove(cuisine);
-		
-	}
-
-
 
 }

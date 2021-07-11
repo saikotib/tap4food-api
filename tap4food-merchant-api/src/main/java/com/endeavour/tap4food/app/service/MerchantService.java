@@ -289,11 +289,11 @@ public class MerchantService {
 	}
 
 	
-	public void addSubCategory(SubCategory subCategory) {
+	public void addSubCategory(@Valid SubCategory subCategory) {
 		merchantRepository.saveSubCategory(subCategory);
 	}
 	
-	public void editCategory(Category category) {
+	public void editCategory(@Valid Category category) {
 		
 //		List<Category> categoriesList = merchantRepository.findAllCategories();
 //		String categoryName = category.getCategory();
@@ -305,35 +305,35 @@ public class MerchantService {
 		merchantRepository.saveCategory(category);
 	}
 	
-	public void editSubCategory(SubCategory subCategory) {
+	public void editSubCategory(@Valid SubCategory subCategory) {
 		merchantRepository.saveSubCategory(subCategory);
 	}
 	
-	public void deleteCategory(Category category) {
+	public void deleteCategory(@Valid Category category) {
 		merchantRepository.deleteCategory(category);
 	}
 	
-	public void deleteSubCategory(SubCategory subCategory) {
+	public void deleteSubCategory(@Valid SubCategory subCategory) {
 		merchantRepository.deleteSubCategory(subCategory);
 	}
 	
-	public void hideCategory(Category category) {
+	public void hideCategory(@Valid Category category) {
 		if (category.getVisible().equals(false)) {
 			category.setVisible(false);
-			merchantRepository.hideCategory(category);
+			merchantRepository.saveCategory(category);
 		} else {
 			category.setVisible(true);
-			merchantRepository.hideCategory(category);
+			merchantRepository.saveCategory(category);
 		}
 	}
 	
-	public void hideSubCategory(SubCategory subCategory) {
+	public void hideSubCategory(@Valid SubCategory subCategory) {
 		if (subCategory.getVisible().equals(false)) {
 			subCategory.setVisible(false);
-			merchantRepository.hideCategory(subCategory);
+			merchantRepository.saveSubCategory(subCategory);
 		} else {
 			subCategory.setVisible(true);
-			merchantRepository.hideCategory(subCategory);
+			merchantRepository.saveSubCategory(subCategory);
 		}
 	}
 
@@ -548,21 +548,22 @@ public class MerchantService {
 	public void hideCustomizeType(@Valid CustomizeType customizeType) {
 		if (customizeType.getVisible().equals(false)) {
 			customizeType.setVisible(false);
-			merchantRepository.hideCustomizeType(customizeType);
+			merchantRepository.saveCustomizeType(customizeType);
 			
 		} else {
 			customizeType.setVisible(true);
-			merchantRepository.hideCustomizeType(customizeType);
+			merchantRepository.saveCustomizeType(customizeType);
 		}
 		
 	}
 
-	public void addCuisineName(@Valid Cuisine cuisine) {
-		merchantRepository.saveCuisine(cuisine);
+	public Cuisine addCuisineName(@Valid Cuisine cuisine) throws Exception {
+		Cuisine saveCuisine = merchantRepository.saveCuisine(cuisine);
+		return saveCuisine;
 		
 	}
 
-	public void editCustomizeType(@Valid Cuisine cuisine) {
+	public void editCusine(@Valid Cuisine cuisine) throws Exception {
 		merchantRepository.saveCuisine(cuisine);
 		
 	}
@@ -572,15 +573,15 @@ public class MerchantService {
 		
 	}
 
-	public void hideCustomizeType(@Valid Cuisine cuisine) {
-		// TODO Auto-generated method stub
+	public void hideCustomizeType(@Valid Cuisine cuisine) throws Exception {
+		
 		if (cuisine.getVisible().equals(false)) {
 			cuisine.setVisible(false);
-			merchantRepository.hideCuisine(cuisine);
+			merchantRepository.saveCuisine(cuisine);
 			
 		}  else {
 			cuisine.setVisible(true);
-			merchantRepository.hideCuisine(cuisine);
+			merchantRepository.saveCuisine(cuisine);
 		}
 	}
 
