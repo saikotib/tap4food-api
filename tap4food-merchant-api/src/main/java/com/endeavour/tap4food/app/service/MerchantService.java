@@ -407,7 +407,6 @@ public class MerchantService {
 		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
 		FoodStallTimings foodStallTimings = new FoodStallTimings();
 		if (merchantData.isPresent()) {	
-			foodStallTimings.setMerchantId(uniqueId);
 			foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
 			for (int i = 0; i < weekDay.size(); i++) {
 				merchantRepository.saveOneWeekDay(weekDay.get(i));

@@ -20,7 +20,7 @@ public class FoodStall {
 	private String id;
 
 	private String foodStallName;
-	
+
 	private Long foodStallId;
 
 	private String gstNumber; // GST number
@@ -30,7 +30,11 @@ public class FoodStall {
 	private String foodStallLicenseNumber;
 
 	private String deliveryTime; // This is food delivery time (ex: 20 mins)
-	
+
+	private Long merchantUniqueNumber;
+
+	private Long foodCourtId;
+
 	@DBRef
 	private FoodStallTimings foodStallTimings;
 }

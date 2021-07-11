@@ -41,6 +41,8 @@ public class BusinessUnit {
 	private String state;
 	
 	private String country;
+	
+	private String status;   // ACTIVE, INACTIVE, DELETED
 
 	
 	//If teh Business Unit is Restaurant then no foodcourts 
