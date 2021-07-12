@@ -169,10 +169,20 @@ public class MerchantRepository {
 		return false;
 	}
 
-	public Optional<Merchant> saveMerchant(Merchant merchant) {
-		Merchant merchantRes = mongoTemplate.save(merchant);
-		System.out.println(merchantRes);
-		return Optional.ofNullable(merchantRes);
+	public Merchant updateMerchant(Merchant merchant) {
+		
+		if(merchant.getUniqueNumber() != null) {
+			Optional<Merchant> existingMerchant = findByUniqueNumber(merchant.getUniqueNumber());
+			if(existingMerchant.isPresent()) {
+				mongoTemplate.save(merchant);
+			}else {
+				merchant = null;
+			}
+		}else {
+			merchant = null;
+		}
+		
+		return merchant;
 	}
 
 	public void saveCategory(@Valid Category menuCategory) {

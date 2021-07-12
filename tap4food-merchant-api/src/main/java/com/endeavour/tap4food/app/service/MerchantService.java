@@ -266,18 +266,17 @@ public class MerchantService {
 
 			merchant.setStatus(status);
 
-			merchantResponse = merchantRepository.saveMerchant(merchant);
+			merchant = merchantRepository.updateMerchant(merchant);
 		}
-		;
 
 		// Mail has to go here.
 
 		return merchant;
 	}
 
-	public Optional<Merchant> updateMerchant(@Valid Merchant merchant) {
+	public Merchant updateMerchant(@Valid Merchant merchant) {
 
-		return merchantRepository.saveMerchant(merchant);
+		return merchantRepository.updateMerchant(merchant);
 	}
 
 	public void addCategory(@Valid Category category) {
@@ -398,9 +397,14 @@ public class MerchantService {
 
 				merchant.setPassword(encoder.encode(newPassword));
 
-				merchantRepository.saveMerchant(merchant);
+				merchant = merchantRepository.updateMerchant(merchant);
 
-				message = "Password is changed successfully";
+				if(Objects.isNull(merchant)) {
+					message = "Password is changed successfully";
+				}else {
+					message = "Merchant data couldn't found";
+				}
+					
 			} else {
 				message = "Old password is incorrect";
 			}

@@ -104,11 +104,11 @@ public class MerchantController {
 	public ResponseEntity<?> updateMerchant(@Valid @RequestBody Merchant merchant) {
 		ResponseEntity response = null;
 
-		Optional<Merchant> merchantRes = merchantService.updateMerchant(merchant);
-		if (merchantRes.isPresent()) {
-			response = ResponseEntity.ok(merchantRes);
+		merchant = merchantService.updateMerchant(merchant);
+		if (!Objects.isNull(merchant)) {
+			response = ResponseEntity.ok(merchant);
 		} else {
-			response = ResponseEntity.badRequest().body("No data found");
+			response = ResponseEntity.badRequest().body("Merchant is not available");
 		}
 
 		return response;
