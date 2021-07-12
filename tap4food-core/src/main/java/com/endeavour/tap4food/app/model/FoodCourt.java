@@ -22,7 +22,9 @@ public class FoodCourt {
 	@Id
 	private String id;
 	
-	private Long foodCourtId;
+	private String foodCourtId;
+	
+	private String businessUnitId;
 	
 	private String name;
 	

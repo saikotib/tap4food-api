@@ -12,13 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.AdminService;
@@ -140,8 +143,8 @@ public class AdminController {
 	
 	
 	
-	@RequestMapping(value = "/delete-business-unit", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateBusinessUnits(@Valid @RequestParam String businessUnitId) {
+	@RequestMapping(value = "/bunit/{bu-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateBusinessUnits(@Valid @PathVariable("bu-id") String businessUnitId) {
 
 		boolean flag = adminService.deleteBusinessUnitById(businessUnitId);
 
@@ -163,10 +166,10 @@ public class AdminController {
 	
 	
 	@RequestMapping(value = "/get-business-unit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getBusinessUnits(@RequestBody(required = false) Map<String,Object> businessObject) {
+	public ResponseEntity<ResponseHolder> getBusinessUnits(@RequestBody(required = false) Map<String,Object> filterMap) {
 
 
-		Optional<List<BusinessUnit>> businessUnitRes = adminService.getBusinessUnits(businessObject);
+		Optional<List<BusinessUnit>> businessUnitRes = adminService.getBusinessUnits(filterMap);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (businessUnitRes.isPresent()) {
@@ -176,6 +179,144 @@ public class AdminController {
 			response = ResponseEntity
 					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
 							.data("Error occurred while retrieving Business Units").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	
+	@RequestMapping(value = "/bunit/{bu-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> uploadLogo(@Valid @PathVariable("bu-id") String buId ,@RequestParam(value="logo", required=true) MultipartFile logo ) {
+
+
+		Optional<BusinessUnit> businessUnitRes = adminService.uploadLogo(buId,logo);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (businessUnitRes.isPresent()) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Logo uploaded successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(businessUnitRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while uploading Logo").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	/* Food Court End Points*/
+	
+	
+	
+	@RequestMapping(value = "/bunit/{bu-id}/add-food-court", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addFoodCourt(@Valid @PathVariable("bu-id") String buId ,@RequestBody FoodCourt foodCourt ) {
+
+
+		Optional<FoodCourt> foodCourtRes = adminService.addFoodCourt(buId,foodCourt);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (foodCourtRes.isPresent()) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court saved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourtRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while saving Food Court").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	@RequestMapping(value = "/food-court/{fc-id}/update-food-court ", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId ,@RequestBody FoodCourt foodCourt ) {
+
+
+		Optional<FoodCourt> foodCourtRes = adminService.updateFoodCourt(foodCourtId,foodCourt);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (foodCourtRes.isPresent()) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court saved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourtRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while saving Food Court").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	
+
+	
+	@RequestMapping(value = "/food-court/{fc-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> uploadFoodCourtLogo(@Valid @PathVariable("fc-id") String foodCourtId ,@RequestParam(value="logo", required=true) MultipartFile logo ) {
+
+
+		Optional<FoodCourt> foodCourt = adminService.uploadFoodCourtLogo(foodCourtId,logo);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (foodCourt .isPresent()) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court Logo uploaded successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourt).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while uploading Food Court Logo").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	
+	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
+
+		boolean flag = adminService.deleteFoodCourtId(foodCourtId);
+
+
+		Optional<FoodCourt> foodCourt = adminService.getFoodCourtById(foodCourtId);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (foodCourt .isPresent()) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court Logo uploaded successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourt).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while uploading Food Court Logo").build());
+		}
+
+		return response;
+
+
+	}
+	
+	
+
+	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
+
+		boolean flag = adminService.deleteFoodCourtId(foodCourtId);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (flag) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("Food Court Deleted successfully").build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while deleting Food Court").build());
 		}
 
 		return response;

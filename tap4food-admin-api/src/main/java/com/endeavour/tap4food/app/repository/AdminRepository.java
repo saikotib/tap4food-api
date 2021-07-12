@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
@@ -180,31 +181,88 @@ public class AdminRepository {
 		return flag;
 	}
 
-
-
-	public List<BusinessUnit> findBusinessUnitsByFilter(Map businessObject) {
+	public List<BusinessUnit> findBusinessUnitsByFilter(Map<String, Object> filterMap) {
 
 		final Query query = new Query();
 		List<BusinessUnit> res = null;
 		final List<Criteria> criteria = new ArrayList<>();
-		
-		if (businessObject.containsKey(BusinessUnitCollectionConstants.NAME)) {
+
+		if (filterMap.containsKey(BusinessUnitCollectionConstants.NAME)) {
 			System.out.println(BusinessUnitCollectionConstants.NAME);
-			criteria.add(Criteria.where(BusinessUnitCollectionConstants.NAME).is(businessObject.get("name")));
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.NAME)
+					.is(filterMap.get(BusinessUnitCollectionConstants.NAME)));
 		}
-		if (StringUtils.hasText(String.valueOf(businessObject.get("type")))) {
+		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.TYPE)))) {
 			System.out.println(BusinessUnitCollectionConstants.TYPE);
-			criteria.add(Criteria.where("type").is(businessObject.get(BusinessUnitCollectionConstants.TYPE)));
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.TYPE)
+					.is(filterMap.get(BusinessUnitCollectionConstants.TYPE)));
 		}
 
+		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.CITY)))) {
+			System.out.println(BusinessUnitCollectionConstants.CITY);
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.CITY)
+					.is(filterMap.get(BusinessUnitCollectionConstants.CITY)));
+		}
+
+		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.STATUS)))) {
+			System.out.println(BusinessUnitCollectionConstants.STATUS);
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.STATUS)
+					.is(filterMap.get(BusinessUnitCollectionConstants.STATUS)));
+		}
+
+		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.STATE)))) {
+			System.out.println(BusinessUnitCollectionConstants.STATE);
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.STATE)
+					.is(filterMap.get(BusinessUnitCollectionConstants.STATE)));
+		}
+
+		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.COUNTRY)))) {
+			System.out.println(BusinessUnitCollectionConstants.COUNTRY);
+			criteria.add(Criteria.where(BusinessUnitCollectionConstants.COUNTRY)
+					.is(filterMap.get(BusinessUnitCollectionConstants.COUNTRY)));
+		}
 		if (!criteria.isEmpty()) {
 			query.addCriteria(new Criteria().andOperator(criteria.toArray(new Criteria[criteria.size()])));
 			res = mongoTemplate.find(query, BusinessUnit.class);
-		}else {
+		} else {
 			res = mongoTemplate.findAll(BusinessUnit.class);
 		}
 
 		System.out.println(query);
 		return res;
+	}
+
+	public Optional<BusinessUnit> findAdminByBusinessTypeId(String buId) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("businessUnitId").is(buId));
+
+		BusinessUnit businessUnit = mongoTemplate.findOne(query, BusinessUnit.class);
+
+		return Optional.ofNullable(businessUnit);
+	}
+
+	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
+
+		return mongoTemplate.save(foodCourt);
+	}
+
+	public List<FoodCourt> findFoodCourtsByBusinessTypeId(String buId) {
+
+		return mongoTemplate.findAll(FoodCourt.class);
+	}
+
+	public Optional<FoodCourt> findFoodCourtByFoodCourtId(String foodCourtId) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("foodCourtId").is(foodCourtId));
+
+		FoodCourt foodCourt = mongoTemplate.findOne(query, FoodCourt.class);
+		return Optional.ofNullable(foodCourt);
+	}
+
+	public boolean deleteFoodCourtById(final String foodCourtId) {
+		boolean flag = false;
+		mongoTemplate.remove(Query.query(Criteria.where("foodCourtId").is(foodCourtId)), FoodCourt.class);
+		flag = true;
+		return flag;
 	}
 }
