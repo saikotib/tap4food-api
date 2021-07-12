@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
@@ -185,6 +186,7 @@ public class AdminController {
 
 	}
 	
+
 	
 	
 	@RequestMapping(value = "/bunit/{bu-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -279,22 +281,19 @@ public class AdminController {
 	
 	
 	
-	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/food-court/{fc-id}/get", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> deleteFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
-
-		boolean flag = adminService.deleteFoodCourtId(foodCourtId);
-
 
 		Optional<FoodCourt> foodCourt = adminService.getFoodCourtById(foodCourtId);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (foodCourt .isPresent()) {
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court Logo uploaded successfully")
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court detailes retreived successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourt).build());
 		} else {
 			response = ResponseEntity
 					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while uploading Food Court Logo").build());
+							.data("Error occurred while retreiving Food Court detailes").build());
 		}
 
 		return response;
@@ -304,7 +303,7 @@ public class AdminController {
 	
 	
 
-	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
 
 		boolean flag = adminService.deleteFoodCourtId(foodCourtId);
@@ -321,5 +320,18 @@ public class AdminController {
 
 		return response;
 
+	}
+	@RequestMapping(value = "/get-dashboard-data", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAdminDashboardData(){
+		
+		AdminDashboardData adminDashboardData = adminService.loadAdminDashboardData();
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(adminDashboardData)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 }

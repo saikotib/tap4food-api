@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.service;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,19 +17,18 @@ import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
 import com.endeavour.tap4food.app.model.Admin;
+import com.endeavour.tap4food.app.model.AdminDashboardData;
+import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
+import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantVsRevenue;
+import com.endeavour.tap4food.app.model.AdminDashboardData.ReportParams;
+import com.endeavour.tap4food.app.model.AdminDashboardData.Subscriptions;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
@@ -364,5 +364,116 @@ public class AdminService {
 
 	public Optional<FoodCourt> getFoodCourtById(@Valid String foodCourtId) {
 		return adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+	}
+	
+	public AdminDashboardData loadAdminDashboardData() {
+		
+		AdminDashboardData dashboard = new AdminDashboardData();
+		dashboard.setShoppingMalls(26L);
+		dashboard.setRestaurants(78L);
+		dashboard.setTheaters(969L);
+		dashboard.setTotalCustomers(8236L);
+		dashboard.setTotalFoodCourts(50L);
+		dashboard.setTotalFoodStalls(724L);
+		dashboard.setTotalMerchants(610L);
+		dashboard.setTotalOrders(16071L);
+		
+		ReportParams reportData = new ReportParams();
+		reportData.setCustomers(170L);
+		reportData.setFoodStalls(4L);
+		reportData.setRestaurants(20L);
+		
+		Map<String, ReportParams> monthlyReportData = new HashMap<String, AdminDashboardData.ReportParams>();
+		
+		monthlyReportData.put("JAN", reportData);
+		reportData.setCustomers(489L);
+		reportData.setFoodStalls(61L);
+		reportData.setRestaurants(77L);
+		monthlyReportData.put("FEB", reportData);
+		reportData.setCustomers(139L);
+		reportData.setFoodStalls(8L);
+		reportData.setRestaurants(37L);
+		monthlyReportData.put("MAR", reportData);
+		monthlyReportData.put("APR", reportData);
+		reportData.setCustomers(139L);
+		reportData.setFoodStalls(8L);
+		reportData.setRestaurants(37L);
+		monthlyReportData.put("MAY", reportData);
+		monthlyReportData.put("JUN", reportData);
+		reportData.setCustomers(699L);
+		reportData.setFoodStalls(12L);
+		reportData.setRestaurants(68L);
+		monthlyReportData.put("JUL", reportData);
+		monthlyReportData.put("AUG", reportData);
+		
+		Map<String, Map<String, ReportParams>> reportStatsMap = new HashMap<String, Map<String,ReportParams>>();
+		
+		reportStatsMap.put("2021", new HashMap<String, AdminDashboardData.ReportParams>());
+		reportStatsMap.put("2021", monthlyReportData);
+		
+		dashboard.setReportMap(reportStatsMap);
+		
+		Map<String, Subscriptions> subscriptionsMap = new HashMap<String, AdminDashboardData.Subscriptions>();
+		
+		Subscriptions subscriptions = new Subscriptions();
+		subscriptions.setExpired(10L);
+		subscriptions.setNewSubscriptions(20L);
+		subscriptions.setRenewal(30L);
+		
+		subscriptionsMap.put("JAN-2021", subscriptions);
+		
+		subscriptions.setExpired(16L);
+		subscriptions.setNewSubscriptions(27L);
+		subscriptions.setRenewal(25L);
+		
+		subscriptionsMap.put("FEB-2021", subscriptions);
+		subscriptionsMap.put("MAR-2021", subscriptions);
+		subscriptionsMap.put("APR-2021", subscriptions);
+		subscriptionsMap.put("MAY-2021", subscriptions);
+		subscriptionsMap.put("JUN-2021", subscriptions);
+		subscriptionsMap.put("JUL-2021", subscriptions);
+		
+		dashboard.setSubscriptionsMap(subscriptionsMap);
+		
+		Map<String, MerchantRequests> merchantRequestsMap = new HashMap<String, AdminDashboardData.MerchantRequests>();
+		
+		MerchantRequests merchantRequests = new MerchantRequests();
+		merchantRequests.setApproved(60L);
+		merchantRequests.setInProgress(200L);
+		merchantRequests.setOpen(12L);
+		merchantRequests.setRejected(7L);
+		
+		
+		merchantRequestsMap.put("JAN-2021", merchantRequests);
+		merchantRequestsMap.put("FEB-2021", merchantRequests);
+		merchantRequestsMap.put("MAR-2021", merchantRequests);
+		merchantRequests.setApproved(80L);
+		merchantRequests.setInProgress(500L);
+		merchantRequests.setOpen(89L);
+		merchantRequests.setRejected(7L);
+		merchantRequestsMap.put("APR-2021", merchantRequests);
+		merchantRequestsMap.put("MAY-2021", merchantRequests);
+		merchantRequestsMap.put("JUN-2021", merchantRequests);
+		merchantRequestsMap.put("JUL-2021", merchantRequests);
+		
+		dashboard.setMerchantRequestsMap(merchantRequestsMap);
+		
+		Map<String, MerchantVsRevenue> merchantVsRevenueMap = new HashMap<String, AdminDashboardData.MerchantVsRevenue>();
+		MerchantVsRevenue merchantVsRevenue = new MerchantVsRevenue();
+		merchantVsRevenue.setMerchants((double) 200);
+		merchantVsRevenue.setRevenue((double) 15000);
+		
+		merchantVsRevenueMap.put("JAN-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("FEB-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("MAR-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("APR-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("MAY-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("JUN-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("JUL-2021", merchantVsRevenue);
+		merchantVsRevenueMap.put("AUG-2021", merchantVsRevenue);
+		
+		dashboard.setMerchantVsRevenueMap(merchantVsRevenueMap);
+		
+		return dashboard;
 	}
 }
