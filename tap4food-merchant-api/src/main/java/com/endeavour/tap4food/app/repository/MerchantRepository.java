@@ -172,9 +172,16 @@ public class MerchantRepository {
 	public Merchant updateMerchant(Merchant merchant) {
 		
 		if(merchant.getUniqueNumber() != null) {
-			Optional<Merchant> existingMerchant = findByUniqueNumber(merchant.getUniqueNumber());
-			if(existingMerchant.isPresent()) {
-				mongoTemplate.save(merchant);
+			Optional<Merchant> existingMerchantData = findByUniqueNumber(merchant.getUniqueNumber());
+			if(existingMerchantData.isPresent()) {
+				
+				Merchant existingMerchant = existingMerchantData.get();
+				existingMerchant.setCity(merchant.getCity());
+				existingMerchant.setCountry(merchant.getCountry());
+				existingMerchant.setPersonalIdNumber(merchant.getPersonalIdNumber());
+				existingMerchant.setUserName(merchant.getUserName());
+				
+				mongoTemplate.save(existingMerchant);
 			}else {
 				merchant = null;
 			}
