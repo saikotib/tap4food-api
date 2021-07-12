@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.service;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,11 +13,16 @@ import java.util.concurrent.Executors;
 
 import javax.validation.Valid;
 
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
+import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
@@ -24,6 +30,7 @@ import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantVsRevenue;
 import com.endeavour.tap4food.app.model.AdminDashboardData.ReportParams;
 import com.endeavour.tap4food.app.model.AdminDashboardData.Subscriptions;
 import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.AdminRepository;
@@ -65,13 +72,13 @@ public class AdminService {
 
 		return admin;
 	}
-	
+
 	public Optional<Admin> findAdminUserByUserName(final String userName) {
 		Optional<Admin> admin = adminRepository.findAdminByUserName(userName);
 
 		return admin;
 	}
-	
+
 	public Optional<Admin> findAdminUserByPhoneNumber(final String adminPhoneNumber) {
 		Optional<Admin> admin = adminRepository.findAdminByPhoneNumber(adminPhoneNumber);
 
@@ -91,25 +98,27 @@ public class AdminService {
 	public ResponseHolder updateMerchantStatus(final String status, final Long merchantUniqueId) {
 
 		/*
-		String merchantStatusUpdateApiUrl = merchantApiBaseUrl + "/update-status";
+		 * String merchantStatusUpdateApiUrl = merchantApiBaseUrl + "/update-status";
+		 * 
+		 * RestTemplate restTemplate = new RestTemplate();
+		 * 
+		 * HttpHeaders requestHeaders = new HttpHeaders(); requestHeaders.add("Accept",
+		 * MediaType.APPLICATION_JSON_VALUE); HttpEntity requestEntity = new
+		 * HttpEntity(requestHeaders);
+		 * 
+		 * UriComponentsBuilder uriBuilder =
+		 * UriComponentsBuilder.fromHttpUrl(merchantStatusUpdateApiUrl)
+		 * .queryParam("status", status).queryParam("uniqueNumber", merchantUniqueId);
+		 * 
+		 * ResponseEntity<ResponseHolder> responseEntity =
+		 * restTemplate.exchange(uriBuilder.toUriString(), HttpMethod.PUT,
+		 * requestEntity, ResponseHolder.class);
+		 * 
+		 * System.out.println("Get Body : " + responseEntity.getBody());
+		 * 
+		 * return responseEntity.getBody();
+		 */
 
-		RestTemplate restTemplate = new RestTemplate();
-
-		HttpHeaders requestHeaders = new HttpHeaders();
-		requestHeaders.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-		HttpEntity requestEntity = new HttpEntity(requestHeaders);
-
-		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(merchantStatusUpdateApiUrl)
-				.queryParam("status", status).queryParam("uniqueNumber", merchantUniqueId);
-
-		ResponseEntity<ResponseHolder> responseEntity = restTemplate.exchange(uriBuilder.toUriString(), HttpMethod.PUT,
-				requestEntity, ResponseHolder.class);
-
-		System.out.println("Get Body : " + responseEntity.getBody());
-
-		return responseEntity.getBody();
-		*/
-		
 		return null;
 	}
 
@@ -171,16 +180,16 @@ public class AdminService {
 	public List<Merchant> fetchMerchants() {
 
 		List<Merchant> allMerchants = adminRepository.fetchMerchants();
-		
+
 		Comparator<Merchant> compareByUniqueNumber = new Comparator<Merchant>() {
-		    @Override
-		    public int compare(Merchant merchant1, Merchant merchant2) {
-		        return merchant2.getUniqueNumber().compareTo(merchant1.getUniqueNumber());
-		    }
+			@Override
+			public int compare(Merchant merchant1, Merchant merchant2) {
+				return merchant2.getUniqueNumber().compareTo(merchant1.getUniqueNumber());
+			}
 		};
-		
+
 		Collections.sort(allMerchants, compareByUniqueNumber);
-		
+
 		return allMerchants;
 	}
 
@@ -237,17 +246,124 @@ public class AdminService {
 	}
 
 	public BusinessUnit saveBusinessUnits(@Valid BusinessUnit businessUnit) {
-		
+
 		return adminRepository.saveBusinessUnit(businessUnit);
 	}
 
 	public boolean deleteBusinessUnitById(final String businessUnitId) {
-		
+
 		return adminRepository.deleteBusinessUnitById(businessUnitId);
 	}
 
-	public Optional<List<BusinessUnit>> getBusinessUnits(Map businessObject) {
-		return Optional.ofNullable(adminRepository.findBusinessUnitsByFilter(businessObject));
+	public Optional<List<BusinessUnit>> getBusinessUnits(Map<String, Object> filterMap) {
+		return Optional.ofNullable(adminRepository.findBusinessUnitsByFilter(filterMap));
+	}
+
+	public Optional<BusinessUnit> uploadLogo(final String buId, MultipartFile logo) {
+		Optional<BusinessUnit> businessUnit = adminRepository.findAdminByBusinessTypeId(buId);
+
+		if (businessUnit.isPresent()) {
+			try {
+				businessUnit.get().setLogo(new Binary(BsonBinarySubType.BINARY, logo.getBytes()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			adminRepository.saveBusinessUnit(businessUnit.get());
+		}
+
+		return businessUnit;
+	}
+
+	public Optional<FoodCourt> addFoodCourt(final String buId, FoodCourt foodCourt) {
+		Optional<BusinessUnit> businessUnit = adminRepository.findAdminByBusinessTypeId(buId);
+
+		if (businessUnit.isPresent()) {
+			if (!businessUnit.get().getType().equals(BusinessUnitEnum.RESTAURANT)) {
+				foodCourt.setBusinessUnitId(buId);
+				foodCourt = adminRepository.saveFoodCourt(foodCourt);
+
+				List<FoodCourt> foodCourts = adminRepository.findFoodCourtsByBusinessTypeId(buId);
+				businessUnit.get().setFoodCourts(foodCourts);
+				adminRepository.saveBusinessUnit(businessUnit.get());
+			}
+
+		}
+
+		return Optional.ofNullable(foodCourt);
+	}
+
+	public Optional<FoodCourt> updateFoodCourt(final String foodCourtId, FoodCourt foodCourt) {
+
+		Optional<FoodCourt> foodCourtRes = adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+
+		FoodCourt foodCourtObject = new FoodCourt();
+
+		if (foodCourtRes.isPresent()) {
+
+			foodCourtObject.setId(foodCourtRes.get().getId());
+			foodCourtObject = foodCourt;
+			adminRepository.saveFoodCourt(foodCourtObject);
+
+			Optional<BusinessUnit> businessUnit = adminRepository
+					.findAdminByBusinessTypeId(foodCourtRes.get().getBusinessUnitId());
+
+			List<FoodCourt> foodCourts = adminRepository
+					.findFoodCourtsByBusinessTypeId(foodCourtRes.get().getBusinessUnitId());
+
+			businessUnit.get().setFoodCourts(foodCourts);
+			adminRepository.saveBusinessUnit(businessUnit.get());
+		}
+
+		return Optional.ofNullable(foodCourtObject);
+	}
+
+	public Optional<FoodCourt> uploadFoodCourtLogo(final String foodCourtId, MultipartFile logo) {
+		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+
+		if (foodCourt.isPresent()) {
+			try {
+				foodCourt.get().setLogo(new Binary(BsonBinarySubType.BINARY, logo.getBytes()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			adminRepository.saveFoodCourt(foodCourt.get());
+
+			Optional<BusinessUnit> businessUnit = adminRepository
+					.findAdminByBusinessTypeId(foodCourt.get().getBusinessUnitId());
+
+			List<FoodCourt> foodCourts = adminRepository
+					.findFoodCourtsByBusinessTypeId(foodCourt.get().getBusinessUnitId());
+
+			businessUnit.get().setFoodCourts(foodCourts);
+			adminRepository.saveBusinessUnit(businessUnit.get());
+		}
+
+		return foodCourt;
+	}
+
+	public boolean deleteFoodCourtId(@Valid String foodCourtId) {
+		boolean flag = false;
+		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+
+		if (foodCourt.isPresent()) {
+			Optional<BusinessUnit> businessUnit = adminRepository
+					.findAdminByBusinessTypeId(foodCourt.get().getBusinessUnitId());
+
+			adminRepository.deleteFoodCourtById(foodCourtId);
+
+			List<FoodCourt> foodCourts = adminRepository
+					.findFoodCourtsByBusinessTypeId(foodCourt.get().getBusinessUnitId());
+
+			businessUnit.get().setFoodCourts(foodCourts);
+			adminRepository.saveBusinessUnit(businessUnit.get());
+			flag = true;
+		}
+
+		return flag;
+	}
+
+	public Optional<FoodCourt> getFoodCourtById(@Valid String foodCourtId) {
+		return adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
 	}
 	
 	public AdminDashboardData loadAdminDashboardData() {

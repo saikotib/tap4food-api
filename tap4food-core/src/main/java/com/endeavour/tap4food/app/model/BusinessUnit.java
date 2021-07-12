@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
+import com.endeavour.tap4food.app.enums.BusinessUnitTypeEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,7 +43,7 @@ public class BusinessUnit {
 	
 	private String country;
 	
-	private String status;   // ACTIVE, INACTIVE, DELETED
+	private BusinessUnitTypeEnum status;   // ACTIVE, INACTIVE, DELETED
 
 	
 	//If teh Business Unit is Restaurant then no foodcourts 
