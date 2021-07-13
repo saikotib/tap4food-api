@@ -41,6 +41,14 @@ public class FoodStall {
 	
 	private String city;
 	
+	private String foodCourtName;
+	
+	private String buType;
+	
+	private String buName;
+	
+	private Long buId;
+	
 	@DBRef
 	private MenuListings menuListing;
 
