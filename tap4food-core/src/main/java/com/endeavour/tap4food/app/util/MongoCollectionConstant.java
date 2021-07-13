@@ -28,5 +28,7 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_MENU_CUSTOMIZE_TYPE = "customizeTypes";	
 	
-	public static final String COLLECTION_MENU_LISTINGS = "menuListings";	
+	public static final String COLLECTION_MENU_LISTINGS = "menuListings";
+	
+	public static final String COLLECTION_FOODSTALL_SEQ = "foodStallSequences";
 }

@@ -176,8 +176,6 @@ public class MerchantRepository {
 			if(existingMerchantData.isPresent()) {
 				
 				Merchant existingMerchant = existingMerchantData.get();
-				existingMerchant.setCity(merchant.getCity());
-				existingMerchant.setCountry(merchant.getCountry());
 				existingMerchant.setPersonalIdNumber(merchant.getPersonalIdNumber());
 				existingMerchant.setUserName(merchant.getUserName());
 				

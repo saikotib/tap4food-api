@@ -26,12 +26,6 @@ public class Merchant {
 	
 	private Binary profilePic;
 	
-	private String country;
-	
-	private String state;
-	
-	private String city;
-	
 	private String phoneNumber;
 	
 	private String email;

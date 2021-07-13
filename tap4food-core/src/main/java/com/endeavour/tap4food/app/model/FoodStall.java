@@ -34,6 +34,15 @@ public class FoodStall {
 	private Long merchantUniqueNumber;
 
 	private Long foodCourtId;
+	
+	private String country;
+	
+	private String state;
+	
+	private String city;
+	
+	@DBRef
+	private MenuListings menuListing;
 
 	@DBRef
 	private FoodStallTimings foodStallTimings;
