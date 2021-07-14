@@ -190,46 +190,7 @@ public class MerchantRepository {
 		return merchant;
 	}
 
-	public void saveCategory(@Valid Category menuCategory) {
-		
-		
-			mongoTemplate.save(menuCategory);
-		} 
 	
-	public void saveSubCategory(@Valid SubCategory subCategory) {
-		mongoTemplate.save(subCategory);
-	}
-	
-	public void saveCustomizeType(@Valid CustomizeType customizeType) {
-		
-		mongoTemplate.save(customizeType);
-
-	}
-	
-	public void deleteCategory(@Valid Category category) {		
-
-		mongoTemplate.remove(category);
-	}
-	
-	public void deleteSubCategory(@Valid SubCategory subCategory) {
-
-		mongoTemplate.remove(subCategory);
-	}
-	
-	public Optional<List<Category>> findAllCategories() {
-
-		List<Category> menu = mongoTemplate.findAll(Category.class, MongoCollectionConstant.COLLECTION_MENU_CATEGORIES);
-		
-
-		return Optional.ofNullable(menu);
-	}
-
-	public Optional<List<SubCategory>> findAllSubCategories() {
-
-		List<SubCategory> menu = mongoTemplate.findAll(SubCategory.class, MongoCollectionConstant.COLLECTION_MENU_SUB_CATEGORIES);
-
-		return Optional.ofNullable(menu);
-	}
 
 	public Optional<Merchant> findMerchantById(String id) {
 		Query query = new Query();
@@ -332,27 +293,6 @@ public class MerchantRepository {
 	public void saveOneWeekDay(WeekDay weekDayObj) {
 		 mongoTemplate.save(weekDayObj);
 		
-	}
-
-	public void removeCustomizeType(@Valid CustomizeType customizeType) {
-		mongoTemplate.remove(customizeType);
-	}
-
-		public Cuisine saveCuisine(@Valid Cuisine cuisine) throws Exception {
-		
-			Cuisine save = mongoTemplate.save(cuisine);
-			return save;
-		
-	}
-
-	public void removeCuisine(@Valid Cuisine cuisine) {
-		mongoTemplate.remove(cuisine);
-	}
-
-	public Optional<List<Cuisine>> findAllCuisines() {
-		
-		List<Cuisine> cuisineNames = mongoTemplate.findAll(Cuisine.class);
-		return Optional.ofNullable(cuisineNames);
 	}
 
 }
