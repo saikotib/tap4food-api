@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,7 +18,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,11 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.enums.UserRoleEnum;
-import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
 import com.endeavour.tap4food.app.payload.request.SignupRequest;
 import com.endeavour.tap4food.app.payload.response.JwtResponse;
-import com.endeavour.tap4food.app.payload.response.MessageResponse;
 import com.endeavour.tap4food.app.repository.UserRoleRepository;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.security.jwt.JwtUtils;

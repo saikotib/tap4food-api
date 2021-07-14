@@ -28,13 +28,18 @@ public class CommonRepository {
 		if(Objects.isNull(existingOtp)) {
 			mongoTemplate.save(otp);
 		}else {
+			/*
 			Query query = new Query(Criteria.where("phoneNumber").is(otp.getPhoneNumber()));
 			
 			Update update = new Update();
 			update.set("otp", otp.getOtp());
 			
 			mongoTemplate.upsert(query, update, Otp.class);
+			*/
+			existingOtp.setNumberOfTries(existingOtp.getNumberOfTries() + 1);
+			existingOtp.setOtp(otp.getOtp());
 			
+			mongoTemplate.save(existingOtp);
 		}
 		
 	}

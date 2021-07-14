@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
@@ -321,6 +322,7 @@ public class AdminController {
 		return response;
 
 	}
+	
 	@RequestMapping(value = "/get-dashboard-data", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAdminDashboardData(){
 		
@@ -334,4 +336,20 @@ public class AdminController {
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/associate-fc-fs", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> correlateFCFS(@RequestParam("fc-id") Long foodCourtId, @RequestParam("fs-id") Long foodStallId) throws TFException{
+		
+		adminService.correlateFCFS(foodCourtId, foodStallId);
+
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data("Food Court & Food stall are associated.")
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;		
+	}
+	
 }

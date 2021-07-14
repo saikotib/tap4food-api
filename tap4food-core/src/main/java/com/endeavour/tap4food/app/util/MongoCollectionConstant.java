@@ -31,4 +31,6 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_MENU_LISTINGS = "menuListings";
 	
 	public static final String COLLECTION_FOODSTALL_SEQ = "foodStallSequences";
+	
+	public static final String COLLECTION_FOODCOURT_SEQ = "foodCourtSequences";
 }

@@ -20,12 +20,17 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
+import com.endeavour.tap4food.app.model.collection.constants.FoodCourtCollectionConstants;
+import com.endeavour.tap4food.app.model.collection.constants.FoodStallCollectionConstants;
+import com.endeavour.tap4food.app.service.FoodCourtNextSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -35,6 +40,9 @@ public class AdminRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+	
+	@Autowired
+	private FoodCourtNextSequenceService foodCourtNextSequenceService;
 
 	private String adminUsersCollection = MongoCollectionConstant.COLLECTION_ADMIN_USERS;
 
@@ -243,6 +251,10 @@ public class AdminRepository {
 
 	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
 
+		Long nextFoodCourtSeq = foodCourtNextSequenceService.getNextSequence(MongoCollectionConstant.COLLECTION_FOODCOURT_SEQ);
+
+		foodCourt.setFoodCourtId(nextFoodCourtSeq);
+		
 		return mongoTemplate.save(foodCourt);
 	}
 
@@ -264,5 +276,39 @@ public class AdminRepository {
 		mongoTemplate.remove(Query.query(Criteria.where("foodCourtId").is(foodCourtId)), FoodCourt.class);
 		flag = true;
 		return flag;
+	}
+	
+	public void correlateFCFS(Long foodStallId, Long foodCourtId) throws TFException {
+		
+		Query fcQuery = new Query(Criteria.where(FoodCourtCollectionConstants.FOOD_COURT_NUMBER).is(foodCourtId));
+		Query fsQuery = new Query(Criteria.where(FoodStallCollectionConstants.FOOD_STALL_NUMBER).is(foodStallId));
+		
+		FoodStall foodStall = mongoTemplate.findOne(fsQuery, FoodStall.class);
+		FoodCourt foodCourt = mongoTemplate.findOne(fcQuery, FoodCourt.class);
+		
+		if(Objects.isNull(foodCourt)) {
+			throw new TFException("Food court not found");
+		}
+		
+		if(Objects.isNull(foodStall)) {
+			throw new TFException("Food stall not found");
+		}
+		
+		foodStall.setFoodCourtId(foodCourt.getFoodCourtId());
+		foodStall.setFoodCourtName(foodCourt.getName());
+		
+		mongoTemplate.save(foodStall);
+		
+		List<FoodStall> foodStalls = foodCourt.getFoodStalls();
+		
+		if(Objects.isNull(foodStalls)) {
+			foodStalls = new ArrayList<FoodStall>();
+		}
+
+		foodStalls.add(foodStall);
+		
+		foodCourt.setFoodStalls(foodStalls);
+		
+		mongoTemplate.save(foodCourt);
 	}
 }

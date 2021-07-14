@@ -17,12 +17,13 @@ import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.UriComponentsBuilder;
+
 import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
@@ -475,5 +476,10 @@ public class AdminService {
 		dashboard.setMerchantVsRevenueMap(merchantVsRevenueMap);
 		
 		return dashboard;
+	}
+	
+	public void correlateFCFS(Long foodCourtId, Long foodStallId) throws TFException{
+
+		adminRepository.correlateFCFS(foodStallId, foodCourtId);
 	}
 }
