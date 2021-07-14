@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.websocket.server.PathParam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,7 +47,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/add-category", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addCategory(@PathParam("fs-id") Long foodStallId,
+	public ResponseEntity<ResponseHolder> addCategory(@PathVariable("fs-id") Long foodStallId,
 			@Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.addCategory(foodStallId, category);
@@ -60,7 +60,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/edit-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> editCategory(@PathParam("fs-id") Long foodStallId,@Valid @RequestBody Category category) throws TFException {
+	public ResponseEntity<ResponseHolder> editCategory(@PathVariable("fs-id") Long foodStallId,@Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.editCategory(foodStallId, category);
 
@@ -72,7 +72,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-category", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeCategory(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody Category category) {
+	public ResponseEntity<ResponseHolder> removeCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) {
 
 		foodStallService.deleteCategory(foodStallId, category);
 
@@ -84,7 +84,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/toggle-visible-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> hideCategory(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
+	public ResponseEntity<ResponseHolder> hideCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.hideCategory(foodStallId, category);
 
@@ -96,7 +96,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/add-subcategory", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addSubCategory(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody SubCategory menuSubCategories) throws TFException {
+	public ResponseEntity<ResponseHolder> addSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory menuSubCategories) throws TFException {
 
 		foodStallService.addSubCategory(foodStallId, menuSubCategories);
 
@@ -107,7 +107,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/edit-subcategory", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> editSubCategory(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) throws TFException {
+	public ResponseEntity<ResponseHolder> editSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) throws TFException {
 
 		foodStallService.editSubCategory(foodStallId, subCategory);
 
@@ -118,7 +118,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-subcategory", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeSubCategory(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) {
+	public ResponseEntity<ResponseHolder> removeSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) {
 
 		foodStallService.deleteSubCategory(foodStallId, subCategory);
 
@@ -129,7 +129,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/toggle-visible-subcategory", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> hideSubCategory(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody SubCategory menuSubCategories) throws TFException {
+	public ResponseEntity<ResponseHolder> hideSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory menuSubCategories) throws TFException {
 
 		foodStallService.hideSubCategory(foodStallId, menuSubCategories);
 
@@ -140,7 +140,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/add-cuisine", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addCuisineType(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws TFException {
+	public ResponseEntity<ResponseHolder> addCuisineType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws TFException {
 
 		foodStallService.addCuisineName(foodStallId, cuisine);
 
@@ -151,7 +151,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/edit-cuisine", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> editCuisineName(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
+	public ResponseEntity<ResponseHolder> editCuisineName(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
 
 		foodStallService.editCusine(foodStallId, cuisine);
 
@@ -162,7 +162,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-cuisine", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeCuisine(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) {
+	public ResponseEntity<ResponseHolder> removeCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) {
 
 		foodStallService.deleteCustomizeType(foodStallId, cuisine);
 
@@ -173,7 +173,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/toggle-visible-cuisine", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> hideCuisine(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
+	public ResponseEntity<ResponseHolder> hideCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
 
 		foodStallService.hideCustomizeType(foodStallId, cuisine);
 
@@ -184,7 +184,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/add-customize-type", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addCustomizeType(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
+	public ResponseEntity<ResponseHolder> addCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
 		foodStallService.addCustomizeType(foodStallId, customizeType);
 
@@ -195,7 +195,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/edit-customize-type", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> editCustomizeType(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
+	public ResponseEntity<ResponseHolder> editCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
 		foodStallService.editCustomizeType(foodStallId, customizeType);
 
@@ -206,7 +206,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-customize-type", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeCustomizeType(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) {
+	public ResponseEntity<ResponseHolder> removeCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) {
 
 		foodStallService.deleteCustomizeType(foodStallId, customizeType);
 
@@ -217,7 +217,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/toggle-visible-customize-type", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> hideCustomizeType(@PathParam("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
+	public ResponseEntity<ResponseHolder> hideCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
 		foodStallService.hideCustomizeType(foodStallId, customizeType);
 
@@ -228,7 +228,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(value = "/{fs-id}/fetch-categories", method = RequestMethod.GET)
-	public ResponseEntity<ResponseHolder> getAllCategories(@PathParam("fs-id") Long foodStallId) throws TFException {
+	public ResponseEntity<ResponseHolder> getAllCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
 		List<Category> categoryNames = foodStallService.getAllCategories(foodStallId);
 		if (!categoryNames.isEmpty()) {
 			ResponseHolder response = ResponseHolder.builder().status("Done")
@@ -243,7 +243,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(value = "/{fs-id}/fetch-sub-categories", method = RequestMethod.GET)
-	public ResponseEntity<ResponseHolder> getAllSubCategories(@PathParam("fs-id") Long foodStallId) throws TFException {
+	public ResponseEntity<ResponseHolder> getAllSubCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
 		List<SubCategory> subCategories = foodStallService.getAllSubCategories(foodStallId);
 		if (!subCategories.isEmpty()) {
 			ResponseHolder response = ResponseHolder.builder().status("Done")
@@ -258,7 +258,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(value = "/{fs-id}/fetch-cuisines", method = RequestMethod.GET)
-	public ResponseEntity<ResponseHolder> getAllCuisines(@PathParam("fs-id") Long foodStallId) throws TFException {
+	public ResponseEntity<ResponseHolder> getAllCuisines(@PathVariable("fs-id") Long foodStallId) throws TFException {
 		List<Cuisine> cuisines = foodStallService.getAllCuisines(foodStallId);
 		if (!cuisines.isEmpty()) {
 			ResponseHolder response = ResponseHolder.builder().status("Done")
