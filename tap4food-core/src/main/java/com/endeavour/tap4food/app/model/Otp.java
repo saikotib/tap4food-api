@@ -21,5 +21,7 @@ public class Otp {
 	
 	private Boolean isExpired;
 	
+	private Integer numberOfTries;
+	
 //	private ZonedDateTime optSentTime;
 }
