@@ -41,11 +41,11 @@ public class FoodStallService {
 
 	public void editCategory(Long fsId, @Valid Category category) throws TFException {
 
-		foodStallRepository.saveCategory(fsId, category);
+		foodStallRepository.editCategory(fsId, category);
 	}
 
 	public void editSubCategory(Long fsId, @Valid SubCategory subCategory) throws TFException {
-		foodStallRepository.saveSubCategory(fsId, subCategory);
+		foodStallRepository.editSubCategory(fsId, subCategory);
 	}
 
 	public void deleteCategory(Long fsId, @Valid Category category) {
@@ -103,7 +103,7 @@ public class FoodStallService {
 	}
 
 	public void editCustomizeType(Long fsId, @Valid CustomizeType customizeType) throws TFException {
-		foodStallRepository.saveCustomizeType(fsId, customizeType);
+		foodStallRepository.editCustomizeType(fsId, customizeType);
 	}
 
 	public void deleteCustomizeType(Long fsId, @Valid CustomizeType customizeType) {
@@ -128,7 +128,7 @@ public class FoodStallService {
 	}
 
 	public void editCusine(Long fsId, @Valid Cuisine cuisine) throws TFException {
-		foodStallRepository.saveCuisine(fsId, cuisine);
+		foodStallRepository.editCuisine(fsId, cuisine);
 
 	}
 

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -107,7 +108,8 @@ public class FoodStallRepository {
 		if (!StringUtils.hasText(menuCategory.getCategory())) {
 			throw new TFException("Invalid category name");
 		}
-
+		//menuCategory = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("category").is(menuCategory.getCategory())), Category.class);
+		//findAllCategories(fsId);
 		mongoTemplate.save(menuCategory);
 
 		MenuListings menuListings = foodStall.getMenuListing();
@@ -328,5 +330,139 @@ public class FoodStallRepository {
 		List<Cuisine> cuisines = foodStall.getMenuListing().getCuisines();
 
 		return Optional.ofNullable(cuisines);
+	}
+	
+
+	public void editCategory(Long fsId, @Valid Category category) throws TFException {
+		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		if (Objects.isNull(foodStall)) {
+			throw new TFException("Food stall doesn't exist");
+		} 
+		
+		Query query = new Query().addCriteria(Criteria.where("id").is(category.getId()));
+		Update updated = new Update().set("category", category.getCategory());
+		mongoTemplate.findAndModify(query, updated, Category.class);
+		
+		Category categoryFromDb = this.findCategoryById(category);
+		
+		List<Category> categories = foodStall.getMenuListing().getCategories();
+		
+		for (int i = 0; i < categories.size(); i++) {
+			String id = categories.get(i).getId();
+			if (id.equals(categoryFromDb.getId())) {
+				//int index = categories.indexOf(updateCategory);
+				categories.set(i, categoryFromDb);	
+			} 
+		}
+		MenuListings menuListing = foodStall.getMenuListing();
+		menuListing.setCategories(categories);
+		System.out.println(menuListing);
+		mongoTemplate.save(menuListing);
+		foodStall.setMenuListing(menuListing);
+	}
+	
+	public void editSubCategory(Long fsId, @Valid SubCategory subCategory) throws TFException {
+		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		if (Objects.isNull(foodStall)) {
+			throw new TFException("Food stall doesn't exist");
+		} 
+		
+		Query query = new Query().addCriteria(Criteria.where("id").is(subCategory.getId()));
+		Update updated = new Update().set("subCategory", subCategory.getSubCategory());
+		mongoTemplate.findAndModify(query, updated, SubCategory.class);
+		
+		SubCategory subCategoryFromDb = this.findSubCategoryById(subCategory);
+		
+		List<SubCategory> subCategories = foodStall.getMenuListing().getSubCategories();
+		
+		for (int i = 0; i < subCategories.size(); i++) {
+			String id = subCategories.get(i).getId();
+			if (id.equals(subCategoryFromDb.getId())) {
+				//int index = categories.indexOf(updateCategory);
+				subCategories.set(i, subCategoryFromDb);	
+			} 
+		}
+		MenuListings menuListing = foodStall.getMenuListing();
+		menuListing.setSubCategories(subCategories);
+		System.out.println(menuListing);
+		mongoTemplate.save(menuListing);
+		foodStall.setMenuListing(menuListing);
+	}
+	
+	public void editCuisine(Long fsId, @Valid Cuisine cuisine) throws TFException {
+		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		if (Objects.isNull(foodStall)) {
+			throw new TFException("Food stall doesn't exist");
+		} 
+		
+		Query query = new Query().addCriteria(Criteria.where("id").is(cuisine.getId()));
+		Update updated = new Update().set("name", cuisine.getName());
+		mongoTemplate.findAndModify(query, updated, Cuisine.class);
+		
+		Cuisine cuisineNameFromDb = this.findCuisineById(cuisine);
+		
+		List<Cuisine> cuisines = foodStall.getMenuListing().getCuisines();
+		
+		for (int i = 0; i < cuisines.size(); i++) {
+			String id = cuisines.get(i).getId();
+			if (id.equals(cuisineNameFromDb.getId())) {
+				//int index = categories.indexOf(updateCategory);
+				cuisines.set(i, cuisineNameFromDb);	
+			} 
+		}
+		MenuListings menuListing = foodStall.getMenuListing();
+		menuListing.setCuisines(cuisines);
+		System.out.println(menuListing);
+		mongoTemplate.save(menuListing);
+		foodStall.setMenuListing(menuListing);
+	}
+	
+	public void editCustomizeType(Long fsId, @Valid CustomizeType customizeType) throws TFException {
+		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		if (Objects.isNull(foodStall)) {
+			throw new TFException("Food stall doesn't exist");
+		} 
+		
+		Query query = new Query().addCriteria(Criteria.where("id").is(customizeType.getId()));
+		Update updated = new Update().set("type", customizeType.getType());
+		mongoTemplate.findAndModify(query, updated, CustomizeType.class);
+		
+		CustomizeType customizeTypesFromDb = this.findCustomizeTypeById(customizeType);
+		
+		List<CustomizeType> types = foodStall.getMenuListing().getCustomiseType();
+		
+		for (int i = 0; i < types.size(); i++) {
+			String id = types.get(i).getId();
+			if (id.equals(customizeTypesFromDb.getId())) {
+				//int index = categories.indexOf(updateCategory);
+				types.set(i, customizeTypesFromDb);	
+			} 
+		}
+		MenuListings menuListing = foodStall.getMenuListing();
+		menuListing.setCustomiseType(types);
+		System.out.println(menuListing);
+		mongoTemplate.save(menuListing);
+		foodStall.setMenuListing(menuListing);
+	}
+	
+	public Category findCategoryById(@Valid Category category) {
+		Category categoryFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(category.getId())), Category.class);
+		return categoryFromDb;
+	}
+	public SubCategory findSubCategoryById(@Valid SubCategory subCategory) {
+		SubCategory subCategoryFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(subCategory.getId())), SubCategory.class);
+		return subCategoryFromDb;
+	}
+	public Cuisine findCuisineById(@Valid Cuisine cuisine) {
+		Cuisine cuisineFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(cuisine.getId())), Cuisine.class);
+		return cuisineFromDb;
+	}
+	public CustomizeType findCustomizeTypeById(@Valid CustomizeType customizeType) {
+		CustomizeType customizeTypeFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(customizeType.getId())), CustomizeType.class);
+		return customizeTypeFromDb;
 	}
 }
