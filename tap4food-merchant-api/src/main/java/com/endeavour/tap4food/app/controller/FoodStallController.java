@@ -60,7 +60,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/edit-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> editCategory(@PathVariable("fs-id") Long foodStallId,@Valid @RequestBody Category category) throws TFException {
+	public ResponseEntity<ResponseHolder> editCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.editCategory(foodStallId, category);
 
