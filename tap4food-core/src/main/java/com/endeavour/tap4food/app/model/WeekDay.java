@@ -22,5 +22,5 @@ public class WeekDay {
 	
 	private String closeTime;
 	
-	private String foodStallId;
+	private Long foodStallId;
 }

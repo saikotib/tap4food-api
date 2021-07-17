@@ -174,29 +174,6 @@ public class MerchantController {
 		return response;
 	}
 
-	@RequestMapping(value = "/{merchant-unique-number}/add-foodstall-timings", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> saveFoodStallTimings(
-			@Valid @PathVariable("merchant-unique-number") Long uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
-
-		Optional<FoodStallTimings> merchantFoodStallTimingsResponse = merchantService.saveFoodCourtTimings(uniqueId,
-				weekDay);
-		ResponseEntity<ResponseHolder> response = null;
-
-		if (merchantFoodStallTimingsResponse.isPresent()) {
-
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
-					.build());
-		} else {
-			response = ResponseEntity.badRequest()
-					.body(ResponseHolder.builder().status("Error occurred while saving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
-							.build());
-
-		}
-		return response;
-	}
-
 	@RequestMapping(value = "/{merchant-unique-number}/update-bank-details", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateBankDetails(
 			@Valid @PathVariable("merchant-unique-number") Long uniqueId,
@@ -214,47 +191,6 @@ public class MerchantController {
 			response = ResponseEntity.badRequest()
 					.body(ResponseHolder.builder().status("Error occurred while updating Merchant Bank Details")
 							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantBankDetailsResponse).build());
-
-		}
-		return response;
-	}
-
-	@RequestMapping(value = "/{food-court-unique-number}/update-foodstall-timings", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateFoodStallTimings(
-			@Valid @PathVariable("food-court-unique-number") String uniqueId, @RequestBody ArrayList<WeekDay> weekDay) {
-
-		Collection<WeekDay> merchantFoodStallTimingsResponse = merchantService.updateFoodCourtTimings(uniqueId,
-				weekDay);
-		ResponseEntity<ResponseHolder> response = null;
-
-		if (!ObjectUtils.isEmpty(merchantFoodStallTimingsResponse)) {
-
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse).build());
-		} else {
-			response = ResponseEntity.badRequest()
-					.body(ResponseHolder.builder().status("Error occurred while saving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse)
-							.build());
-		}
-		return response;
-	}
-
-	@RequestMapping(value = "/{food-court-unique-number}/get-foodstall-timings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getFoodStallTimingsByUniqueId(
-			@Valid @PathVariable("food-court-unique-number") String uniqueId) {
-
-		List<WeekDay> weekDayRes = merchantService.getFoodCourtTimingsByUniqueId(uniqueId);
-		ResponseEntity<ResponseHolder> response = null;
-
-		if (!ObjectUtils.isEmpty(weekDayRes)) {
-
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings retrieved succesfully")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes).build());
-		} else {
-			response = ResponseEntity.badRequest()
-					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(weekDayRes).build());
 
 		}
 		return response;

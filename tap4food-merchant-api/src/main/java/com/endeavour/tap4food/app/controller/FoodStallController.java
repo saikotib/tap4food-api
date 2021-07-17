@@ -1,7 +1,10 @@
 package com.endeavour.tap4food.app.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -9,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallTimings;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
@@ -277,4 +283,68 @@ public class FoodStallController {
 		}
 
 	}
+	
+	@RequestMapping(value = "/{fs-id}/add-foodstall-timings", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveFoodStallTimings(@Valid @PathVariable("fs-id") Long foodStallId, @RequestBody ArrayList<WeekDay> weekDay) throws TFException {
+
+		Optional<FoodStallTimings> merchantFoodStallTimingsResponse = foodStallService.saveFoodCourtTimings(foodStallId,
+				weekDay);
+
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (merchantFoodStallTimingsResponse.isPresent()) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
+					.build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while saving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
+							.build());
+
+		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/update-foodstall-timings", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodStallTimings(
+			@Valid @PathVariable("fs-id") Long fsId, @RequestBody ArrayList<WeekDay> weekDay) throws TFException {
+
+		FoodStallTimings stallTimings = foodStallService.updateFoodStallTimings(fsId, weekDay);
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (!Objects.isNull(stallTimings)) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(stallTimings).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while saving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(stallTimings)
+							.build());
+		}
+		return response;
+	}
+
+	@RequestMapping(value = "/{fs-id}/get-foodstall-timings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodStallTimings(@Valid @PathVariable("fs-id") Long fsId) {
+
+		FoodStallTimings foodStallTimings = foodStallService.getFoodStallTimings(fsId);
+		
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (!ObjectUtils.isEmpty(foodStallTimings)) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings retrieved succesfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodStallTimings).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(foodStallTimings).build());
+
+		}
+		return response;
+	}
+	
 }

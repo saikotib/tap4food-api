@@ -19,8 +19,10 @@ import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.MenuListings;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.collection.constants.FoodStallCollectionConstants;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
@@ -28,8 +30,6 @@ import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.service.FoodStalNextSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
-import com.mongodb.DuplicateKeyException;
-import com.mongodb.MongoWriteException;
 
 @Repository
 @Transactional
@@ -639,6 +639,39 @@ public class FoodStallRepository {
 		return customizeTypeFromDb;
 	}
 	
+	public FoodStallTimings savefoodStallTimings(Long foodStallId, FoodStallTimings foodStallTimings) throws TFException {
+		
+		FoodStall foodStall = this.getFoodStallById(foodStallId);
+		
+		if (Objects.isNull(foodStall)) {
+			throw new TFException("Food stall doesn't exist");
+		} 
+		
+		List<WeekDay> persistedWeekDays = new ArrayList<WeekDay>();
+		
+		for(WeekDay weekDay : foodStallTimings.getDays()) {
+			if(!isWeekDayAvailableForFS(foodStallId, weekDay.getWeekDayName())) {
+				weekDay.setFoodStallId(foodStallId);
+				mongoTemplate.save(weekDay);
+				persistedWeekDays.add(weekDay);
+			}else {
+				throw new TFException(String.format("The weekday(%s) is already available for the foodstall", weekDay.getWeekDayName()));
+			}
+		}
+		
+		foodStallTimings.setDays(persistedWeekDays);
+		
+		mongoTemplate.save(foodStallTimings);
+		
+		foodStall.setFoodStallTimings(foodStallTimings);
+		
+		mongoTemplate.save(foodStall);
+		
+		return foodStallTimings;
+		
+		
+	}
+	
 	private Boolean isCategoryFound(String categoryName, MenuListings menuListing) {
 
 		boolean flag = false;
@@ -705,6 +738,18 @@ public class FoodStallRepository {
 		}
 		
 		return flag;
+	}
+	
+	private boolean isWeekDayAvailableForFS(Long fsId, String weekDay) {
+		Query query = new Query(Criteria.where("weekDayName").is(weekDay).andOperator(Criteria.where("foodStallId").is(fsId)));
+		
+		long weekDaysCount = mongoTemplate.count(query, WeekDay.class);
+		
+		if(weekDaysCount == 0) {
+			return false;
+		}else {
+			return true;
+		}
 	}
 
 }

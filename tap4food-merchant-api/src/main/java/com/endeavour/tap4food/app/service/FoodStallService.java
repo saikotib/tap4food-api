@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallTimings;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
@@ -158,4 +160,41 @@ public class FoodStallService {
 			return new ArrayList<Cuisine>();
 		}
 	}
+	
+	public Optional<FoodStallTimings> saveFoodCourtTimings(Long fsId, ArrayList<WeekDay> weekDays) throws TFException {
+
+		FoodStallTimings foodStallTimings = new FoodStallTimings();
+		
+		foodStallTimings.setDays(weekDays);
+		
+		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings);
+
+		return Optional.ofNullable(foodStallTimings);
+	}
+	
+	public FoodStall getFoodStallById(Long fsId) {
+		
+		return foodStallRepository.getFoodStallById(fsId);
+	}
+	
+	public FoodStallTimings getFoodStallTimings(final Long fsId) {
+		
+		FoodStall foodStall = this.getFoodStallById(fsId);
+
+		return foodStall.getFoodStallTimings();
+	}
+	
+	public FoodStallTimings updateFoodStallTimings(final Long fsId, ArrayList<WeekDay> weekDays) throws TFException {
+		
+		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		FoodStallTimings foodStallTimings = foodStall.getFoodStallTimings();
+		
+		foodStallTimings.setDays(weekDays);
+		
+		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings);
+
+		return foodStallTimings;
+	}
+	
 }

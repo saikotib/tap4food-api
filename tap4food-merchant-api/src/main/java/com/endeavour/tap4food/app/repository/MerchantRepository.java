@@ -213,10 +213,6 @@ public class MerchantRepository {
 		return mongoTemplate.save(merchantBankDetails);
 	}
 
-	public FoodStallTimings savefoodStallTimings(FoodStallTimings foodStallTimings) {
-		return mongoTemplate.save(foodStallTimings);
-	}
-
 	public Optional<List<FoodStallTimings>> finFoodCourtTimingsByUniqueNumber(@Valid Long uniqueId) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("merchantId").is(uniqueId));

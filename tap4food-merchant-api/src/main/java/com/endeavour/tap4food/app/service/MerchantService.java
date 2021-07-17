@@ -379,49 +379,9 @@ public class MerchantService {
 		return Optional.ofNullable(merchantData.get());
 	}
 
-	public Optional<FoodStallTimings> saveFoodCourtTimings(Long uniqueId, ArrayList<WeekDay> weekDay) {
-
-		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueId);
-		FoodStallTimings foodStallTimings = new FoodStallTimings();
-		if (merchantData.isPresent()) {	
-			foodStallTimings = merchantRepository.savefoodStallTimings(foodStallTimings);
-			for (int i = 0; i < weekDay.size(); i++) {
-				merchantRepository.saveOneWeekDay(weekDay.get(i));
-			}
-
-			/* Collection<WeekDay> res = merchantRepository.saveWeekDay(); */
-
-			foodStallTimings.setDays(weekDay);
-		}
-	
-
-		return Optional.ofNullable(foodStallTimings);
-	}
-
-	public List<WeekDay> getFoodCourtTimingsByUniqueId(final String uniqueId) {
-
-		return merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
-	}
-
 	public Optional<MerchantBankDetails> getBankDetailsByUniqueId(final Long uniqueId) {
 
 		return merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
-	}
-
-	public Collection<WeekDay> updateFoodCourtTimings(final String uniqueId, ArrayList<WeekDay> weekDay) {
-		
-		List<WeekDay> weekRes = merchantRepository.findWeekDayByFoodCourtUniqueNumber(uniqueId);
-		//Optional<Merchant> merchant = merchantRepository.findByUniqueNumber(uniqueNumber)
-		
-		for (int i = 0; i < weekRes.size(); i++) {
-			/* WeekDay weekDayObj = weekRes.get(i); */
-			weekDay.get(i).setId(weekRes.get(i).getId());
-			merchantRepository.saveOneWeekDay(weekDay.get(i));
-		}
-		
-		
-
-		return weekRes.stream().collect(Collectors.toSet());
 	}
 
 	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) {
