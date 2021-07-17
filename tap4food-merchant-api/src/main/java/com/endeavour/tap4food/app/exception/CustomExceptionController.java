@@ -20,4 +20,5 @@ public class CustomExceptionController {
 
 		return new ResponseEntity<ErrorMessage>(error, HttpStatus.NOT_FOUND);
 	}
+
 }
