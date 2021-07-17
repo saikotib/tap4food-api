@@ -27,6 +27,8 @@ import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.service.FoodStalNextSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
+import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoWriteException;
 
 @Repository
 @Transactional
@@ -99,40 +101,44 @@ public class FoodStallRepository {
 	@Transactional
 	public void saveCategory(Long fsId, @Valid Category menuCategory) throws TFException {
 
-		FoodStall foodStall = this.getFoodStallById(fsId);
-
-		if (Objects.isNull(foodStall)) {
-			throw new TFException("Food stall is not found.");
-		}
-
-		if (!StringUtils.hasText(menuCategory.getCategory())) {
-			throw new TFException("Invalid category name");
-		}
-		//menuCategory = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("category").is(menuCategory.getCategory())), Category.class);
-		//findAllCategories(fsId);
-		mongoTemplate.save(menuCategory);
-
-		MenuListings menuListings = foodStall.getMenuListing();
-
-		if (Objects.isNull(menuListings)) {
-			menuListings = new MenuListings();
-		}
-
-		List<Category> categories = menuListings.getCategories();
-
-		if (Objects.isNull(categories)) {
-			categories = new ArrayList<Category>();
-		}
-
-		categories.add(menuCategory);
-
-		menuListings.setCategories(categories);
-
-		mongoTemplate.save(menuListings);
-
-		foodStall.setMenuListing(menuListings);
-
-		mongoTemplate.save(foodStall);
+			FoodStall foodStall = this.getFoodStallById(fsId);
+	
+			if (Objects.isNull(foodStall)) {
+				throw new TFException("Food stall is not found.");
+			}
+	
+			if (!StringUtils.hasText(menuCategory.getCategory())) {
+				throw new TFException("Invalid category name");
+			}
+			//menuCategory = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("category").is(menuCategory.getCategory())), Category.class);
+			//findAllCategories(fsId);
+			try {
+				mongoTemplate.save(menuCategory);
+			}catch (Exception e) {
+				throw new TFException("Category is alraedy available");
+			}
+	
+			MenuListings menuListings = foodStall.getMenuListing();
+	
+			if (Objects.isNull(menuListings)) {
+				menuListings = new MenuListings();
+			}
+	
+			List<Category> categories = menuListings.getCategories();
+	
+			if (Objects.isNull(categories)) {
+				categories = new ArrayList<Category>();
+			}
+	
+			categories.add(menuCategory);
+	
+			menuListings.setCategories(categories);
+	
+			mongoTemplate.save(menuListings);
+	
+			foodStall.setMenuListing(menuListings);
+	
+			mongoTemplate.save(foodStall);
 	}
 
 	@Transactional
@@ -147,8 +153,11 @@ public class FoodStallRepository {
 		if (!StringUtils.hasText(subCategory.getSubCategory())) {
 			throw new TFException("Invalid sub-category name");
 		}
-
-		mongoTemplate.save(subCategory);
+		try {
+			mongoTemplate.save(subCategory);
+		} catch (Exception e) {
+			throw new TFException("Sub category is alraedy available");
+		}
 
 		MenuListings menuListings = foodStall.getMenuListing();
 
@@ -340,7 +349,7 @@ public class FoodStallRepository {
 			throw new TFException("Food stall doesn't exist");
 		} 
 		
-		Query query = new Query().addCriteria(Criteria.where("id").is(category.getId()));
+		Query query = new Query(Criteria.where("id").is(category.getId()));
 		Update updated = new Update().set("category", category.getCategory());
 		mongoTemplate.findAndModify(query, updated, Category.class);
 		
@@ -348,15 +357,19 @@ public class FoodStallRepository {
 		
 		List<Category> categories = foodStall.getMenuListing().getCategories();
 		
-		for (int i = 0; i < categories.size(); i++) {
-			String id = categories.get(i).getId();
+		System.out.println("categories==> " + categories);
+		
+		for (Category childCategory : categories) {
+			String id = childCategory.getId();
 			if (id.equals(categoryFromDb.getId())) {
-				//int index = categories.indexOf(updateCategory);
-				categories.set(i, categoryFromDb);	
+				categories.remove(childCategory);
+				categories.add(categoryFromDb);
 			} 
 		}
+		
 		MenuListings menuListing = foodStall.getMenuListing();
 		menuListing.setCategories(categories);
+		
 		System.out.println(menuListing);
 		mongoTemplate.save(menuListing);
 		foodStall.setMenuListing(menuListing);

@@ -24,4 +24,8 @@ public class Category {
 	
 	private Boolean visible = true;
 	
+	@Override
+	public boolean equals(Object obj) {
+		return true;
+	}
 }
