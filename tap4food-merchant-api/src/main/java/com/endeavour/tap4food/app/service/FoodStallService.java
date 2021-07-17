@@ -30,7 +30,7 @@ public class FoodStallService {
 		return foodStall;
 	}
 
-	public void addCategory(Long fsId, @Valid Category category) throws TFException {
+	public void addCategory(Long fsId, Category category) throws TFException {
 
 		foodStallRepository.saveCategory(fsId, category);
 	}
@@ -39,24 +39,24 @@ public class FoodStallService {
 		foodStallRepository.saveSubCategory(fsId, subCategory);
 	}
 
-	public void editCategory(Long fsId, @Valid Category category) throws TFException {
+	public void editCategory(Long fsId, Category category) throws TFException {
 
 		foodStallRepository.editCategory(fsId, category);
 	}
 
-	public void editSubCategory(Long fsId, @Valid SubCategory subCategory) throws TFException {
+	public void editSubCategory(Long fsId, SubCategory subCategory) throws TFException {
 		foodStallRepository.editSubCategory(fsId, subCategory);
 	}
 
-	public void deleteCategory(Long fsId, @Valid Category category) {
-		foodStallRepository.deleteCategory(category);
+	public void removeCategory(Long fsId, Category category) throws TFException {
+		foodStallRepository.removeCategory(fsId, category);
 	}
 
-	public void deleteSubCategory(Long fsId, @Valid SubCategory subCategory) {
-		foodStallRepository.deleteSubCategory(subCategory);
+	public void removeSubCategory(Long fsId, SubCategory subCategory) throws TFException {
+		foodStallRepository.removeSubCategory(fsId, subCategory);
 	}
 
-	public void hideCategory(Long fsId, @Valid Category category) throws TFException {
+	public void hideCategory(Long fsId, Category category) throws TFException {
 		if (category.getVisible().equals(false)) {
 			category.setVisible(false);
 			foodStallRepository.saveCategory(fsId, category);
@@ -102,11 +102,11 @@ public class FoodStallService {
 		foodStallRepository.saveCustomizeType(fsId, customizeType);
 	}
 
-	public void editCustomizeType(Long fsId, @Valid CustomizeType customizeType) throws TFException {
+	public void editCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
 		foodStallRepository.editCustomizeType(fsId, customizeType);
 	}
 
-	public void deleteCustomizeType(Long fsId, @Valid CustomizeType customizeType) {
+	public void removeCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
 		foodStallRepository.removeCustomizeType(fsId, customizeType);
 	}
 
@@ -127,12 +127,12 @@ public class FoodStallService {
 		foodStallRepository.saveCuisine(fsId, cuisine);
 	}
 
-	public void editCusine(Long fsId, @Valid Cuisine cuisine) throws TFException {
+	public void editCusine(Long fsId, Cuisine cuisine) throws TFException {
 		foodStallRepository.editCuisine(fsId, cuisine);
 
 	}
 
-	public void deleteCustomizeType(Long fsId, @Valid Cuisine cuisine) {
+	public void removeCustomizeType(Long fsId, Cuisine cuisine) throws TFException {
 		foodStallRepository.removeCuisine(fsId, cuisine);
 
 	}

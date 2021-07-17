@@ -59,7 +59,7 @@ public class FoodStallController {
 
 	}
 
-	@RequestMapping(path = "/{fs-id}/edit-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/edit-category", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> editCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.editCategory(foodStallId, category);
@@ -72,9 +72,9 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-category", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) {
+	public ResponseEntity<ResponseHolder> removeCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
-		foodStallService.deleteCategory(foodStallId, category);
+		foodStallService.removeCategory(foodStallId, category);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
@@ -83,7 +83,7 @@ public class FoodStallController {
 
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-category", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-visible-category", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.hideCategory(foodStallId, category);
@@ -106,7 +106,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/edit-subcategory", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/edit-subcategory", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> editSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) throws TFException {
 
 		foodStallService.editSubCategory(foodStallId, subCategory);
@@ -118,9 +118,9 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-subcategory", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) {
+	public ResponseEntity<ResponseHolder> removeSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) throws TFException {
 
-		foodStallService.deleteSubCategory(foodStallId, subCategory);
+		foodStallService.removeSubCategory(foodStallId, subCategory);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(subCategory).build();
@@ -128,7 +128,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-subcategory", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-visible-subcategory", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory menuSubCategories) throws TFException {
 
 		foodStallService.hideSubCategory(foodStallId, menuSubCategories);
@@ -150,7 +150,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/edit-cuisine", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/edit-cuisine", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> editCuisineName(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
 
 		foodStallService.editCusine(foodStallId, cuisine);
@@ -162,9 +162,9 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-cuisine", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) {
+	public ResponseEntity<ResponseHolder> removeCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws TFException {
 
-		foodStallService.deleteCustomizeType(foodStallId, cuisine);
+		foodStallService.removeCustomizeType(foodStallId, cuisine);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
@@ -172,7 +172,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-cuisine", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-visible-cuisine", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
 
 		foodStallService.hideCustomizeType(foodStallId, cuisine);
@@ -194,7 +194,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/edit-customize-type", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/edit-customize-type", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> editCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
 		foodStallService.editCustomizeType(foodStallId, customizeType);
@@ -206,9 +206,9 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(path = "/{fs-id}/remove-customize-type", method = RequestMethod.DELETE)
-	public ResponseEntity<ResponseHolder> removeCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) {
+	public ResponseEntity<ResponseHolder> removeCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
-		foodStallService.deleteCustomizeType(foodStallId, customizeType);
+		foodStallService.removeCustomizeType(foodStallId, customizeType);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
@@ -216,7 +216,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-customize-type", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-visible-customize-type", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
 		foodStallService.hideCustomizeType(foodStallId, customizeType);
@@ -229,7 +229,9 @@ public class FoodStallController {
 
 	@RequestMapping(value = "/{fs-id}/fetch-categories", method = RequestMethod.GET)
 	public ResponseEntity<ResponseHolder> getAllCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
+		
 		List<Category> categoryNames = foodStallService.getAllCategories(foodStallId);
+		
 		if (!categoryNames.isEmpty()) {
 			ResponseHolder response = ResponseHolder.builder().status("Done")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(categoryNames).build();
@@ -244,7 +246,9 @@ public class FoodStallController {
 
 	@RequestMapping(value = "/{fs-id}/fetch-sub-categories", method = RequestMethod.GET)
 	public ResponseEntity<ResponseHolder> getAllSubCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
+		
 		List<SubCategory> subCategories = foodStallService.getAllSubCategories(foodStallId);
+		
 		if (!subCategories.isEmpty()) {
 			ResponseHolder response = ResponseHolder.builder().status("Done")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(subCategories).build();
@@ -259,7 +263,9 @@ public class FoodStallController {
 
 	@RequestMapping(value = "/{fs-id}/fetch-cuisines", method = RequestMethod.GET)
 	public ResponseEntity<ResponseHolder> getAllCuisines(@PathVariable("fs-id") Long foodStallId) throws TFException {
+		
 		List<Cuisine> cuisines = foodStallService.getAllCuisines(foodStallId);
+		
 		if (!cuisines.isEmpty()) {
 			ResponseHolder response = ResponseHolder.builder().status("Done")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisines).build();

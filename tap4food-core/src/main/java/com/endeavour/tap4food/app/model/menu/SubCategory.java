@@ -17,7 +17,6 @@ public class SubCategory {
 	@Id
 	private String id;
 	
-	@Indexed(unique = true)
 	private String subCategory;
 	
 	private ZonedDateTime createdTime;

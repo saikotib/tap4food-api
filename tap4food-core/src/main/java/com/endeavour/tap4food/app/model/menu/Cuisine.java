@@ -14,7 +14,7 @@ public class Cuisine {
 
 	@Id
 	private String id;
-	@Indexed(unique = true)
+	
 	private String name;
 	
 	private Boolean visible;

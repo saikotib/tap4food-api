@@ -2,7 +2,6 @@ package com.endeavour.tap4food.app.model.menu;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
@@ -19,7 +18,6 @@ public class Category {
 	@Id
 	private String id;
 	
-	@Indexed(unique = true)
 	private String category;
 	
 	private Boolean visible = true;

@@ -21,13 +21,4 @@ public class CustomExceptionController {
 
 		return new ResponseEntity<ErrorMessage>(error, HttpStatus.NOT_FOUND);
 	}
-	
-	@ExceptionHandler(value = DuplicateKeyException.class)
-	public ResponseEntity<ErrorMessage> exception(DuplicateKeyException exception) {
-		ErrorMessage error = ErrorMessage.builder().errorCode(HttpStatus.NOT_FOUND.name())
-				.errorMessage(exception.getMessage()).build();
-		
-		System.out.println("In dup exception.....");
-		return new ResponseEntity<ErrorMessage>(error, HttpStatus.NOT_FOUND);
-	}
 }
