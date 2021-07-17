@@ -28,6 +28,8 @@ import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.service.FoodStalNextSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
+import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoWriteException;
 
 @Repository
 @Transactional
@@ -137,6 +139,7 @@ public class FoodStallRepository {
 		foodStall.setMenuListing(menuListings);
 
 		mongoTemplate.save(foodStall);
+
 	}
 
 	@Transactional
@@ -494,7 +497,6 @@ public class FoodStallRepository {
 			throw new TFException("Category is already exists.");
 		}
 		
-		
 		Category categoryFromDb = this.findCategoryById(category);
 		
 		List<Category> categories = foodStall.getMenuListing().getCategories();
@@ -508,11 +510,10 @@ public class FoodStallRepository {
 				break;
 			}	
 		}
-		
-		
-		
-		MenuListings menuListing = foodStall.getMenuListing();
+
+    MenuListings menuListing = foodStall.getMenuListing();
 		menuListing.setCategories(categories);
+		
 		System.out.println(menuListing);
 		mongoTemplate.save(menuListing);
 		foodStall.setMenuListing(menuListing);

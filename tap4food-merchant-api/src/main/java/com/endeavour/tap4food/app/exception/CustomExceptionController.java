@@ -9,6 +9,7 @@ import com.endeavour.tap4food.app.controller.FoodStallController;
 import com.endeavour.tap4food.app.controller.MerchantController;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.exception.ErrorMessage;
+import com.mongodb.DuplicateKeyException;
 
 @ControllerAdvice(basePackageClasses = { FoodStallController.class, MerchantController.class })
 public class CustomExceptionController {
@@ -20,5 +21,4 @@ public class CustomExceptionController {
 
 		return new ResponseEntity<ErrorMessage>(error, HttpStatus.NOT_FOUND);
 	}
-
 }
