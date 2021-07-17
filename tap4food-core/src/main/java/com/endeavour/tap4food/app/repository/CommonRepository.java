@@ -36,10 +36,7 @@ public class CommonRepository {
 			
 			mongoTemplate.upsert(query, update, Otp.class);
 			*/
-			existingOtp.setNumberOfTries(existingOtp.getNumberOfTries() + 1);
-			existingOtp.setOtp(otp.getOtp());
 			
-			mongoTemplate.save(existingOtp);
 		}
 		
 	}
@@ -53,6 +50,11 @@ public class CommonRepository {
 		Otp otp = mongoTemplate.findOne(query, Otp.class, "otp");
 		
 		return otp;
+	}
+
+	public void saveOtp(Otp otp) {
+		mongoTemplate.save(otp);
+		
 	}
 	
 }

@@ -198,5 +198,41 @@ public class AuthController {
 		
 
 		return ResponseEntity.ok(response);
+	};
+	
+	
+	
+	
+	
+	
+	@RequestMapping(value = "/resent-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber){
+		
+		ResponseHolder responseHolder = null;
+		
+		ResponseEntity<ResponseHolder> responseEntity = null;
+		
+		boolean isOTPDelivered = userService.resentOtp(phoneNumber);
+		
+		if(isOTPDelivered) {
+			responseHolder = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("OTP is sent again")
+					.build();
+			
+			responseEntity = ResponseEntity.ok().body(responseHolder);
+		}else {
+			responseHolder = ResponseHolder.builder()
+					.status("error")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("Couldn't send OTP.")
+					.build();
+			
+			responseEntity = ResponseEntity.badRequest().body(responseHolder);
+		}
+		
+		return responseEntity;
 	}
+
 }
