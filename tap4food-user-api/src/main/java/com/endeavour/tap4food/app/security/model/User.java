@@ -41,6 +41,8 @@ public class User {
 	@JsonIgnore
 	private String password;
 	
+	private String status;
+	
 	@DBRef
 	private Set<UserRole> roles = new HashSet<>();
 	
