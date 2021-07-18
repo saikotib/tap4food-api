@@ -30,7 +30,7 @@ import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodCourtCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodStallCollectionConstants;
-import com.endeavour.tap4food.app.service.FoodCourtNextSequenceService;
+import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -42,7 +42,7 @@ public class AdminRepository {
 	private MongoTemplate mongoTemplate;
 	
 	@Autowired
-	private FoodCourtNextSequenceService foodCourtNextSequenceService;
+	private CommonSequenceService commonSequenceService;
 
 	private String adminUsersCollection = MongoCollectionConstant.COLLECTION_ADMIN_USERS;
 
@@ -251,7 +251,7 @@ public class AdminRepository {
 
 	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
 
-		Long nextFoodCourtSeq = foodCourtNextSequenceService.getNextSequence(MongoCollectionConstant.COLLECTION_FOODCOURT_SEQ);
+		Long nextFoodCourtSeq = commonSequenceService.getFoodCourtNextSequence(MongoCollectionConstant.COLLECTION_FOODCOURT_SEQ);
 
 		foodCourt.setFoodCourtId(nextFoodCourtSeq);
 		

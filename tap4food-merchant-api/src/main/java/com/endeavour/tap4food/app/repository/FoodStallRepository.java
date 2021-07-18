@@ -28,7 +28,7 @@ import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
-import com.endeavour.tap4food.app.service.FoodStalNextSequenceService;
+import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
 @Repository
@@ -39,7 +39,7 @@ public class FoodStallRepository {
 	private MongoTemplate mongoTemplate;
 
 	@Autowired
-	private FoodStalNextSequenceService foodStalNextSequenceService;
+	private CommonSequenceService commonSequenceService;
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -86,8 +86,8 @@ public class FoodStallRepository {
 
 	private Long getIdForNewFoodStall() {
 
-		Long foodStallID = foodStalNextSequenceService
-				.getNextSequence(MongoCollectionConstant.COLLECTION_FOODSTALL_SEQ);
+		Long foodStallID = commonSequenceService
+				.getFoodStallNextSequence(MongoCollectionConstant.COLLECTION_FOODSTALL_SEQ);
 
 		return foodStallID;
 	}
@@ -639,7 +639,7 @@ public class FoodStallRepository {
 		return customizeTypeFromDb;
 	}
 	
-	public FoodStallTimings savefoodStallTimings(Long foodStallId, FoodStallTimings foodStallTimings) throws TFException {
+	public FoodStallTimings savefoodStallTimings(Long foodStallId, FoodStallTimings foodStallTimings, boolean updateFlag) throws TFException {
 		
 		FoodStall foodStall = this.getFoodStallById(foodStallId);
 		
@@ -650,12 +650,16 @@ public class FoodStallRepository {
 		List<WeekDay> persistedWeekDays = new ArrayList<WeekDay>();
 		
 		for(WeekDay weekDay : foodStallTimings.getDays()) {
-			if(!isWeekDayAvailableForFS(foodStallId, weekDay.getWeekDayName())) {
-				weekDay.setFoodStallId(foodStallId);
-				mongoTemplate.save(weekDay);
-				persistedWeekDays.add(weekDay);
+			if(!updateFlag) {
+				if(!isWeekDayAvailableForFS(foodStallId, weekDay.getWeekDayName())) {
+					weekDay.setFoodStallId(foodStallId);
+					mongoTemplate.save(weekDay);
+					persistedWeekDays.add(weekDay);
+				}else {
+					throw new TFException(String.format("The weekday(%s) is already available for the foodstall", weekDay.getWeekDayName()));
+				}
 			}else {
-				throw new TFException(String.format("The weekday(%s) is already available for the foodstall", weekDay.getWeekDayName()));
+				mongoTemplate.save(weekDay);
 			}
 		}
 		
