@@ -3,12 +3,13 @@ package com.endeavour.tap4food.app.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.endeavour.tap4food.app.enums.UserStatusEnum;
+
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.UserRepository;
 import com.endeavour.tap4food.app.security.model.User;
 import com.endeavour.tap4food.app.util.CommonUtil;
+import com.endeavour.tap4food.app.util.OtpStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,7 +65,7 @@ public class CustomerService {
 			}else if(otp.getNumberOfTries() == 4) {
 				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
 		
-				user.setStatus(UserStatusEnum.LOCKED.name());	
+				user.setStatus(OtpStatus.OTPSTATUS);	
 				
 			}
 			otpMatch = false;
