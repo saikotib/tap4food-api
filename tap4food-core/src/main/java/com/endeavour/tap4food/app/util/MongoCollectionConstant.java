@@ -42,9 +42,12 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_CITY = "cities";
 	
+	public static final String COLLECTION_ADMINUSER_SEQ = "adminUserSequences";
+
 	public static final String COLLECTION_FOOD_ITEM = "foodItems";
 	
 	public static final String COLLECTION_FOOD_ITEM_CUSTOMISETYPE = "foodItemCustomiseTypes";
 	
 	public static final String COLLECTION_FOODITEM_PICS = "foodItemPics";
+
 }

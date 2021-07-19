@@ -30,6 +30,7 @@ import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantVsRevenue;
 import com.endeavour.tap4food.app.model.AdminDashboardData.ReportParams;
 import com.endeavour.tap4food.app.model.AdminDashboardData.Subscriptions;
+import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
@@ -37,8 +38,10 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.app.util.ActiveStatus;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
+import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
 @Service
 public class AdminService {
@@ -54,6 +57,9 @@ public class AdminService {
 
 	@Autowired
 	private PasswordEncoder encoder;
+
+	@Autowired
+	private AdminNextSequenceService adminNextSequenceService;
 
 	@Value("${tap4food.merchant.api.url}")
 	private String merchantApiBaseUrl;
@@ -366,9 +372,9 @@ public class AdminService {
 	public Optional<FoodCourt> getFoodCourtById(@Valid String foodCourtId) {
 		return adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
 	}
-	
+
 	public AdminDashboardData loadAdminDashboardData() {
-		
+
 		AdminDashboardData dashboard = new AdminDashboardData();
 		dashboard.setShoppingMalls(26L);
 		dashboard.setRestaurants(78L);
@@ -378,14 +384,14 @@ public class AdminService {
 		dashboard.setTotalFoodStalls(724L);
 		dashboard.setTotalMerchants(610L);
 		dashboard.setTotalOrders(16071L);
-		
+
 		ReportParams reportData = new ReportParams();
 		reportData.setCustomers(170L);
 		reportData.setFoodStalls(4L);
 		reportData.setRestaurants(20L);
-		
+
 		Map<String, ReportParams> monthlyReportData = new HashMap<String, AdminDashboardData.ReportParams>();
-		
+
 		monthlyReportData.put("JAN", reportData);
 		reportData.setCustomers(489L);
 		reportData.setFoodStalls(61L);
@@ -406,45 +412,44 @@ public class AdminService {
 		reportData.setRestaurants(68L);
 		monthlyReportData.put("JUL", reportData);
 		monthlyReportData.put("AUG", reportData);
-		
-		Map<String, Map<String, ReportParams>> reportStatsMap = new HashMap<String, Map<String,ReportParams>>();
-		
+
+		Map<String, Map<String, ReportParams>> reportStatsMap = new HashMap<String, Map<String, ReportParams>>();
+
 		reportStatsMap.put("2021", new HashMap<String, AdminDashboardData.ReportParams>());
 		reportStatsMap.put("2021", monthlyReportData);
-		
+
 		dashboard.setReportMap(reportStatsMap);
-		
+
 		Map<String, Subscriptions> subscriptionsMap = new HashMap<String, AdminDashboardData.Subscriptions>();
-		
+
 		Subscriptions subscriptions = new Subscriptions();
 		subscriptions.setExpired(10L);
 		subscriptions.setNewSubscriptions(20L);
 		subscriptions.setRenewal(30L);
-		
+
 		subscriptionsMap.put("JAN-2021", subscriptions);
-		
+
 		subscriptions.setExpired(16L);
 		subscriptions.setNewSubscriptions(27L);
 		subscriptions.setRenewal(25L);
-		
+
 		subscriptionsMap.put("FEB-2021", subscriptions);
 		subscriptionsMap.put("MAR-2021", subscriptions);
 		subscriptionsMap.put("APR-2021", subscriptions);
 		subscriptionsMap.put("MAY-2021", subscriptions);
 		subscriptionsMap.put("JUN-2021", subscriptions);
 		subscriptionsMap.put("JUL-2021", subscriptions);
-		
+
 		dashboard.setSubscriptionsMap(subscriptionsMap);
-		
+
 		Map<String, MerchantRequests> merchantRequestsMap = new HashMap<String, AdminDashboardData.MerchantRequests>();
-		
+
 		MerchantRequests merchantRequests = new MerchantRequests();
 		merchantRequests.setApproved(60L);
 		merchantRequests.setInProgress(200L);
 		merchantRequests.setOpen(12L);
 		merchantRequests.setRejected(7L);
-		
-		
+
 		merchantRequestsMap.put("JAN-2021", merchantRequests);
 		merchantRequestsMap.put("FEB-2021", merchantRequests);
 		merchantRequestsMap.put("MAR-2021", merchantRequests);
@@ -456,14 +461,14 @@ public class AdminService {
 		merchantRequestsMap.put("MAY-2021", merchantRequests);
 		merchantRequestsMap.put("JUN-2021", merchantRequests);
 		merchantRequestsMap.put("JUL-2021", merchantRequests);
-		
+
 		dashboard.setMerchantRequestsMap(merchantRequestsMap);
-		
+
 		Map<String, MerchantVsRevenue> merchantVsRevenueMap = new HashMap<String, AdminDashboardData.MerchantVsRevenue>();
 		MerchantVsRevenue merchantVsRevenue = new MerchantVsRevenue();
 		merchantVsRevenue.setMerchants((double) 200);
 		merchantVsRevenue.setRevenue((double) 15000);
-		
+
 		merchantVsRevenueMap.put("JAN-2021", merchantVsRevenue);
 		merchantVsRevenueMap.put("FEB-2021", merchantVsRevenue);
 		merchantVsRevenueMap.put("MAR-2021", merchantVsRevenue);
@@ -472,14 +477,51 @@ public class AdminService {
 		merchantVsRevenueMap.put("JUN-2021", merchantVsRevenue);
 		merchantVsRevenueMap.put("JUL-2021", merchantVsRevenue);
 		merchantVsRevenueMap.put("AUG-2021", merchantVsRevenue);
-		
+
 		dashboard.setMerchantVsRevenueMap(merchantVsRevenueMap);
-		
+
 		return dashboard;
 	}
-	
-	public void correlateFCFS(Long foodCourtId, Long foodStallId) throws TFException{
+
+	public void correlateFCFS(Long foodCourtId, Long foodStallId) throws TFException {
 
 		adminRepository.correlateFCFS(foodStallId, foodCourtId);
+	}
+
+	public AdminRole saveAdminRole(AdminRole adminRole) {
+
+		return adminRepository.saveAdminRole(adminRole);
+	}
+
+	public List<AdminRole> getAdminRoles() {
+
+		return adminRepository.findAdminRoles();
+	}
+
+	private Long getIdForAdminUserId() {
+
+		Long adminUserId = adminNextSequenceService.getNextSequence(MongoCollectionConstant.COLLECTION_ADMINUSER_SEQ);
+
+		return adminUserId;
+	}
+
+	public Admin saveAdminUser(Admin admin) {
+
+		AdminRole role = adminRepository.findRoleByRoleName(admin.getRole());
+
+		if (!Objects.isNull(role)) {
+			admin.setAdminUserId(getIdForAdminUserId());
+			admin.setStatus(ActiveStatus.ACTIVE);
+			admin = adminRepository.saveAdmin(admin);
+		} else {
+			try {
+				throw new TFException("Role not found");
+			} catch (TFException e) {
+				e.printStackTrace();
+			};
+			admin = null;
+		}
+
+		return admin;
 	}
 }
