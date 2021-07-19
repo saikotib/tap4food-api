@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
+import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
@@ -142,9 +145,7 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	
+
 	@RequestMapping(value = "/bunit/{bu-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateBusinessUnits(@Valid @PathVariable("bu-id") String businessUnitId) {
 
@@ -163,13 +164,10 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	
-	
-	@RequestMapping(value = "/get-business-unit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getBusinessUnits(@RequestBody(required = false) Map<String,Object> filterMap) {
 
+	@RequestMapping(value = "/get-business-unit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getBusinessUnits(
+			@RequestBody(required = false) Map<String, Object> filterMap) {
 
 		Optional<List<BusinessUnit>> businessUnitRes = adminService.getBusinessUnits(filterMap);
 
@@ -186,15 +184,12 @@ public class AdminController {
 		return response;
 
 	}
-	
 
-	
-	
 	@RequestMapping(value = "/bunit/{bu-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadLogo(@Valid @PathVariable("bu-id") String buId ,@RequestParam(value="logo", required=true) MultipartFile logo ) {
+	public ResponseEntity<ResponseHolder> uploadLogo(@Valid @PathVariable("bu-id") String buId,
+			@RequestParam(value = "logo", required = true) MultipartFile logo) {
 
-
-		Optional<BusinessUnit> businessUnitRes = adminService.uploadLogo(buId,logo);
+		Optional<BusinessUnit> businessUnitRes = adminService.uploadLogo(buId, logo);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (businessUnitRes.isPresent()) {
@@ -209,17 +204,14 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	/* Food Court End Points*/
-	
-	
-	
+
+	/* Food Court End Points */
+
 	@RequestMapping(value = "/bunit/{bu-id}/add-food-court", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addFoodCourt(@Valid @PathVariable("bu-id") String buId ,@RequestBody FoodCourt foodCourt ) {
+	public ResponseEntity<ResponseHolder> addFoodCourt(@Valid @PathVariable("bu-id") String buId,
+			@RequestBody FoodCourt foodCourt) {
 
-
-		Optional<FoodCourt> foodCourtRes = adminService.addFoodCourt(buId,foodCourt);
+		Optional<FoodCourt> foodCourtRes = adminService.addFoodCourt(buId, foodCourt);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (foodCourtRes.isPresent()) {
@@ -234,13 +226,12 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
+
 	@RequestMapping(value = "/food-court/{fc-id}/update-food-court ", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId ,@RequestBody FoodCourt foodCourt ) {
+	public ResponseEntity<ResponseHolder> updateFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId,
+			@RequestBody FoodCourt foodCourt) {
 
-
-		Optional<FoodCourt> foodCourtRes = adminService.updateFoodCourt(foodCourtId,foodCourt);
+		Optional<FoodCourt> foodCourtRes = adminService.updateFoodCourt(foodCourtId, foodCourt);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (foodCourtRes.isPresent()) {
@@ -255,19 +246,15 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	
 
-	
 	@RequestMapping(value = "/food-court/{fc-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadFoodCourtLogo(@Valid @PathVariable("fc-id") String foodCourtId ,@RequestParam(value="logo", required=true) MultipartFile logo ) {
+	public ResponseEntity<ResponseHolder> uploadFoodCourtLogo(@Valid @PathVariable("fc-id") String foodCourtId,
+			@RequestParam(value = "logo", required = true) MultipartFile logo) {
 
-
-		Optional<FoodCourt> foodCourt = adminService.uploadFoodCourtLogo(foodCourtId,logo);
+		Optional<FoodCourt> foodCourt = adminService.uploadFoodCourtLogo(foodCourtId, logo);
 
 		ResponseEntity<ResponseHolder> response = null;
-		if (foodCourt .isPresent()) {
+		if (foodCourt.isPresent()) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court Logo uploaded successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourt).build());
 		} else {
@@ -279,16 +266,14 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	
+
 	@RequestMapping(value = "/food-court/{fc-id}/get", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> deleteFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
 
 		Optional<FoodCourt> foodCourt = adminService.getFoodCourtById(foodCourtId);
 
 		ResponseEntity<ResponseHolder> response = null;
-		if (foodCourt .isPresent()) {
+		if (foodCourt.isPresent()) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court detailes retreived successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourt).build());
 		} else {
@@ -299,10 +284,7 @@ public class AdminController {
 
 		return response;
 
-
 	}
-	
-	
 
 	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
@@ -322,34 +304,114 @@ public class AdminController {
 		return response;
 
 	}
-	
+
 	@RequestMapping(value = "/get-dashboard-data", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getAdminDashboardData(){
-		
+	public ResponseEntity<ResponseHolder> getAdminDashboardData() {
+
 		AdminDashboardData adminDashboardData = adminService.loadAdminDashboardData();
-		
-		ResponseHolder response = ResponseHolder.builder()
-				.status("success")
-				.timestamp(String.valueOf(LocalDateTime.now()))
-				.data(adminDashboardData)
-				.build();
-		
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(adminDashboardData).build();
+
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/associate-fc-fs", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> correlateFCFS(@RequestParam("fc-id") Long foodCourtId, @RequestParam("fs-id") Long foodStallId) throws TFException{
-		
+	public ResponseEntity<ResponseHolder> correlateFCFS(@RequestParam("fc-id") Long foodCourtId,
+			@RequestParam("fs-id") Long foodStallId) throws TFException {
+
 		adminService.correlateFCFS(foodCourtId, foodStallId);
 
-		ResponseHolder response = ResponseHolder.builder()
-				.status("success")
-				.data("Food Court & Food stall are associated.")
-				.build();
-		
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.data("Food Court & Food stall are associated.").build();
+
 		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
-		
-		return responseEntity;		
+
+		return responseEntity;
+	}
+
+	@RequestMapping(value = "/add-admin-role", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveAdminRole(@RequestBody AdminRole adminRole) {
+
+		AdminRole adminRoleRes = adminService.saveAdminRole(adminRole);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (Objects.nonNull(adminRoleRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Role saved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRoleRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while saving Admin Role").build());
+		}
+
+		return response;
+
 	}
 	
+	
+	@RequestMapping(value = "/update-admin-role", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateAdminRole(@RequestBody AdminRole adminRole) {
+
+		AdminRole adminRoleRes = adminService.saveAdminRole(adminRole);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (Objects.nonNull(adminRoleRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Role updated successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRoleRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while updating Admin Role").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	@RequestMapping(value = "/get-admin-roles", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAdminRoles() {
+
+		List<AdminRole> adminRoleRes = adminService.getAdminRoles();
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (ObjectUtils.isEmpty(adminRoleRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Roles retrieved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRoleRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while retrieving Admin Roles").build());
+		}
+
+		return response;
+
+	}
+	
+	
+	
+	
+
+	@RequestMapping(value = "/add-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveAdminUser(@RequestBody Admin admin) {
+
+		Admin adminUserRes = adminService.saveAdminUser(admin);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (Objects.nonNull(adminUserRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User saved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminUserRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while saving Admin User").build());
+		}
+
+		return response;
+
+	}
+
 }
+
+

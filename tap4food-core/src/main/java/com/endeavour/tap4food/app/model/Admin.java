@@ -29,4 +29,10 @@ public class Admin {
 	private String phoneNumber;
 	
 	private String email;
+	
+	private String role;
+	
+	private String status;
+	
+	private long adminUserId;
 }

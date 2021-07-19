@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Admin;
+import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
@@ -310,5 +311,26 @@ public class AdminRepository {
 		foodCourt.setFoodStalls(foodStalls);
 		
 		mongoTemplate.save(foodCourt);
+	}
+
+	public AdminRole saveAdminRole(AdminRole adminRole) {
+		return mongoTemplate.save(adminRole);
+	}
+
+	public List<AdminRole> findAdminRoles() {
+		return mongoTemplate.findAll(AdminRole.class);
+	}
+
+	public AdminRole findRoleByRoleName(String role) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("role").is(role));
+
+		AdminRole adminRole = mongoTemplate.findOne(query, AdminRole.class);
+		return adminRole;
+	}
+
+	public Admin saveAdmin(Admin admin) {
+	return mongoTemplate.save(admin);
+		
 	}
 }

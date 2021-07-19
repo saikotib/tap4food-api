@@ -39,4 +39,6 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_STATE = "states";
 	
 	public static final String COLLECTION_CITY = "cities";
+	
+	public static final String COLLECTION_ADMINUSER_SEQ = "adminUserSequences";
 }
