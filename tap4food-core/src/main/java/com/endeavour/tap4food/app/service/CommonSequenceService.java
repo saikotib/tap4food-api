@@ -10,14 +10,21 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.app.model.sequences.FoodCourtCustomSequence;
+import com.endeavour.tap4food.app.model.sequences.FoodStallCustomSequence;
 
 @Service
-public class FoodCourtNextSequenceService {
+public class CommonSequenceService {
 
 	@Autowired
 	private MongoOperations mongo;
 
-	public long getNextSequence(String seqName) {
+	public long getFoodStallNextSequence(String seqName) {
+		FoodStallCustomSequence counter = mongo.findAndModify(query(where("_id").is(seqName)), new Update().inc("seq", 1),
+				options().returnNew(true).upsert(true), FoodStallCustomSequence.class);
+		return counter.getSeq();
+	}
+	
+	public long getFoodCourtNextSequence(String seqName) {
 		FoodCourtCustomSequence counter = mongo.findAndModify(query(where("_id").is(seqName)), new Update().inc("seq", 1),
 				options().returnNew(true).upsert(true), FoodCourtCustomSequence.class);
 		return counter.getSeq();

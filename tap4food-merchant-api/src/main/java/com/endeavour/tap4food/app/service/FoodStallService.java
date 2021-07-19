@@ -167,7 +167,7 @@ public class FoodStallService {
 		
 		foodStallTimings.setDays(weekDays);
 		
-		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings);
+		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings, false);
 
 		return Optional.ofNullable(foodStallTimings);
 	}
@@ -192,7 +192,7 @@ public class FoodStallService {
 		
 		foodStallTimings.setDays(weekDays);
 		
-		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings);
+		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings, true);
 
 		return foodStallTimings;
 	}

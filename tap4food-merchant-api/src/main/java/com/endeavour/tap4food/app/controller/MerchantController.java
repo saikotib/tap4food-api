@@ -236,8 +236,6 @@ public class MerchantController {
 	}
 	
 	
-	
-	
 	@RequestMapping(value = "/{merchant-id}/delete-pic", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> deleteProfilePic(@Valid @PathVariable("merchant-id") Long id,
 			@RequestParam(required = true) String type) {

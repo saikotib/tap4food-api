@@ -1,5 +1,6 @@
-package com.endeavour.tap4food.app.model;
+package com.endeavour.tap4food.app.model.fooditem;
 
+import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,26 +13,15 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder(toBuilder = true)
-@NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = MongoCollectionConstant.COLLECTION_ADMIN_USERS)
-public class Admin {
+@NoArgsConstructor
+@Document(collection = MongoCollectionConstant.COLLECTION_FOODITEM_PICS)
+public class FoodItemPic {
 
 	@Id
 	private String id;
-
-	private String userName;
-
-	private String password;
-
-	private String phoneNumber;
-
-	private String email;
-
-	private long adminUserId;
-
-	private String role; // SUPER_ADMIN
-
-	private String status;
-
+	
+	private Long foodItemId;
+	
+	private Binary itemPic;
 }
