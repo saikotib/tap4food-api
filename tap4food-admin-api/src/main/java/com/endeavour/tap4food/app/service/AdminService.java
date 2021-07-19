@@ -38,6 +38,7 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.app.util.ActiveStatus;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
@@ -510,6 +511,7 @@ public class AdminService {
 
 		if (!Objects.isNull(role)) {
 			admin.setAdminUserId(getIdForAdminUserId());
+			admin.setStatus(ActiveStatus.ACTIVE);
 			admin = adminRepository.saveAdmin(admin);
 		} else {
 			try {

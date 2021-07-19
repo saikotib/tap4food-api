@@ -376,7 +376,7 @@ public class AdminController {
 		List<AdminRole> adminRoleRes = adminService.getAdminRoles();
 
 		ResponseEntity<ResponseHolder> response = null;
-		if (ObjectUtils.isEmpty(adminRoleRes)) {
+		if (!ObjectUtils.isEmpty(adminRoleRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Roles retrieved successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRoleRes).build());
 		} else {

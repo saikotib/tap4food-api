@@ -318,6 +318,7 @@ public class AdminRepository {
 	}
 
 	public List<AdminRole> findAdminRoles() {
+		System.out.println(mongoTemplate.findAll(AdminRole.class));
 		return mongoTemplate.findAll(AdminRole.class);
 	}
 
