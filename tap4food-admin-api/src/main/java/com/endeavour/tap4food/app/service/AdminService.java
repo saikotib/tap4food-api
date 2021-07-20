@@ -524,4 +524,31 @@ public class AdminService {
 
 		return admin;
 	}
+
+	public List<Admin> getAdminUserByRole(final String role) {
+		
+		return adminRepository.findAdminUserByRole(role);
+	}
+
+	public Admin updateAdmin(Admin admin, String role) {
+		
+		return adminRepository.saveAdmin(admin);
+	}
+
+	public Admin addAdminUserProfilePic(MultipartFile adminProfilePic, String role) {
+		Admin admin =new Admin();
+		try {
+			admin.setAdminUserProfilePic((new Binary(BsonBinarySubType.BINARY, adminProfilePic.getBytes())));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return adminRepository.saveAdmin(admin);
+	}
+
+	public Boolean deleteAdminUser(String role) {
+		
+		Boolean flag = adminRepository.deleteAdminUserByRole(role);
+		return flag;
+	}
 }
