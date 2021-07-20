@@ -51,6 +51,39 @@ public class FoodStallController {
 
 		return responseEntity;
 	}
+	
+	@RequestMapping(value = "/update", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodStall(@RequestBody FoodStall foodStall) throws TFException {
+
+		foodStallService.updateFoodStall(foodStall);
+
+		ResponseHolder response = ResponseHolder.builder().data(foodStall).status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).build();
+
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/get-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodStallDetails(@Valid @PathVariable("fs-id") Long fsId) {
+
+		FoodStall foodStall = foodStallService.getFoodStallById(fsId);
+		
+		ResponseEntity<ResponseHolder> response = null;
+
+		if (!ObjectUtils.isEmpty(foodStall)) {
+
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodStall).build());
+		} else {
+			response = ResponseEntity.badRequest()
+					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
+							.timestamp(String.valueOf(LocalDateTime.now())).data(foodStall).build());
+
+		}
+		return response;
+	}
 
 	@RequestMapping(path = "/{fs-id}/add-category", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> addCategory(@PathVariable("fs-id") Long foodStallId,
@@ -233,13 +266,13 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/{fs-id}/fetch-categories", method = RequestMethod.GET)
+	@RequestMapping(value = "/{fs-id}/fetch-categories", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAllCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
 		
 		List<Category> categoryNames = foodStallService.getAllCategories(foodStallId);
 		
 		if (!categoryNames.isEmpty()) {
-			ResponseHolder response = ResponseHolder.builder().status("Done")
+			ResponseHolder response = ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(categoryNames).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
@@ -250,13 +283,13 @@ public class FoodStallController {
 
 	}
 
-	@RequestMapping(value = "/{fs-id}/fetch-sub-categories", method = RequestMethod.GET)
+	@RequestMapping(value = "/{fs-id}/fetch-sub-categories", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAllSubCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
 		
 		List<SubCategory> subCategories = foodStallService.getAllSubCategories(foodStallId);
 		
 		if (!subCategories.isEmpty()) {
-			ResponseHolder response = ResponseHolder.builder().status("Done")
+			ResponseHolder response = ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(subCategories).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
@@ -267,13 +300,13 @@ public class FoodStallController {
 
 	}
 
-	@RequestMapping(value = "/{fs-id}/fetch-cuisines", method = RequestMethod.GET)
+	@RequestMapping(value = "/{fs-id}/fetch-cuisines", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAllCuisines(@PathVariable("fs-id") Long foodStallId) throws TFException {
 		
 		List<Cuisine> cuisines = foodStallService.getAllCuisines(foodStallId);
 		
 		if (!cuisines.isEmpty()) {
-			ResponseHolder response = ResponseHolder.builder().status("Done")
+			ResponseHolder response = ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisines).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
@@ -287,14 +320,14 @@ public class FoodStallController {
 	@RequestMapping(value = "/{fs-id}/add-foodstall-timings", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> saveFoodStallTimings(@Valid @PathVariable("fs-id") Long foodStallId, @RequestBody ArrayList<WeekDay> weekDay) throws TFException {
 
-		Optional<FoodStallTimings> merchantFoodStallTimingsResponse = foodStallService.saveFoodCourtTimings(foodStallId,
+		Optional<FoodStallTimings> merchantFoodStallTimingsResponse = foodStallService.saveFoodStallTimings(foodStallId,
 				weekDay);
 
 		ResponseEntity<ResponseHolder> response = null;
 
 		if (merchantFoodStallTimingsResponse.isPresent()) {
 
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings saved succesfully")
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodStallTimingsResponse.get())
 					.build());
 		} else {

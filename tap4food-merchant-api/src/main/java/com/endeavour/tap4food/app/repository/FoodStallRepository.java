@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
@@ -53,6 +54,17 @@ public class FoodStallRepository {
 
 		return merchantExists;
 	}
+	
+	private MenuListings createEmptyMenuListing() {
+		MenuListings menuListing = new MenuListings();
+		
+		menuListing.setCategories(new ArrayList<Category>());
+		menuListing.setSubCategories(new ArrayList<SubCategory>());
+		menuListing.setCuisines(new ArrayList<Cuisine>());
+		menuListing.setCustomiseType(new ArrayList<CustomizeType>());
+		
+		return menuListing;
+	}
 
 	public FoodStall createNewFoodStall(Long merchantId, FoodStall foodStall) throws TFException {
 
@@ -64,8 +76,16 @@ public class FoodStallRepository {
 
 		foodStall.setMerchantUniqueNumber(merchantId);
 		foodStall.setFoodStallId(getIdForNewFoodStall());
+		
+		
+		MenuListings menuListings = this.createEmptyMenuListing();
+
+		mongoTemplate.save(menuListings);
+
+		foodStall.setMenuListing(menuListings);
 
 		mongoTemplate.save(foodStall);
+		 
 
 		Merchant merchant = merchantData.get();
 
@@ -82,6 +102,29 @@ public class FoodStallRepository {
 		mongoTemplate.save(merchant);
 
 		return foodStall;
+	}
+	
+	public FoodStall updateFoodStall(FoodStall foodStall) throws TFException {
+
+		FoodStall existingStall = getFoodStallById(foodStall.getFoodStallId());
+		
+		if(ObjectUtils.isEmpty(existingStall)) {
+			throw new TFException("Invalid foodstall data");
+		}
+		
+		if(!foodStall.getMerchantUniqueNumber().equals(existingStall.getMerchantUniqueNumber())) {
+			throw new TFException("You are not authorised to update this foodstall");
+		}
+
+		existingStall.setFoodStallLicenseNumber(foodStall.getFoodStallLicenseNumber());
+		existingStall.setFoodStallName(foodStall.getFoodStallName());
+		existingStall.setGstNumber(foodStall.getGstNumber());
+		existingStall.setState(foodStall.getState());
+		existingStall.setCity(foodStall.getCity());
+		
+		mongoTemplate.save(existingStall);
+
+		return existingStall;
 	}
 
 	private Long getIdForNewFoodStall() {
@@ -305,6 +348,10 @@ public class FoodStallRepository {
 
 		if (Objects.isNull(foodStall)) {
 			throw new TFException("Food stall doesn't exist");
+		}
+		
+		if(Objects.isNull(foodStall.getMenuListing())) {
+			throw new TFException("Food stall doesn't have any menulisting created");
 		}
 
 		List<Category> categories = foodStall.getMenuListing().getCategories();
@@ -672,7 +719,6 @@ public class FoodStallRepository {
 		mongoTemplate.save(foodStall);
 		
 		return foodStallTimings;
-		
 		
 	}
 	

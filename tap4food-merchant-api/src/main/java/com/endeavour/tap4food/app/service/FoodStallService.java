@@ -31,6 +31,13 @@ public class FoodStallService {
 
 		return foodStall;
 	}
+	
+	public FoodStall updateFoodStall(FoodStall foodStall) throws TFException {
+
+		foodStallRepository.updateFoodStall(foodStall);
+
+		return foodStall;
+	}
 
 	public void addCategory(Long fsId, Category category) throws TFException {
 
@@ -161,7 +168,7 @@ public class FoodStallService {
 		}
 	}
 	
-	public Optional<FoodStallTimings> saveFoodCourtTimings(Long fsId, ArrayList<WeekDay> weekDays) throws TFException {
+	public Optional<FoodStallTimings> saveFoodStallTimings(Long fsId, ArrayList<WeekDay> weekDays) throws TFException {
 
 		FoodStallTimings foodStallTimings = new FoodStallTimings();
 		
