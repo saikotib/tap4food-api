@@ -28,8 +28,6 @@ import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.service.FoodStalNextSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
-import com.mongodb.DuplicateKeyException;
-import com.mongodb.MongoWriteException;
 
 @Repository
 @Transactional
@@ -430,7 +428,7 @@ public class FoodStallRepository {
 		mongoTemplate.save(foodStall);
 	}
 
-	public void removeCuisine(Long fsId, @Valid Cuisine cuisine) throws TFException {
+	public void removeCuisine(Long fsId, Cuisine cuisine) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		if (Objects.isNull(foodStall)) {
@@ -443,7 +441,7 @@ public class FoodStallRepository {
 				mongoTemplate.remove(existingCuisineName);
 			} 
 		} catch (Exception e) {
-			throw new TFException("Customize type is not available to delete");
+			throw new TFException("Cuisine is not available to delete");
 		}
 		
 		List<Cuisine> names = foodStall.getMenuListing().getCuisines();

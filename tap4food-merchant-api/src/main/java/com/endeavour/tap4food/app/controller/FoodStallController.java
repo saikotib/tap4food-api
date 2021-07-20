@@ -71,7 +71,7 @@ public class FoodStallController {
 
 	}
 
-	@RequestMapping(path = "/{fs-id}/remove-category", method = RequestMethod.DELETE)
+	@RequestMapping(path = "/{fs-id}/remove-category", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> removeCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
 		foodStallService.removeCategory(foodStallId, category);
@@ -117,7 +117,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/remove-subcategory", method = RequestMethod.DELETE)
+	@RequestMapping(path = "/{fs-id}/remove-subcategory", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> removeSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory subCategory) throws TFException {
 
 		foodStallService.removeSubCategory(foodStallId, subCategory);
@@ -161,7 +161,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/remove-cuisine", method = RequestMethod.DELETE)
+	@RequestMapping(path = "/{fs-id}/remove-cuisine", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> removeCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws TFException {
 
 		foodStallService.removeCustomizeType(foodStallId, cuisine);
@@ -205,7 +205,7 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/remove-customize-type", method = RequestMethod.DELETE)
+	@RequestMapping(path = "/{fs-id}/remove-customize-type", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> removeCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
 		foodStallService.removeCustomizeType(foodStallId, customizeType);
