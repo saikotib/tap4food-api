@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.enums.UserRoleEnum;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.payload.request.ChangePasswordRequest;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
@@ -92,7 +93,7 @@ public class AuthController {
 	}
 	
 	@RequestMapping(value = "/change-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+	public ResponseEntity<ResponseHolder> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) throws TFException {
 		
 		String message = merchantService.changePassword(changePasswordRequest.getUniqueNumber(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
 		

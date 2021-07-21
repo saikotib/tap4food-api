@@ -170,7 +170,7 @@ public class MerchantRepository {
 		return false;
 	}
 
-	public Merchant updateMerchant(Merchant merchant) {
+	public Merchant updateMerchant(Merchant merchant, boolean changePasswordFlag) {
 		
 		if(merchant.getUniqueNumber() != null) {
 			Optional<Merchant> existingMerchantData = findByUniqueNumber(merchant.getUniqueNumber());
@@ -179,6 +179,10 @@ public class MerchantRepository {
 				Merchant existingMerchant = existingMerchantData.get();
 				existingMerchant.setPersonalIdNumber(merchant.getPersonalIdNumber());
 				existingMerchant.setUserName(Objects.isNull(merchant.getUserName()) ? existingMerchant.getUserName() : merchant.getUserName());
+				
+				if(changePasswordFlag) {
+					existingMerchant.setPassword(merchant.getPassword());
+				}
 				
 				mongoTemplate.save(existingMerchant);
 			}else {

@@ -30,6 +30,7 @@ import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantVsRevenue;
 import com.endeavour.tap4food.app.model.AdminDashboardData.ReportParams;
 import com.endeavour.tap4food.app.model.AdminDashboardData.Subscriptions;
+import com.endeavour.tap4food.app.payload.request.ChangePasswordRequest;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
@@ -524,4 +525,37 @@ public class AdminService {
 
 		return admin;
 	}
+	
+	public String changePassword(final String phoneNumber, final String oldPassword, final String newPassword) throws TFException {
+
+		String message = null;
+		
+		Optional<Admin> adminData = adminRepository.findAdminByPhoneNumber(phoneNumber);
+
+		if (adminData.isPresent()) {
+			
+			Admin admin = adminData.get();
+
+			System.out.println("Is password matched :" + encoder.matches(oldPassword, admin.getPassword()));
+
+			if (encoder.matches(oldPassword, admin.getPassword())) {
+
+				boolean flag = adminRepository.changePassword(phoneNumber, encoder.encode(newPassword));
+
+				if(flag) {
+					message = "Password is changed successfully";
+				}else {
+					message = "Admin data couldn't found";
+				}
+					
+			} else {
+				message = "Old password is incorrect";
+			}
+		}else {
+			throw new TFException("Invalid Admin User Phone Number");
+		}
+
+		return message;
+	}
+
 }

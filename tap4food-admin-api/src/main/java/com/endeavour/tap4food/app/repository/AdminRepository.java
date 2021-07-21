@@ -331,7 +331,23 @@ public class AdminRepository {
 	}
 
 	public Admin saveAdmin(Admin admin) {
-	return mongoTemplate.save(admin);
+
+		return mongoTemplate.save(admin);
+	}
+	
+	public boolean changePassword(String phoneNumber, String password) throws TFException {
+		boolean updateFlag = false;
 		
+		Optional<Admin> adminData = this.findAdminByPhoneNumber(phoneNumber);
+		
+		if(adminData.isPresent()) {
+			Admin admin = adminData.get();
+			admin.setPassword(password);
+			mongoTemplate.save(admin);
+		}else {
+			throw new TFException("No admin user found with input phone number");
+		}
+		
+		return updateFlag;
 	}
 }
