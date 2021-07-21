@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -201,9 +202,13 @@ public class FoodStallService {
 		return foodStallRepository.getFoodStallById(fsId);
 	}
 	
-	public FoodStallTimings getFoodStallTimings(final Long fsId) {
+	public FoodStallTimings getFoodStallTimings(final Long fsId) throws TFException {
 		
 		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		if(Objects.isNull(foodStall)) {
+			throw new TFException("Foodstall not found with the input ID");
+		}
 
 		return foodStall.getFoodStallTimings();
 	}
@@ -213,6 +218,10 @@ public class FoodStallService {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		FoodStallTimings foodStallTimings = foodStall.getFoodStallTimings();
+		
+		if(Objects.isNull(foodStallTimings)) {
+			throw new TFException("Timings are not added yet");
+		}
 		
 		foodStallTimings.setDays(weekDays);
 		
