@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -78,8 +79,8 @@ public class FoodStallController {
 					.timestamp(String.valueOf(LocalDateTime.now())).data(foodStall).build());
 		} else {
 			response = ResponseEntity.badRequest()
-					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(foodStall).build());
+					.body(ResponseHolder.builder().status("error")
+							.timestamp(String.valueOf(LocalDateTime.now())).data("Error occurred while retrieving Food Stall Timings").build());
 
 		}
 		return response;
@@ -265,6 +266,17 @@ public class FoodStallController {
 
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(path = "/{fs-id}/add-customize-food-item", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody Map<String, Double> customizeFoodItem) throws TFException {
+
+		foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, customizeFoodItem);
+
+		ResponseHolder response = ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
+				.data("Customise food item saved successfully").build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
 
 	@RequestMapping(value = "/{fs-id}/fetch-categories", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAllCategories(@PathVariable("fs-id") Long foodStallId) throws TFException {
@@ -276,8 +288,8 @@ public class FoodStallController {
 					.timestamp(String.valueOf(LocalDateTime.now())).data(categoryNames).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
-			ResponseHolder response = ResponseHolder.builder().status("no categories are available")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(categoryNames).build();
+			ResponseHolder response = ResponseHolder.builder().status("error")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("no categories are available").build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
 		}
 
@@ -293,8 +305,8 @@ public class FoodStallController {
 					.timestamp(String.valueOf(LocalDateTime.now())).data(subCategories).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
-			ResponseHolder response = ResponseHolder.builder().status("no subcategories available")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(subCategories).build();
+			ResponseHolder response = ResponseHolder.builder().status("error")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("no subcategories available").build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
 		}
 
@@ -310,8 +322,25 @@ public class FoodStallController {
 					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisines).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
-			ResponseHolder response = ResponseHolder.builder().status("no subcategories available")
-					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisines).build();
+			ResponseHolder response = ResponseHolder.builder().status("error")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("no subcategories available").build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+	
+	@RequestMapping(value = "/{fs-id}/fetch-customise-types", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getCustomiseTypes(@PathVariable("fs-id") Long foodStallId) throws TFException {
+		
+		List<CustomizeType> customiseTypes = foodStallService.getAllCustomiseTypes(foodStallId);
+		
+		if (!customiseTypes.isEmpty()) {
+			ResponseHolder response = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(customiseTypes).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			ResponseHolder response = ResponseHolder.builder().status("error")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("no subcategories available").build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
 		}
 

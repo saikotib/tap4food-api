@@ -1,6 +1,7 @@
 package com.endeavour.tap4food.app.model.menu;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
@@ -21,7 +22,7 @@ public class CustomizeType {
 	
 	private ZonedDateTime createdTime;
 	
-	private Set<String> customizeFoodItems;
+	private Map<String, Double> customizeFoodItems;
 	
 	private Boolean visible;
 	

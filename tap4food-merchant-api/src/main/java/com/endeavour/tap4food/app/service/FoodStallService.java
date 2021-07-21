@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -44,7 +45,7 @@ public class FoodStallService {
 		foodStallRepository.saveCategory(fsId, category);
 	}
 
-	public void addSubCategory(Long fsId, @Valid SubCategory subCategory) throws TFException {
+	public void addSubCategory(Long fsId,  SubCategory subCategory) throws TFException {
 		foodStallRepository.saveSubCategory(fsId, subCategory);
 	}
 
@@ -75,7 +76,7 @@ public class FoodStallService {
 		}
 	}
 
-	public void hideSubCategory(Long fsId, @Valid SubCategory subCategory) throws TFException {
+	public void hideSubCategory(Long fsId,  SubCategory subCategory) throws TFException {
 		if (subCategory.getVisible().equals(false)) {
 			subCategory.setVisible(false);
 			foodStallRepository.saveSubCategory(fsId, subCategory);
@@ -106,9 +107,25 @@ public class FoodStallService {
 		}
 	}
 
-	public void addCustomizeType(Long fsId, @Valid CustomizeType customizeType) throws TFException {
+	public void addCustomizeType(Long fsId,  CustomizeType customizeType) throws TFException {
 
 		foodStallRepository.saveCustomizeType(fsId, customizeType);
+	}
+	
+	public List<CustomizeType> getAllCustomiseTypes(Long fsId) throws TFException {
+		Optional<List<CustomizeType>> customiseTypes = foodStallRepository.findCustomiseTypes(fsId);
+		if (customiseTypes.isPresent()) {
+
+			return customiseTypes.get();
+
+		} else {
+			return new ArrayList<CustomizeType>();
+		}
+	}
+	
+	public void addCustomizeFoodItem(Long fsId, String customiseTypeName,  Map<String, Double> customiseFoodItemMap) throws TFException {
+
+		foodStallRepository.saveCustomizeFoodItem(fsId, customiseTypeName, customiseFoodItemMap);
 	}
 
 	public void editCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
@@ -119,7 +136,7 @@ public class FoodStallService {
 		foodStallRepository.removeCustomizeType(fsId, customizeType);
 	}
 
-	public void hideCustomizeType(Long fsId, @Valid CustomizeType customizeType) throws TFException {
+	public void hideCustomizeType(Long fsId,  CustomizeType customizeType) throws TFException {
 		if (customizeType.getVisible().equals(false)) {
 			customizeType.setVisible(false);
 			foodStallRepository.saveCustomizeType(fsId, customizeType);
@@ -131,7 +148,7 @@ public class FoodStallService {
 
 	}
 
-	public void addCuisineName(Long fsId, @Valid Cuisine cuisine) throws TFException {
+	public void addCuisineName(Long fsId,  Cuisine cuisine) throws TFException {
 		
 		foodStallRepository.saveCuisine(fsId, cuisine);
 	}
@@ -146,7 +163,7 @@ public class FoodStallService {
 
 	}
 
-	public void hideCustomizeType(Long fsId, @Valid Cuisine cuisine) throws TFException {
+	public void hideCustomizeType(Long fsId,  Cuisine cuisine) throws TFException {
 
 		if (cuisine.getVisible().equals(false)) {
 			cuisine.setVisible(false);

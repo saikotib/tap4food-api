@@ -4,6 +4,7 @@ import static com.mongodb.client.model.Sorts.descending;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -177,7 +178,7 @@ public class MerchantRepository {
 				
 				Merchant existingMerchant = existingMerchantData.get();
 				existingMerchant.setPersonalIdNumber(merchant.getPersonalIdNumber());
-				existingMerchant.setUserName(merchant.getUserName());
+				existingMerchant.setUserName(Objects.isNull(merchant.getUserName()) ? existingMerchant.getUserName() : merchant.getUserName());
 				
 				mongoTemplate.save(existingMerchant);
 			}else {
@@ -190,6 +191,10 @@ public class MerchantRepository {
 		return merchant;
 	}
 
+	public void phoneVerifyStatusUpdate(Merchant merchant) {
+		
+		mongoTemplate.save(merchant);
+	}
 	
 
 	public Optional<Merchant> findMerchantById(String id) {

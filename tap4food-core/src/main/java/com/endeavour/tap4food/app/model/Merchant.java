@@ -44,6 +44,8 @@ public class Merchant {
 	
 	private String lastUpdatedDate;
 	
+	private boolean isPhoneNumberVerified;
+	
 	@DBRef
 	private MerchantBankDetails bankDetails;
 	

@@ -1,7 +1,7 @@
 package com.endeavour.tap4food.app.model.fooditem;
 
+import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
@@ -21,7 +21,6 @@ public class FoodItem {
 	@Id
 	private String id;
 	
-	@Indexed
 	private Long foodItemId;
 	
 	private String foodItemName;
@@ -34,19 +33,15 @@ public class FoodItem {
 	
 	private String cuisine;
 	
-	private boolean addOn;
+	private boolean isAddOn;
 	
-	private boolean veg;
+	private boolean isVeg;
 	
-	private boolean egg;
+	private boolean isEgg;
 	
 	private boolean isReccommended;
-	
-	private double price;
-	
-	private double ratingValue;  
-	
-	private long totalRatings;
+
+	private Binary pic;
 	
 	private Long foodStallId;
 	
