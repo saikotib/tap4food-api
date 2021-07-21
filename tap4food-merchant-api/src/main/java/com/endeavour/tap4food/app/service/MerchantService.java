@@ -71,17 +71,28 @@ public class MerchantService {
 	}
 
 	public void saveUser(Merchant merchant) {
+		
+		Optional<Merchant> draftedMerchantData = this.findByPhoneNumber(merchant.getPhoneNumber());
+		
+		System.out.println(">>" + draftedMerchantData);
+		
+		if(draftedMerchantData.isPresent()) {
+			Merchant draftedMerchant = draftedMerchantData.get();
+			merchant.setUniqueNumber(draftedMerchant.getUniqueNumber());
+			merchant.setId(draftedMerchant.getId());
+		}else {
+			Long uniqNumber = this.getUniqueNumber();
 
-		Long uniqNumber = this.getUniqueNumber();
+			Long currentTimeInMilli = System.currentTimeMillis();
 
-		Long currentTimeInMilli = System.currentTimeMillis();
+			merchant.setUniqueNumber(uniqNumber);
+			merchant.setCreatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
+			merchant.setLastUpdatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
 
-		merchant.setUniqueNumber(uniqNumber);
-		merchant.setCreatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
-		merchant.setLastUpdatedDate(DateUtil.getDateFromMillisec(currentTimeInMilli));
-
+		}
+		
 		boolean isUserSaved = merchantRepository.save(merchant);
-
+		
 		if (isUserSaved) {
 			commonService.sendOTPToPhone(merchant.getPhoneNumber());
 		}
@@ -109,17 +120,24 @@ public class MerchantService {
 		Optional<Merchant> userByEmail = this.findByEmailId(emailId);
 
 		if (userByEmail.isPresent()) {
-			validationMessage = "The email id is already used..";
+			
+			if(userByEmail.get().isPhoneNumberVerified()) {
+				validationMessage = "The email id is already used..";
 
-			return validationMessage;
+				return validationMessage;
+			}
+			
 		}
 
 		Optional<Merchant> userByPhOptional = this.findByPhoneNumber(phoneNumber);
 
 		if (userByPhOptional.isPresent()) {
-			validationMessage = "The phone number is already used.";
+			if(userByEmail.get().isPhoneNumberVerified()) {
+				validationMessage = "The phone number is already used.";
 
-			return validationMessage;
+				return validationMessage;
+			}
+			
 		}
 
 		return null;
@@ -174,6 +192,9 @@ public class MerchantService {
 			}
 
 			sendMail(merchantEmail, message, subject);
+			
+			merchant.setPhoneNumberVerified(true);
+			merchantRepository.phoneVerifyStatusUpdate(merchant);
 		}
 
 		return otpMatch;
