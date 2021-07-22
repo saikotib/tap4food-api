@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
@@ -287,7 +288,7 @@ public class MerchantService {
 
 			merchant.setStatus(status);
 
-			merchant = merchantRepository.updateMerchant(merchant);
+			merchant = merchantRepository.updateMerchant(merchant, false);
 		}
 
 		// Mail has to go here.
@@ -297,7 +298,7 @@ public class MerchantService {
 
 	public Merchant updateMerchant(@Valid Merchant merchant) {
 
-		return merchantRepository.updateMerchant(merchant);
+		return merchantRepository.updateMerchant(merchant, false);
 	}
 
 	
@@ -330,7 +331,7 @@ public class MerchantService {
 		return merchant;
 	}
 
-	public String changePassword(final Long uniqueNumber, final String oldPassword, final String newPassword) {
+	public String changePassword(final Long uniqueNumber, final String oldPassword, final String newPassword) throws TFException {
 
 		String message = null;
 
@@ -345,7 +346,7 @@ public class MerchantService {
 
 				merchant.setPassword(encoder.encode(newPassword));
 
-				merchant = merchantRepository.updateMerchant(merchant);
+				merchant = merchantRepository.updateMerchant(merchant, true);
 
 				if(Objects.isNull(merchant)) {
 					message = "Password is changed successfully";
@@ -356,6 +357,8 @@ public class MerchantService {
 			} else {
 				message = "Old password is incorrect";
 			}
+		}else {
+			throw new TFException("Invalid merchant ID");
 		}
 
 		return message;

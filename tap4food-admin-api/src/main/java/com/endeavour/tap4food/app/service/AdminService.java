@@ -24,17 +24,20 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.Access;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantVsRevenue;
 import com.endeavour.tap4food.app.model.AdminDashboardData.ReportParams;
 import com.endeavour.tap4food.app.model.AdminDashboardData.Subscriptions;
+import com.endeavour.tap4food.app.payload.request.ChangePasswordRequest;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
+import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
@@ -525,6 +528,7 @@ public class AdminService {
 		return admin;
 	}
 
+
 	public List<Admin> getAdminUserByRole(final String role) {
 		
 		return adminRepository.findAdminUserByRole(role);
@@ -551,4 +555,45 @@ public class AdminService {
 		Boolean flag = adminRepository.deleteAdminUserByRole(role);
 		return flag;
 	}
+
+	
+	public String changePassword(final String phoneNumber, final String oldPassword, final String newPassword) throws TFException {
+
+		String message = null;
+		
+		Optional<Admin> adminData = adminRepository.findAdminByPhoneNumber(phoneNumber);
+
+		if (adminData.isPresent()) {
+			
+			Admin admin = adminData.get();
+
+			System.out.println("Is password matched :" + encoder.matches(oldPassword, admin.getPassword()));
+
+			if (encoder.matches(oldPassword, admin.getPassword())) {
+
+				boolean flag = adminRepository.changePassword(phoneNumber, encoder.encode(newPassword));
+
+				if(flag) {
+					message = "Password is changed successfully";
+				}else {
+					message = "Admin data couldn't found";
+				}
+					
+			} else {
+				message = "Old password is incorrect";
+			}
+		}else {
+			throw new TFException("Invalid Admin User Phone Number");
+		}
+
+		return message;
+	}
+
+	public RoleConfiguration saveAdminRoleConfiguration(String roleName, List<Access> accessDetails) {
+
+		return null;
+	}
+
+	
+
 }

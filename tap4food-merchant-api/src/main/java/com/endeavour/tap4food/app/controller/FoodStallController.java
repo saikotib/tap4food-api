@@ -390,7 +390,7 @@ public class FoodStallController {
 	}
 
 	@RequestMapping(value = "/{fs-id}/get-foodstall-timings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getFoodStallTimings(@Valid @PathVariable("fs-id") Long fsId) {
+	public ResponseEntity<ResponseHolder> getFoodStallTimings(@Valid @PathVariable("fs-id") Long fsId) throws TFException {
 
 		FoodStallTimings foodStallTimings = foodStallService.getFoodStallTimings(fsId);
 		
@@ -401,10 +401,8 @@ public class FoodStallController {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Food Stall Timings retrieved succesfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(foodStallTimings).build());
 		} else {
-			response = ResponseEntity.badRequest()
-					.body(ResponseHolder.builder().status("Error occurred while retrieving Food Stall Timings")
-							.timestamp(String.valueOf(LocalDateTime.now())).data(foodStallTimings).build());
 
+			throw new TFException("Error occurred while retrieving Food Stall Timings");
 		}
 		return response;
 	}

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.payload.request.ChangePasswordRequest;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
 import com.endeavour.tap4food.app.payload.response.JwtResponse;
 import com.endeavour.tap4food.app.repository.UserRoleRepository;
@@ -192,5 +195,34 @@ public class AuthController {
 		
 
 		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/change-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) throws TFException {
+		
+		String message = adminService.changePassword(changePasswordRequest.getPhoneNumber(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+		
+		ResponseEntity<ResponseHolder> response = null;
+		
+		if(Objects.isNull(message)) {
+			ResponseHolder responseHolder = ResponseHolder.builder()
+					.status("error")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data("No admin user found with the input phone number")
+					.build();
+			
+			response = ResponseEntity.badRequest().body(responseHolder);
+			
+		}else {
+			ResponseHolder responseHolder = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data(message)
+					.build();
+			
+			response = ResponseEntity.badRequest().body(responseHolder);
+		}
+		
+		return response;
 	}
 }

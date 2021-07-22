@@ -25,12 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.Access;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.AdminService;
 import com.endeavour.tap4food.app.util.AvatarImage;
@@ -508,6 +510,28 @@ public class AdminController {
 
 	}
 	
+	
+	@RequestMapping(value = "/{roleName}/add-admin-role-configuration", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveAdminRoleConfiguration(@PathVariable String roleName,@RequestBody List<Access> accessDetails) {
+		
+	
+		RoleConfiguration roleConfigurationRes = adminService.saveAdminRoleConfiguration(roleName,accessDetails);
+
+		
+		ResponseEntity<ResponseHolder> response = null;
+		if (Objects.nonNull(roleConfigurationRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User saved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(roleConfigurationRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while saving Admin User").build());
+		}
+
+		return response;
+
+	}
+
 }
 
 
