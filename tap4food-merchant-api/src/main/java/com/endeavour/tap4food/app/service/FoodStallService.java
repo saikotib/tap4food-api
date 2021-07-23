@@ -10,6 +10,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
@@ -52,11 +53,11 @@ public class FoodStallService {
 
 	public void editCategory(Long fsId, Category category) throws TFException {
 
-		foodStallRepository.editCategory(fsId, category);
+		foodStallRepository.updateCategory(fsId, category);
 	}
 
 	public void editSubCategory(Long fsId, SubCategory subCategory) throws TFException {
-		foodStallRepository.editSubCategory(fsId, subCategory);
+		foodStallRepository.updateSubCategory(fsId, subCategory);
 	}
 
 	public void removeCategory(Long fsId, Category category) throws TFException {
@@ -88,7 +89,7 @@ public class FoodStallService {
 	}
 
 	public List<Category> getAllCategories(Long fsId) throws TFException {
-		Optional<List<Category>> categoryId = foodStallRepository.findAllCategories(fsId);
+		Optional<List<Category>> categoryId = foodStallRepository.getAllCategories(fsId);
 		if (categoryId.isPresent()) {
 
 			return categoryId.get();
@@ -98,7 +99,7 @@ public class FoodStallService {
 	}
 
 	public List<SubCategory> getAllSubCategories(Long fsId) throws TFException {
-		Optional<List<SubCategory>> categoriesList = foodStallRepository.findAllSubCategories(fsId);
+		Optional<List<SubCategory>> categoriesList = foodStallRepository.getAllSubCategories(fsId);
 		if (categoriesList.isPresent()) {
 
 			return categoriesList.get();
@@ -114,7 +115,7 @@ public class FoodStallService {
 	}
 	
 	public List<CustomizeType> getAllCustomiseTypes(Long fsId) throws TFException {
-		Optional<List<CustomizeType>> customiseTypes = foodStallRepository.findCustomiseTypes(fsId);
+		Optional<List<CustomizeType>> customiseTypes = foodStallRepository.getAllCustomiseTypes(fsId);
 		if (customiseTypes.isPresent()) {
 
 			return customiseTypes.get();
@@ -130,7 +131,17 @@ public class FoodStallService {
 	}
 
 	public void editCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
-		foodStallRepository.editCustomizeType(fsId, customizeType);
+		
+		if(!StringUtils.hasText(customizeType.getId())) {
+			throw new TFException("ID field is mandatory");
+		}
+		
+		foodStallRepository.updateCustomizeType(fsId, customizeType);
+	}
+	
+	public void editCustomizeFoodItem(Long fsId, String customiseType, Map<String, Double> oldDataMap, Map<String, Double> newDataMap) throws TFException {
+		
+		foodStallRepository.updateCustomizeFoodItem(fsId, customiseType, oldDataMap, newDataMap);
 	}
 
 	public void removeCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
@@ -155,7 +166,7 @@ public class FoodStallService {
 	}
 
 	public void editCusine(Long fsId, Cuisine cuisine) throws TFException {
-		foodStallRepository.editCuisine(fsId, cuisine);
+		foodStallRepository.updateCuisine(fsId, cuisine);
 
 	}
 
@@ -204,13 +215,9 @@ public class FoodStallService {
 	
 	public FoodStallTimings getFoodStallTimings(final Long fsId) throws TFException {
 		
-		FoodStall foodStall = this.getFoodStallById(fsId);
-		
-		if(Objects.isNull(foodStall)) {
-			throw new TFException("Foodstall not found with the input ID");
-		}
+		FoodStallTimings timings = foodStallRepository.getFoodStallTimings(fsId);
 
-		return foodStall.getFoodStallTimings();
+		return timings;
 	}
 	
 	public FoodStallTimings updateFoodStallTimings(final Long fsId, ArrayList<WeekDay> weekDays) throws TFException {

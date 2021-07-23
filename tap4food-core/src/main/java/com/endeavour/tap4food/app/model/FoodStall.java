@@ -41,6 +41,8 @@ public class FoodStall {
 	
 	private String city;
 	
+	private String location;
+	
 	private String foodCourtName;
 	
 	private String buType;

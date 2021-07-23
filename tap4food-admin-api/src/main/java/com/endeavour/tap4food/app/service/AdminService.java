@@ -162,7 +162,7 @@ public class AdminService {
 
 				String merchantEmail = merchant.getEmail();
 
-				String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
+				String createPasswordLink = "https://dev.d1mwa6w2plhb6n.amplifyapp.com/merchant/createPassword?uniqueNumber="
 						+ uniqNumber;
 
 				String message = commonService.getCreatePasswordHtmlContent()

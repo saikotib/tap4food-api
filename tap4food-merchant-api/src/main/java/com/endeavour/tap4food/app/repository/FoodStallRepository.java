@@ -123,6 +123,7 @@ public class FoodStallRepository {
 		existingStall.setGstNumber(foodStall.getGstNumber());
 		existingStall.setState(foodStall.getState());
 		existingStall.setCity(foodStall.getCity());
+		existingStall.setLocation(foodStall.getLocation());
 		
 		mongoTemplate.save(existingStall);
 
@@ -143,6 +144,13 @@ public class FoodStallRepository {
 
 		return foodStall;
 	}
+	
+	public MenuListings getMenuListingByFoodStallId(Long fsId) {
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		MenuListings menuListing = mongoTemplate.findOne(query, MenuListings.class);
+
+		return menuListing;
+	}
 
 	@Transactional
 	public void saveCategory(Long fsId, Category menuCategory) throws TFException {
@@ -157,33 +165,23 @@ public class FoodStallRepository {
 			throw new TFException("Invalid category name");
 		}
 		
-		if (!isCategoryFound(menuCategory.getCategory(), foodStall.getMenuListing())) {
+		Optional<List<Category>> categoriesData = this.getAllCategories(fsId);
+		
+		List<Category> existingCategories = new ArrayList<Category>();
+		boolean noCategoryFound = false;
+		
+		if(categoriesData.isPresent()) {
+			existingCategories = categoriesData.get();
+		}else {
+			noCategoryFound = true;
+		}
+		
+		if (noCategoryFound || !isCategoryFound(menuCategory.getCategory(), existingCategories)) {
+			menuCategory.setFoodStallId(fsId);
 			mongoTemplate.save(menuCategory);
 		} else {
 			throw new TFException("Category is already available");
 		}
-
-		MenuListings menuListings = foodStall.getMenuListing();
-
-		if (Objects.isNull(menuListings)) {
-			menuListings = new MenuListings();
-		}
-
-		List<Category> categories = menuListings.getCategories();
-
-		if (Objects.isNull(categories)) {
-			categories = new ArrayList<Category>();
-		}
-
-		categories.add(menuCategory);
-
-		menuListings.setCategories(categories);
-
-		mongoTemplate.save(menuListings);
-
-		foodStall.setMenuListing(menuListings);
-
-		mongoTemplate.save(foodStall);
 
 	}
 
@@ -200,33 +198,20 @@ public class FoodStallRepository {
 			throw new TFException("Invalid sub-category name");
 		}
 		
-		if (!isSubCategoryFound(subCategory.getSubCategory(), foodStall.getMenuListing())) {
+		Optional<List<SubCategory>> categoriesSubData = this.getAllSubCategories(fsId);
+		
+		List<SubCategory> existingSubCategories = new ArrayList<SubCategory>();
+		
+		if(categoriesSubData.isPresent()) {
+			existingSubCategories = categoriesSubData.get();
+		}
+		
+		if (ObjectUtils.isEmpty(existingSubCategories) || !isSubCategoryFound(subCategory.getSubCategory(), existingSubCategories)) {
+			subCategory.setFoodStallId(fsId);
 			mongoTemplate.save(subCategory);
 		} else {
-			throw new TFException("Sub Category is already available");
+			throw new TFException("Subcategory is already available");
 		}
-
-		MenuListings menuListings = foodStall.getMenuListing();
-
-		if (Objects.isNull(menuListings)) {
-			menuListings = new MenuListings();
-		}
-
-		List<SubCategory> subCategories = menuListings.getSubCategories();
-
-		if (Objects.isNull(subCategories)) {
-			subCategories = new ArrayList<SubCategory>();
-		}
-
-		subCategories.add(subCategory);
-
-		menuListings.setSubCategories(subCategories);
-
-		mongoTemplate.save(menuListings);
-
-		foodStall.setMenuListing(menuListings);
-
-		mongoTemplate.save(foodStall);
 	}
 
 	@Transactional
@@ -242,33 +227,20 @@ public class FoodStallRepository {
 			throw new TFException("Invalid customize type");
 		}
 
-		if (!isCustomizeTypeFound(customizeType.getType(), foodStall.getMenuListing())) {
+		Optional<List<CustomizeType>> customiseTypeData = this.getAllCustomiseTypes(fsId);
+		
+		List<CustomizeType> existingCustomiseTypes = new ArrayList<CustomizeType>();
+		
+		if(customiseTypeData.isPresent()) {
+			existingCustomiseTypes = customiseTypeData.get();
+		}
+		
+		if (ObjectUtils.isEmpty(existingCustomiseTypes) || !isCustomizeTypeFound(customizeType.getType(), existingCustomiseTypes)) {
+			customizeType.setFoodStallId(fsId);
 			mongoTemplate.save(customizeType);
 		} else {
-			throw new TFException("Customize Type is already available");
+			throw new TFException("Subcategory is already available");
 		}
-
-		MenuListings menuListings = foodStall.getMenuListing();
-
-		if (Objects.isNull(menuListings)) {
-			menuListings = new MenuListings();
-		}
-
-		List<CustomizeType> customizeTypes = menuListings.getCustomiseType();
-
-		if (Objects.isNull(customizeTypes)) {
-			customizeTypes = new ArrayList<CustomizeType>();
-		}
-
-		customizeTypes.add(customizeType);
-
-		menuListings.setCustomiseType(customizeTypes);
-
-		mongoTemplate.save(menuListings);
-
-		foodStall.setMenuListing(menuListings);
-
-		mongoTemplate.save(foodStall);
 	}
 	
 	@Transactional
@@ -288,36 +260,27 @@ public class FoodStallRepository {
 			throw new TFException("Invalid customise food items details.");
 		}
 		
-		MenuListings menuListing = foodStall.getMenuListing();
+		Optional<List<CustomizeType>> customiseTypeData = this.getAllCustomiseTypes(fsId);
 		
-		CustomizeType customiseTypeDetails = this.getCustomizeTypeDetails(customiseName, menuListing);
+		List<CustomizeType> existingCustomiseTypes = new ArrayList<CustomizeType>();
+		
+		if(customiseTypeData.isPresent()) {
+			existingCustomiseTypes = customiseTypeData.get();
+		}
+		
+		CustomizeType customiseTypeDetails = this.getCustomizeTypeDetails(customiseName, existingCustomiseTypes);
 		
 		Map<String, Double> existingCustFoodItemMap = customiseTypeDetails.getCustomizeFoodItems();
 		
 		if(Objects.isNull(existingCustFoodItemMap)) {
 			existingCustFoodItemMap = new HashMap<String, Double>();
-			existingCustFoodItemMap.putAll(customizeFoodItemMap);
 		}
+		
+		existingCustFoodItemMap.putAll(customizeFoodItemMap);
 
 		customiseTypeDetails.setCustomizeFoodItems(existingCustFoodItemMap);
 		
 		mongoTemplate.save(customiseTypeDetails);
-		
-		List<CustomizeType> customiseTypeList = menuListing.getCustomiseType();
-		
-		if(Objects.isNull(customiseTypeList)) {
-			customiseTypeList = new ArrayList<CustomizeType>();
-		}
-		
-		customiseTypeList.add(customiseTypeDetails);
-		
-		menuListing.setCustomiseType(customiseTypeList);
-
-		mongoTemplate.save(menuListing);
-
-		foodStall.setMenuListing(menuListing);
-
-		mongoTemplate.save(foodStall);
 		
 	}
 
@@ -394,7 +357,7 @@ public class FoodStallRepository {
 		foodStall.setMenuListing(menuListing);
 	}
 
-	public Optional<List<Category>> findAllCategories(Long fsId) throws TFException {
+	public Optional<List<Category>> getAllCategories(Long fsId) throws TFException {
 
 		FoodStall foodStall = this.getFoodStallById(fsId);
 
@@ -402,16 +365,14 @@ public class FoodStallRepository {
 			throw new TFException("Food stall doesn't exist");
 		}
 		
-		if(Objects.isNull(foodStall.getMenuListing())) {
-			throw new TFException("Food stall doesn't have any menulisting created");
-		}
-
-		List<Category> categories = foodStall.getMenuListing().getCategories();
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		List<Category> categories = mongoTemplate.find(query, Category.class);
 
 		return Optional.ofNullable(categories);
 	}
 
-	public Optional<List<SubCategory>> findAllSubCategories(Long fsId) throws TFException {
+	public Optional<List<SubCategory>> getAllSubCategories(Long fsId) throws TFException {
 
 		FoodStall foodStall = this.getFoodStallById(fsId);
 
@@ -419,16 +380,14 @@ public class FoodStallRepository {
 			throw new TFException("Food stall doesn't exist");
 		}
 		
-		if(Objects.isNull(foodStall.getMenuListing())) {
-			throw new TFException("Food stall doesn't have any menulisting created");
-		}
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
 
-		List<SubCategory> subCategories = foodStall.getMenuListing().getSubCategories();
+		List<SubCategory> subCategories = mongoTemplate.find(query, SubCategory.class);
 
 		return Optional.ofNullable(subCategories);
 	}
 
-	public Optional<List<CustomizeType>> findCustomiseTypes(Long fsId) throws TFException {
+	public Optional<List<CustomizeType>> getAllCustomiseTypes(Long fsId) throws TFException {
 
 		FoodStall foodStall = this.getFoodStallById(fsId);
 
@@ -436,16 +395,14 @@ public class FoodStallRepository {
 			throw new TFException("Food stall doesn't exist");
 		}
 		
-		if(Objects.isNull(foodStall.getMenuListing())) {
-			throw new TFException("Food stall doesn't have any menulisting created");
-		}
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
 
-		List<CustomizeType> customiseTypes = foodStall.getMenuListing().getCustomiseType();
+		List<CustomizeType> customiseTypes = mongoTemplate.find(query, CustomizeType.class);
 
 		return Optional.ofNullable(customiseTypes);
 	}
 
-	public Optional<List<Cuisine>> findCuisines(Long fsId) throws TFException {
+	public Optional<List<Cuisine>> getAllCuisines(Long fsId) throws TFException {
 
 		FoodStall foodStall = this.getFoodStallById(fsId);
 
@@ -453,11 +410,9 @@ public class FoodStallRepository {
 			throw new TFException("Food stall doesn't exist");
 		}
 		
-		if(Objects.isNull(foodStall.getMenuListing())) {
-			throw new TFException("Food stall doesn't have any menulisting created");
-		}
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
 
-		List<Cuisine> cuisines = foodStall.getMenuListing().getCuisines();
+		List<Cuisine> cuisines = mongoTemplate.find(query, Cuisine.class);
 
 		return Optional.ofNullable(cuisines);
 	}
@@ -512,33 +467,20 @@ public class FoodStallRepository {
 			throw new TFException("Invalid customize type");
 		}
 
-		if (!isCuisineFound(cuisine.getName(), foodStall.getMenuListing())) {
+		Optional<List<Cuisine>> cuisinesData = this.getAllCuisines(fsId);
+		
+		List<Cuisine> existingCuisines = new ArrayList<Cuisine>();
+		
+		if(cuisinesData.isPresent()) {
+			existingCuisines = cuisinesData.get();
+		}
+		
+		if (!isCuisineFound(cuisine.getName(), existingCuisines)) {
+			cuisine.setFoodStallId(fsId);
 			mongoTemplate.save(cuisine);
 		} else {
-			throw new TFException("Cuisine is already available");
+			throw new TFException("Category is already available");
 		}
-
-		MenuListings menuListings = foodStall.getMenuListing();
-
-		if (Objects.isNull(menuListings)) {
-			menuListings = new MenuListings();
-		}
-
-		List<Cuisine> cuisines = menuListings.getCuisines();
-
-		if (Objects.isNull(cuisines)) {
-			cuisines = new ArrayList<Cuisine>();
-		}
-
-		cuisines.add(cuisine);
-
-		menuListings.setCuisines(cuisines);
-
-		mongoTemplate.save(menuListings);
-
-		foodStall.setMenuListing(menuListings);
-
-		mongoTemplate.save(foodStall);
 	}
 
 	public void removeCuisine(Long fsId, @Valid Cuisine cuisine) throws TFException {
@@ -590,161 +532,185 @@ public class FoodStallRepository {
 		return Optional.ofNullable(cuisines);
 	}
 	
-
-	public void editCategory(Long fsId, Category category) throws TFException {
+	public void updateCategory(Long fsId, Category category) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		if (Objects.isNull(foodStall)) {
 			throw new TFException("Food stall doesn't exist");
 		}
 		
-		Category existingCategory = this.findCategoryById(category);
+		Optional<List<Category>> existingCategoriesData = this.getAllCategories(fsId);
 		
-		if (!category.getCategory().equalsIgnoreCase(existingCategory.getCategory())) {
-			Query query = new Query(Criteria.where("id").is(category.getId()));
-			Update updated = new Update().set("category", category.getCategory());
-			mongoTemplate.findAndModify(query, updated, Category.class);
-		} else {
-			throw new TFException("Category is already exists.");
+		List<Category> existingCategories = new ArrayList<Category>();
+		
+		if(existingCategoriesData.isPresent()) {
+			existingCategories = existingCategoriesData.get();
 		}
 		
-		Category categoryFromDb = this.findCategoryById(category);
+		if(isCategoryFound(category.getCategory(), existingCategories)) {
+			throw new TFException("This category is already found");
+		}
 		
-		List<Category> categories = foodStall.getMenuListing().getCategories();
-		
-		System.out.println("categories==> " + categories);
-
-		for (int i = 0; i < categories.size(); i++) {
-			String listId = categories.get(i).getId();
-			if (listId.equalsIgnoreCase(existingCategory.getId())) {
-				categories.set(i, categoryFromDb);
+		for(Category existingCategory : existingCategories) {
+			if(existingCategory.getId().equals(category.getId())) {
+				
+				existingCategory.setCategory(category.getCategory());
+				mongoTemplate.save(existingCategory);
+				
 				break;
-			}	
+			}
 		}
-
-    MenuListings menuListing = foodStall.getMenuListing();
-		menuListing.setCategories(categories);
-		
-		System.out.println(menuListing);
-		mongoTemplate.save(menuListing);
-		foodStall.setMenuListing(menuListing);
 	}
 	
-	public void editSubCategory(Long fsId, @Valid SubCategory subCategory) throws TFException {
+	public void updateSubCategory(Long fsId, SubCategory subCategory) throws TFException {
+		FoodStall foodStall = this.getFoodStallById(fsId);
+		
+		if (Objects.isNull(foodStall)) {
+			throw new TFException("Food stall doesn't exist");
+		}
+		
+		Optional<List<SubCategory>> existingSubCategoriesData = this.getAllSubCategories(fsId);
+		
+		List<SubCategory> existingSubCategories = new ArrayList<SubCategory>();
+		
+		if(existingSubCategoriesData.isPresent()) {
+			existingSubCategories = existingSubCategoriesData.get();
+		}
+		
+		if(isSubCategoryFound(subCategory.getSubCategory(), existingSubCategories)) {
+			throw new TFException("This sub-category is already found");
+		}
+		
+		for(SubCategory existingSubCategory : existingSubCategories) {
+			if(existingSubCategory.getId().equals(subCategory.getId())) {
+				
+				existingSubCategory.setSubCategory(subCategory.getSubCategory());
+				
+				mongoTemplate.save(existingSubCategory);
+				break;
+			}
+		}
+		
+	}
+	
+	public void updateCuisine(Long fsId, Cuisine cuisine) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		if (Objects.isNull(foodStall)) {
 			throw new TFException("Food stall doesn't exist");
 		} 
-		SubCategory subCategoryBefore = this.findSubCategoryById(subCategory);
-		if (!subCategoryBefore.getSubCategory().equalsIgnoreCase(subCategory.getSubCategory())) {
-			Query query = new Query().addCriteria(Criteria.where("id").is(subCategory.getId()));
-			Update updated = new Update().set("subCategory", subCategory.getSubCategory());
-			mongoTemplate.findAndModify(query, updated, SubCategory.class);
-		} else {
-			throw new TFException("Sub category is already exists.");
+		
+		Optional<List<Cuisine>> existingCuisinesData = this.getAllCuisines(fsId);
+		
+		List<Cuisine> existingCuisines = new ArrayList<Cuisine>();
+		
+		if(existingCuisinesData.isPresent()) {
+			existingCuisines = existingCuisinesData.get();
 		}
 		
+		if(isCuisineFound(cuisine.getName(), existingCuisines)) {
+			throw new TFException("This cuisine is already found");
+		}
 		
-		SubCategory subCategoryFromDb = this.findSubCategoryById(subCategory);
-		
-		List<SubCategory> subCategories = foodStall.getMenuListing().getSubCategories();
-		
-		for (int i = 0; i < subCategories.size(); i++) {
-			String listId = subCategories.get(i).getId();
-			if (listId.equalsIgnoreCase(subCategoryFromDb.getId())) {
-				subCategories.set(i, subCategoryFromDb);
+		for(Cuisine existingCuisine : existingCuisines) {
+			if(existingCuisine.getId().equals(cuisine.getId())) {
+				
+				existingCuisine.setName(cuisine.getName());
+				
+				mongoTemplate.save(existingCuisine);
 				break;
-			}	
+			}
 		}
-		MenuListings menuListing = foodStall.getMenuListing();
-		menuListing.setSubCategories(subCategories);
-		System.out.println(menuListing);
-		mongoTemplate.save(menuListing);
-		foodStall.setMenuListing(menuListing);
 	}
 	
-	public void editCuisine(Long fsId, @Valid Cuisine cuisine) throws TFException {
+	public void updateCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		if (Objects.isNull(foodStall)) {
 			throw new TFException("Food stall doesn't exist");
 		} 
-		Cuisine cuisineNameBefore = this.findCuisineById(cuisine);
-		if (!cuisine.getName().equalsIgnoreCase(cuisineNameBefore.getName())) {
-			Query query = new Query().addCriteria(Criteria.where("id").is(cuisine.getId()));
-			Update updated = new Update().set("name", cuisine.getName());
-			mongoTemplate.findAndModify(query, updated, Cuisine.class);
-		} else {
-			throw new TFException("Cuisine is already exists.");
+		
+		Optional<List<CustomizeType>> existingCustomiseTypesData = this.getAllCustomiseTypes(fsId);
+		
+		List<CustomizeType> existingCustomiseTypes = new ArrayList<CustomizeType>();
+		
+		if(existingCustomiseTypesData.isPresent()) {
+			existingCustomiseTypes = existingCustomiseTypesData.get();
 		}
 		
+		if(isCustomizeTypeFound(customizeType.getType(), existingCustomiseTypes)) {
+			throw new TFException("This customise type is already found");
+		}
 		
-		Cuisine cuisineNameFromDb = this.findCuisineById(cuisine);
-		
-		List<Cuisine> cuisines = foodStall.getMenuListing().getCuisines();
-		
-		for (int i = 0; i < cuisines.size(); i++) {
-			String listId = cuisines.get(i).getId();
-			if (listId.equalsIgnoreCase(cuisineNameFromDb.getId())) {
-				cuisines.set(i, cuisineNameFromDb);
+		for(CustomizeType existingCustType : existingCustomiseTypes) {
+			if(existingCustType.getId().equals(customizeType.getId())) {
+				
+				existingCustType.setType(customizeType.getType());
+				
+				mongoTemplate.save(existingCustType);
 				break;
-			}	
+			}
 		}
-		MenuListings menuListing = foodStall.getMenuListing();
-		menuListing.setCuisines(cuisines);
-		System.out.println(menuListing);
-		mongoTemplate.save(menuListing);
-		foodStall.setMenuListing(menuListing);
 	}
 	
-	public void editCustomizeType(Long fsId, @Valid CustomizeType customizeType) throws TFException {
+	public void updateCustomizeFoodItem(Long fsId, String customiseType, Map<String, Double> oldDataMap, Map<String, Double> newDataMap) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		if (Objects.isNull(foodStall)) {
 			throw new TFException("Food stall doesn't exist");
 		} 
-		CustomizeType customizeTypesBefore = this.findCustomizeTypeById(customizeType);
-		if (!customizeTypesBefore.getType().equalsIgnoreCase(customizeType.getType())) {
-			Query query = new Query().addCriteria(Criteria.where("id").is(customizeType.getId()));
-			Update updated = new Update().set("type", customizeType.getType());
-			mongoTemplate.findAndModify(query, updated, CustomizeType.class);
-		} else {
-			throw new TFException("Customize type is already exists.");
+		
+		Optional<List<CustomizeType>> existingCustomiseTypesData = this.getAllCustomiseTypes(fsId);
+		
+		List<CustomizeType> existingCustomiseTypes = new ArrayList<CustomizeType>();
+		
+		if(existingCustomiseTypesData.isPresent()) {
+			existingCustomiseTypes = existingCustomiseTypesData.get();
 		}
 		
-		
-		CustomizeType customizeTypesFromDb = this.findCustomizeTypeById(customizeType);
-		
-		List<CustomizeType> types = foodStall.getMenuListing().getCustomiseType();
-		
-		for (int i = 0; i < types.size(); i++) {
-			String listId = types.get(i).getId();
-			if (listId.equalsIgnoreCase(customizeTypesFromDb.getId())) {
-				types.set(i, customizeTypesFromDb);
+		for(CustomizeType existingCustType : existingCustomiseTypes) {
+			
+			if(existingCustType.getType().equals(customiseType)) {
+				
+				Map<String, Double> updatedFoodItemDetailsMap = new HashMap<String, Double>();
+				
+				Map<String, Double> existingFoodItemDetails = existingCustType.getCustomizeFoodItems();
+				
+				if(!ObjectUtils.isEmpty(existingFoodItemDetails)) {
+					
+					for(Map.Entry<String, Double> entry : existingFoodItemDetails.entrySet()) {
+						if(oldDataMap.containsKey(entry.getKey())) {
+							updatedFoodItemDetailsMap.putAll(newDataMap);
+						}else {
+							updatedFoodItemDetailsMap.put(entry.getKey(), entry.getValue());
+						}
+					}
+				}
+				existingCustType.setCustomizeFoodItems(updatedFoodItemDetailsMap);
+				mongoTemplate.save(existingCustType);
 				break;
-			}	
+			}			
 		}
 		
-		MenuListings menuListing = foodStall.getMenuListing();
-		menuListing.setCustomiseType(types);
-		System.out.println(menuListing);
-		mongoTemplate.save(menuListing);
-		foodStall.setMenuListing(menuListing);
+		
 	}
+	
 		
 	public Category findCategoryById(@Valid Category category) {
 		Category categoryFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(category.getId())), Category.class);
 		return categoryFromDb;
 	}
+
 	public SubCategory findSubCategoryById(@Valid SubCategory subCategory) {
 		SubCategory subCategoryFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(subCategory.getId())), SubCategory.class);
 		return subCategoryFromDb;
 	}
+	
 	public Cuisine findCuisineById(@Valid Cuisine cuisine) {
 		Cuisine cuisineFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(cuisine.getId())), Cuisine.class);
 		return cuisineFromDb;
 	}
+	
 	public CustomizeType findCustomizeTypeById(@Valid CustomizeType customizeType) {
 		CustomizeType customizeTypeFromDb = mongoTemplate.findOne(new Query().addCriteria(Criteria.where("id").is(customizeType.getId())), CustomizeType.class);
 		return customizeTypeFromDb;
@@ -771,29 +737,34 @@ public class FoodStallRepository {
 				}
 			}else {
 				mongoTemplate.save(weekDay);
+				persistedWeekDays.add(weekDay);
 			}
 		}
 		
 		foodStallTimings.setDays(persistedWeekDays);
 		
-		mongoTemplate.save(foodStallTimings);
-		
-		foodStall.setFoodStallTimings(foodStallTimings);
-		
-		mongoTemplate.save(foodStall);
-		
 		return foodStallTimings;
 		
 	}
 	
-	private Boolean isCategoryFound(String categoryName, MenuListings menuListing) {
+	public FoodStallTimings getFoodStallTimings(Long fsId) {
+		FoodStallTimings timings = new FoodStallTimings();
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		List<WeekDay> weekdays = mongoTemplate.find(query, WeekDay.class);
+		
+		timings.setFoodStallId(fsId);
+		timings.setDays(weekdays);
+		
+		return timings;
+	}
+	
+	private Boolean isCategoryFound(String categoryName, List<Category> categories) {
 
 		boolean flag = false;
-		
-		if(Objects.isNull(menuListing) || Objects.isNull(menuListing.getCategories()))
-			return flag;
-		
-		for(Category category : menuListing.getCategories()) {
+
+		for(Category category : categories) {
 			if(category.getCategory().equals(categoryName)) {
 				flag = true;
 				break;
@@ -803,14 +774,11 @@ public class FoodStallRepository {
 		return flag;
 	}
 	
-	private Boolean isSubCategoryFound(String subCategoryName, MenuListings menuListing) {
+	private Boolean isSubCategoryFound(String subCategoryName, List<SubCategory> subCategories) {
 
 		boolean flag = false;
 		
-		if(Objects.isNull(menuListing) || Objects.isNull(menuListing.getSubCategories()))
-			return flag;
-		System.out.println(menuListing);
-		for(SubCategory subCategory : menuListing.getSubCategories()) {
+		for(SubCategory subCategory : subCategories) {
 			if(subCategory.getSubCategory().equals(subCategoryName)) {
 				flag = true;
 				break;
@@ -820,14 +788,11 @@ public class FoodStallRepository {
 		return flag;
 	}
 	
-	private Boolean isCustomizeTypeFound(String customizeType, MenuListings menuListing) {
+	private Boolean isCustomizeTypeFound(String customizeType, List<CustomizeType> customiseTypes) {
 
 		boolean flag = false;
-		
-		if(Objects.isNull(menuListing) || Objects.isNull(menuListing.getCustomiseType()))
-			return flag;
-		System.out.println(menuListing);
-		for(CustomizeType type : menuListing.getCustomiseType()) {
+
+		for(CustomizeType type : customiseTypes) {
 			if(type.getType().equals(customizeType)) {
 				flag = true;
 				break;
@@ -837,17 +802,29 @@ public class FoodStallRepository {
 		return flag;
 	}
 	
-	private CustomizeType getCustomizeTypeDetails(String customizeTypeName, MenuListings menuListing) {
+	private Boolean isCusineFound(String cuisineName, List<Cuisine> cuisines) {
+
+		boolean flag = false;
+
+		for(Cuisine cuisine : cuisines) {
+			if(cuisine.getName().equals(cuisineName)) {
+				flag = true;
+				break;
+			}
+		}
+		
+		return flag;
+	}
+	
+	private CustomizeType getCustomizeTypeDetails(String customizeTypeName, List<CustomizeType> existingCustomiseTypes) {
 
 		CustomizeType customiseTypeObject = null;
 		
-		if(Objects.isNull(menuListing) || Objects.isNull(menuListing.getCustomiseType())) {
+		if(ObjectUtils.isEmpty(existingCustomiseTypes)) {
 			return null;
 		}
 		
-		System.out.println(menuListing);
-		
-		for(CustomizeType type : menuListing.getCustomiseType()) {
+		for(CustomizeType type : existingCustomiseTypes) {
 			if(type.getType().equals(customizeTypeName)) {
 				customiseTypeObject = type;
 				break;
@@ -857,14 +834,14 @@ public class FoodStallRepository {
 		return customiseTypeObject;
 	}
 	
-	private Boolean isCuisineFound(String cuisine, MenuListings menuListing) {
+	private Boolean isCuisineFound(String cuisine, List<Cuisine> existingCuisines) {
 
 		boolean flag = false;
 		
-		if(Objects.isNull(menuListing) || Objects.isNull(menuListing.getCuisines()))
+		if(ObjectUtils.isEmpty(existingCuisines))
 			return flag;
 		
-		for(Cuisine name : menuListing.getCuisines()) {
+		for(Cuisine name : existingCuisines) {
 			if(name.getName().equals(cuisine)) {
 				flag = true;
 				break;
@@ -875,7 +852,7 @@ public class FoodStallRepository {
 	}
 	
 	private boolean isWeekDayAvailableForFS(Long fsId, String weekDay) {
-		Query query = new Query(Criteria.where("weekDayName").is(weekDay).andOperator(Criteria.where("foodStallId").is(fsId)));
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("weekDayName").is(weekDay)));
 		
 		long weekDaysCount = mongoTemplate.count(query, WeekDay.class);
 		

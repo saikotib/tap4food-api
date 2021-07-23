@@ -21,4 +21,6 @@ public class SubCategory {
 	private ZonedDateTime createdTime;
 	
 	private Boolean visible = true;
+	
+	private Long foodStallId;
 }

@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -244,6 +245,39 @@ public class FoodStallController {
 
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(path = "/{fs-id}/edit-customize-food-item", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> editCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, @RequestParam("customise-type") String customiseType, @RequestBody Map<String, String> foodItemDataMap) throws TFException {
+
+		if(!foodItemDataMap.containsKey("prev-item-name")) {
+			throw new TFException("Existing item name is missing");
+		}
+		
+		if(!foodItemDataMap.containsKey("prev-item-price")) {
+			throw new TFException("Existing item price is missing");
+		}
+		
+		if(!foodItemDataMap.containsKey("new-item-name")) {
+			throw new TFException("Latest item name is missing");
+		}
+		
+		if(!foodItemDataMap.containsKey("new-item-price")) {
+			throw new TFException("Latest item price is missing");
+		}		
+		
+		Map<String, Double> oldDataMap = new HashMap<String, Double>();
+		Map<String, Double> newDataMap = new HashMap<String, Double>();
+		
+		oldDataMap.put(foodItemDataMap.get("prev-item-name"), Double.parseDouble(foodItemDataMap.get("prev-item-price")));
+		newDataMap.put(foodItemDataMap.get("new-item-name"), Double.parseDouble(foodItemDataMap.get("new-item-price")));
+		
+		foodStallService.editCustomizeFoodItem(foodStallId, customiseType.trim(), oldDataMap, newDataMap);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data("Customise Food item is updated successfully").build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
 
 	@RequestMapping(path = "/{fs-id}/remove-customize-type", method = RequestMethod.DELETE)
 	public ResponseEntity<ResponseHolder> removeCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
@@ -268,9 +302,20 @@ public class FoodStallController {
 	}
 	
 	@RequestMapping(path = "/{fs-id}/add-customize-food-item", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody Map<String, Double> customizeFoodItem) throws TFException {
+	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody Map<String, String> customizeFoodItemMap) throws TFException {
 
-		foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, customizeFoodItem);
+		if(!customizeFoodItemMap.containsKey("name")) {
+			throw new TFException("Item name is missing");
+		}
+		
+		if(!customizeFoodItemMap.containsKey("price")) {
+			throw new TFException("Item price is missing");
+		}
+		
+		Map<String, Double> foodItemMap = new HashMap<String, Double>();
+		foodItemMap.put(customizeFoodItemMap.get("name"), Double.parseDouble(customizeFoodItemMap.get("price")));
+		
+		foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, foodItemMap);
 
 		ResponseHolder response = ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
 				.data("Customise food item saved successfully").build();
