@@ -354,8 +354,7 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
+
 	@RequestMapping(value = "/update-admin-role", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateAdminRole(@RequestBody AdminRole adminRole) {
 
@@ -374,8 +373,7 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
+
 	@RequestMapping(value = "/get-admin-roles", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAdminRoles() {
 
@@ -394,25 +392,18 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-
-	
-	
-	
 
 	@RequestMapping(value = "/add-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> saveAdminUser(@RequestBody Admin admin) {
-		
+
 		try {
-			admin.setAdminUserProfilePic(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
+			admin.setAdminUserProfilePic(new Binary(BsonBinarySubType.BINARY, (new AvatarImage()).avatarImage()));
 		} catch (IOException e) {
 
 		}
 
 		Admin adminUserRes = adminService.saveAdminUser(admin);
 
-		
 		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(adminUserRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User saved successfully")
@@ -427,11 +418,8 @@ public class AdminController {
 
 	}
 
-	
-	
-	
-	@RequestMapping(value = "/{role}/get-admin-user", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getAdminUserByRole(@PathVariable String role) {
+	@RequestMapping(value = "/get-admin-user", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAdminUserByRole(@RequestParam String role) {
 
 		List<Admin> adminRes = adminService.getAdminUserByRole(role);
 
@@ -448,13 +436,11 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	
-	@RequestMapping(value = "/{role}/update-admin-user", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateAdminUser(@PathVariable String role,@RequestBody Admin admin) {
 
-		Admin adminRes = adminService.updateAdmin(admin,role);
+	@RequestMapping(value = "/update-admin-user", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateAdminUser(@RequestParam String role, @RequestBody Admin admin) {
+
+		Admin adminRes = adminService.updateAdmin(admin, role);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (!ObjectUtils.isEmpty(adminRes)) {
@@ -469,12 +455,12 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	@RequestMapping(value = "/{role}/add-admin-user-profile-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addAdminUserProfilePic(@PathVariable String role,@RequestBody MultipartFile adminProfilePic) {
 
-		Admin adminRes = adminService.addAdminUserProfilePic(adminProfilePic,role);
+	@RequestMapping(value = "/add-admin-user-profile-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addAdminUserProfilePic(@RequestParam String role,
+			@RequestBody MultipartFile adminProfilePic) {
+
+		Admin adminRes = adminService.addAdminUserProfilePic(adminProfilePic, role);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (!ObjectUtils.isEmpty(adminRes)) {
@@ -489,10 +475,9 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	@RequestMapping(value = "/{role}/delete-admin-user", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> deleteAdminUser(@PathVariable String role) {
+
+	@RequestMapping(value = "/delete-admin-user", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteAdminUser(@RequestParam String role) {
 
 		Boolean flag = adminService.deleteAdminUser(role);
 
@@ -509,15 +494,13 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	@RequestMapping(value = "/{roleName}/add-admin-role-configuration", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> saveAdminRoleConfiguration(@PathVariable String roleName,@RequestBody List<Access> accessDetails) {
-		
-	
-		RoleConfiguration roleConfigurationRes = adminService.saveAdminRoleConfiguration(roleName,accessDetails);
 
-		
+	@RequestMapping(value = "/add-admin-role-configuration", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveAdminRoleConfiguration(@RequestParam String roleName,
+			@RequestBody List<Access> accessDetails) {
+
+		RoleConfiguration roleConfigurationRes = adminService.saveAdminRoleConfiguration(roleName, accessDetails);
+
 		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(roleConfigurationRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User saved successfully")
@@ -533,5 +516,3 @@ public class AdminController {
 	}
 
 }
-
-

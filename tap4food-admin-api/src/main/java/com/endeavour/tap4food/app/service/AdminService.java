@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
@@ -521,50 +522,50 @@ public class AdminService {
 				throw new TFException("Role not found");
 			} catch (TFException e) {
 				e.printStackTrace();
-			};
+			}
+			;
 			admin = null;
 		}
 
 		return admin;
 	}
 
-
 	public List<Admin> getAdminUserByRole(final String role) {
-		
+
 		return adminRepository.findAdminUserByRole(role);
 	}
 
 	public Admin updateAdmin(Admin admin, String role) {
-		
+
 		return adminRepository.saveAdmin(admin);
 	}
 
 	public Admin addAdminUserProfilePic(MultipartFile adminProfilePic, String role) {
-		Admin admin =new Admin();
+		Admin admin = new Admin();
 		try {
 			admin.setAdminUserProfilePic((new Binary(BsonBinarySubType.BINARY, adminProfilePic.getBytes())));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return adminRepository.saveAdmin(admin);
 	}
 
 	public Boolean deleteAdminUser(String role) {
-		
+
 		Boolean flag = adminRepository.deleteAdminUserByRole(role);
 		return flag;
 	}
 
-	
-	public String changePassword(final String phoneNumber, final String oldPassword, final String newPassword) throws TFException {
+	public String changePassword(final String phoneNumber, final String oldPassword, final String newPassword)
+			throws TFException {
 
 		String message = null;
-		
+
 		Optional<Admin> adminData = adminRepository.findAdminByPhoneNumber(phoneNumber);
 
 		if (adminData.isPresent()) {
-			
+
 			Admin admin = adminData.get();
 
 			System.out.println("Is password matched :" + encoder.matches(oldPassword, admin.getPassword()));
@@ -573,16 +574,16 @@ public class AdminService {
 
 				boolean flag = adminRepository.changePassword(phoneNumber, encoder.encode(newPassword));
 
-				if(flag) {
+				if (flag) {
 					message = "Password is changed successfully";
-				}else {
+				} else {
 					message = "Admin data couldn't found";
 				}
-					
+
 			} else {
 				message = "Old password is incorrect";
 			}
-		}else {
+		} else {
 			throw new TFException("Invalid Admin User Phone Number");
 		}
 
@@ -590,10 +591,18 @@ public class AdminService {
 	}
 
 	public RoleConfiguration saveAdminRoleConfiguration(String roleName, List<Access> accessDetails) {
+		RoleConfiguration roleConfiguration = new RoleConfiguration();
+		AdminRole adminRole = adminRepository.findRoleByRoleName(roleName);
+		if (!Objects.isNull(adminRole)) {
+			roleConfiguration.setRoleName(roleName);
+			roleConfiguration.setAccessDetails(accessDetails);
 
-		return null;
+			roleConfiguration = adminRepository.saveAdminRoleConfiguration(roleConfiguration);
+		} else {
+			roleConfiguration = null;
+		}
+
+		return roleConfiguration;
 	}
-
-	
 
 }
