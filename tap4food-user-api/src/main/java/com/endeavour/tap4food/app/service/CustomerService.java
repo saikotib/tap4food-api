@@ -1,15 +1,19 @@
 package com.endeavour.tap4food.app.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
-
+import com.endeavour.tap4food.app.enums.UserStatusEnum;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.UserRepository;
 import com.endeavour.tap4food.app.security.model.User;
 import com.endeavour.tap4food.app.util.CommonUtil;
-import com.endeavour.tap4food.app.util.OtpStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +30,16 @@ public class CustomerService {
 	@Autowired
 	private UserRepository userRepository;
 	
-	public boolean sendOTPToPhone(final String phoneNumber) {
+	public boolean sendOTPToPhone(final String phoneNumber) throws TFException {
+		
+		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
+		
+		if(userData.isPresent()) {
+			User user = userData.get();
+			if(user.getStatus().equals(UserStatusEnum.LOCKED)) {
+				throw new TFException("You phone number is blocked.");
+			}
+		}
 		
 		String otp = CommonUtil.generateOTP();
 		
@@ -48,24 +61,33 @@ public class CustomerService {
 		return true;		
 	}
 	
-	public boolean verifyOTP(final String phoneNumber, final String inputOTP) {
+	public boolean verifyOTP(final String phoneNumber, final String inputOTP) throws TFException {
 		
 		boolean otpMatch = false;
 		
 		Otp otp = commonRepository.getRecentOtp(phoneNumber);
+		
+		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
+		
 		User user = new User();
+		
+		if(userData.isPresent()) {
+			user = userData.get();
+		}
+		
 		if(inputOTP.equalsIgnoreCase(otp.getOtp())) {
 			otpMatch = true;
 			otp.setNumberOfTries(0);
+			user.setStatus(UserStatusEnum.ACTIVE.name());
 		}else {
 			if(otp.getNumberOfTries() == null) {
 				otp.setNumberOfTries(1);
-			}else if(otp.getNumberOfTries() >= 1 && otp.getNumberOfTries() < 4) {
+			}else if(otp.getNumberOfTries() >= 1 && otp.getNumberOfTries() < 3) {
 				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
-			}else if(otp.getNumberOfTries() == 4) {
+			}else if(otp.getNumberOfTries() == 3) {
 				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
 		
-				user.setStatus(OtpStatus.OTPSTATUS);	
+				user.setStatus(UserStatusEnum.LOCKED.name());	
 				
 			}
 			otpMatch = false;
@@ -78,6 +100,9 @@ public class CustomerService {
 		
 		commonRepository.saveOtp(otp);
 		
+		if(!ObjectUtils.isEmpty(user.getStatus()) && user.getStatus().equals(UserStatusEnum.LOCKED.name())) {
+			throw new TFException("This phone number is temporarily blocked.");
+		}
 		
 		return otpMatch;		
 	}

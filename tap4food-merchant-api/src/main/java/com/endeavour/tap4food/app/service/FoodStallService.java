@@ -115,10 +115,15 @@ public class FoodStallService {
 	}
 	
 	public List<CustomizeType> getAllCustomiseTypes(Long fsId) throws TFException {
-		Optional<List<CustomizeType>> customiseTypes = foodStallRepository.getAllCustomiseTypes(fsId);
-		if (customiseTypes.isPresent()) {
+		Optional<List<CustomizeType>> customiseTypesData = foodStallRepository.getAllCustomiseTypes(fsId);
+		if (customiseTypesData.isPresent()) {
+			
+			List<CustomizeType> customiseTypes = customiseTypesData.get();
+			for(CustomizeType customiseType : customiseTypes) {
+				customiseType.getCustomizeFoodItems();
+			}
 
-			return customiseTypes.get();
+			return customiseTypes;
 
 		} else {
 			return new ArrayList<CustomizeType>();

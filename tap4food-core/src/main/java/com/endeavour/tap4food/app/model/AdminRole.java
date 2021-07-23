@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 
@@ -19,4 +20,7 @@ public class AdminRole {
 	private String role;
 	
 	private String description;
+	
+	@DBRef
+	private RoleConfiguration rolesConfiguration;
 }

@@ -46,9 +46,16 @@ public class AdminController {
 
 	@RequestMapping(value = "/update-merchant-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateMerchantStatus(@RequestParam Long merchantUniqueId,
-			@RequestParam String status) {
+			@RequestParam String status) throws TFException {
 
-		ResponseHolder response = adminService.updateMerchantStatus(status, merchantUniqueId);
+		Merchant merchant = adminService.updateMerchantStatus(status, merchantUniqueId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.data(merchant)
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.build();
+		
 		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 
 		return responseEntity;
@@ -337,37 +344,32 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/add-admin-role", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> saveAdminRole(@RequestBody AdminRole adminRole) {
+	public ResponseEntity<ResponseHolder> saveAdminRole(@RequestBody AdminRole adminRole) throws TFException {
 
 		AdminRole adminRoleRes = adminService.saveAdminRole(adminRole);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(adminRoleRes)) {
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Role saved successfully")
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRoleRes).build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while saving Admin Role").build());
+			throw new TFException("Error occurred while saving Admin Role");
 		}
 
 		return response;
-
 	}
 
 	@RequestMapping(value = "/update-admin-role", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateAdminRole(@RequestBody AdminRole adminRole) {
+	public ResponseEntity<ResponseHolder> updateAdminRole(@RequestBody AdminRole adminRole) throws TFException {
 
 		AdminRole adminRoleRes = adminService.saveAdminRole(adminRole);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(adminRoleRes)) {
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Role updated successfully")
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRoleRes).build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while updating Admin Role").build());
+			throw new TFException("Error occurred while updating Admin Role");
 		}
 
 		return response;
@@ -394,12 +396,12 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/add-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> saveAdminUser(@RequestBody Admin admin) {
+	public ResponseEntity<ResponseHolder> saveAdminUser(@RequestBody Admin admin) throws TFException {
 
 		try {
 			admin.setAdminUserProfilePic(new Binary(BsonBinarySubType.BINARY, (new AvatarImage()).avatarImage()));
 		} catch (IOException e) {
-
+			throw new TFException(e.getMessage());
 		}
 
 		Admin adminUserRes = adminService.saveAdminUser(admin);
@@ -419,18 +421,17 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/get-admin-user", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getAdminUserByRole(@RequestParam String role) {
+	public ResponseEntity<ResponseHolder> getAdminUserByRole(@RequestParam String role) throws TFException {
 
 		List<Admin> adminRes = adminService.getAdminUserByRole(role);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (!ObjectUtils.isEmpty(adminRes)) {
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User Details retrieved successfully")
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRes).build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while retrieving Admin User Details").build());
+
+			throw new TFException("Error occurred while retrieving Admin User Details");
 		}
 
 		return response;
@@ -483,8 +484,8 @@ public class AdminController {
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (flag) {
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User deleted successfully")
-					.timestamp(String.valueOf(LocalDateTime.now())).data("").build());
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("Admin User deleted successfully").build());
 		} else {
 			response = ResponseEntity
 					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
@@ -492,23 +493,20 @@ public class AdminController {
 		}
 
 		return response;
-
 	}
 
 	@RequestMapping(value = "/add-admin-role-configuration", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> saveAdminRoleConfiguration(@RequestParam String roleName,
-			@RequestBody List<Access> accessDetails) {
+			@RequestBody List<Access> accessDetails) throws TFException {
 
 		RoleConfiguration roleConfigurationRes = adminService.saveAdminRoleConfiguration(roleName, accessDetails);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(roleConfigurationRes)) {
-			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User saved successfully")
+			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(roleConfigurationRes).build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while saving Admin User").build());
+			throw new TFException("Error occurred while saving Admin User");
 		}
 
 		return response;

@@ -93,6 +93,14 @@ public class AdminRepository {
 
 		return Optional.ofNullable(merchant);
 	}
+	
+	public Optional<Merchant> findMerchantByUniqueNumber(Long uniqueNumber) {
+		Query query = new Query(Criteria.where("uniqueNumber").is(uniqueNumber));
+
+		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
+
+		return Optional.ofNullable(merchant);
+	}
 
 	public boolean createMerchant(Merchant merchant) {
 
@@ -161,6 +169,35 @@ public class AdminRepository {
 
 		return merchants;
 	}
+	
+	public Merchant updateMerchantStatus(Long uniqueNumber, String status) throws TFException {
+		
+		Optional<Merchant> merchantData = this.findMerchantByUniqueNumber(uniqueNumber);
+		
+		if(merchantData.isPresent()) {
+			
+			Merchant merchant = merchantData.get();
+			
+			if(status.equalsIgnoreCase("active")) {
+				merchant.setStatus("Active");
+			}else if(status.equalsIgnoreCase("inactive")) {
+				merchant.setStatus("Inactive");
+			}else if(status.equalsIgnoreCase("deleted")) {
+				merchant.setStatus("Deleted");
+			}else if(status.equalsIgnoreCase("restore")) {
+				merchant.setStatus("Active");
+			} else {
+				throw new TFException("Invalid status.");
+			}
+			
+			mongoTemplate.save(merchant);
+			
+			return merchant;
+		}else{
+			throw new TFException("No merchant found with the unique number");
+		}
+		
+	}
 
 	public boolean createAdminPassword(final String userName, final String password) {
 
@@ -179,8 +216,7 @@ public class AdminRepository {
 		return flag;
 	}
 
-	public BusinessUnit saveBusinessUnit(@Valid BusinessUnit businessUnit) {
-		// TODO Auto-generated method stub
+	public BusinessUnit saveBusinessUnit(BusinessUnit businessUnit) {
 		return mongoTemplate.save(businessUnit);
 	}
 
@@ -329,7 +365,25 @@ public class AdminRepository {
 		query.addCriteria(Criteria.where("role").is(role));
 
 		AdminRole adminRole = mongoTemplate.findOne(query, AdminRole.class);
+		
+		if(!Objects.isNull(adminRole)) {
+			adminRole.setRolesConfiguration(this.findRoleConfiguration(role));
+		}
+		
 		return adminRole;
+	}
+	
+	public RoleConfiguration findRoleConfiguration(String role) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("roleName").is(role));
+
+		RoleConfiguration roleConfiguration = mongoTemplate.findOne(query, RoleConfiguration.class);
+		if(Objects.isNull(roleConfiguration)) {
+			return new RoleConfiguration();
+		}else {
+			return roleConfiguration;
+		}
+		
 	}
 
 	public Admin saveAdmin(Admin admin) {
@@ -370,12 +424,9 @@ public class AdminRepository {
 		}
 
 		return updateFlag;
-
 	}
 
 	public RoleConfiguration saveAdminRoleConfiguration(RoleConfiguration roleConfiguration) {
 		return roleConfiguration;
-		// TODO Auto-generated method stub
-		
 	}
 }

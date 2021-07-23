@@ -17,7 +17,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.enums.UserRoleEnum;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
 import com.endeavour.tap4food.app.payload.request.SignupRequest;
 import com.endeavour.tap4food.app.payload.response.JwtResponse;
@@ -54,16 +54,13 @@ public class AuthController {
 	private UserRoleRepository roleRepository;
 
 	@Autowired
-	private PasswordEncoder encoder;
-	
-	@Autowired
 	private CustomerService customerService;
 
 	@Autowired
 	JwtUtils jwtUtils;
 	
 	@RequestMapping(value = "/phone-number-login", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber) {
+	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber) throws TFException {
 
 		boolean smsSentFlag = customerService.sendOTPToPhone(phoneNumber);
 		ResponseHolder response = null;
@@ -75,11 +72,7 @@ public class AuthController {
 					.data("OTP has been delivered to customer registed phone number : " + phoneNumber)
 					.build();
 		}else {
-			response = ResponseHolder.builder()
-					.status("error")
-					.timestamp(String.valueOf(LocalDateTime.now()))
-					.data("Problem occured while sending OTP to customer registed phone number : " + phoneNumber)
-					.build();
+			throw new TFException("Problem occured while sending OTP to customer registed phone number : " + phoneNumber);
 		}
 		
 		
@@ -87,7 +80,7 @@ public class AuthController {
 	}
 	
 	@RequestMapping(value = "/verify-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> verifyOtp(@RequestParam("phone-number") String phoneNumber, @RequestParam("otp") String otp) {
+	public ResponseEntity<ResponseHolder> verifyOtp(@RequestParam("phone-number") String phoneNumber, @RequestParam("otp") String otp) throws TFException {
 
 		boolean isVerified = customerService.verifyOTP(phoneNumber, otp);
 		
@@ -201,18 +194,14 @@ public class AuthController {
 	};
 	
 	
-	
-	
-	
-	
 	@RequestMapping(value = "/resent-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber){
+	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber) throws TFException{
 		
 		ResponseHolder responseHolder = null;
 		
 		ResponseEntity<ResponseHolder> responseEntity = null;
 		
-		boolean isOTPDelivered = userService.resentOtp(phoneNumber);
+		boolean isOTPDelivered = userService.resendOtp(phoneNumber);
 		
 		if(isOTPDelivered) {
 			responseHolder = ResponseHolder.builder()

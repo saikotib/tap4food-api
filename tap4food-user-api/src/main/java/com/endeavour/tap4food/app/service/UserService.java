@@ -5,7 +5,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.enums.UserStatusEnum;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.repository.UserRepository;
 import com.endeavour.tap4food.app.security.model.User;
 
@@ -61,12 +62,18 @@ public class UserService {
 
 	}
 
-	public boolean resentOtp(final String phoneNumber) {
+	public boolean resendOtp(final String phoneNumber) throws TFException {
 		boolean flag = false;
 
 		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
 
 		if (userData.isPresent()) {
+			
+			User user = userData.get();
+			
+			if(user.getStatus().equalsIgnoreCase(UserStatusEnum.LOCKED.name())) {
+				throw new TFException("Your phone number is temporarily locked");
+			}
 
 			if (commonService.sendOTPToPhone(phoneNumber)) {
 				flag = true;

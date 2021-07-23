@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.CustomerService;
@@ -40,7 +41,7 @@ public class CustomerController {
 	
 	@RequestMapping(value = "/verify-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> verifyOtp(@RequestParam("phone-number") String phoneNumber,
-			@RequestParam("input-otp") String inputOTP) {
+			@RequestParam("input-otp") String inputOTP) throws TFException {
 
 		boolean smsSentFlag = customerService.sendOTPToPhone(phoneNumber);
 		ResponseHolder response = null;

@@ -169,7 +169,7 @@ public class AuthController {
 				.collect(Collectors.toList());
 
 		return ResponseEntity.ok(
-				new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
+				new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), userDetails.getPhoneNumber(), roles));
 	}
 
 	@RequestMapping(value = "/create-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)

@@ -106,7 +106,7 @@ public class AdminService {
 		}
 	}
 
-	public ResponseHolder updateMerchantStatus(final String status, final Long merchantUniqueId) {
+	public Merchant updateMerchantStatus(final String status, final Long merchantUniqueId) throws TFException {
 
 		/*
 		 * String merchantStatusUpdateApiUrl = merchantApiBaseUrl + "/update-status";
@@ -129,8 +129,10 @@ public class AdminService {
 		 * 
 		 * return responseEntity.getBody();
 		 */
+		
+		Merchant merchant = adminRepository.updateMerchantStatus(merchantUniqueId, status);
 
-		return null;
+		return merchant;
 	}
 
 	public Merchant createMerchant(Merchant merchant) {
@@ -509,7 +511,7 @@ public class AdminService {
 		return adminUserId;
 	}
 
-	public Admin saveAdminUser(Admin admin) {
+	public Admin saveAdminUser(Admin admin) throws TFException {
 
 		AdminRole role = adminRepository.findRoleByRoleName(admin.getRole());
 
@@ -518,13 +520,8 @@ public class AdminService {
 			admin.setStatus(ActiveStatus.ACTIVE);
 			admin = adminRepository.saveAdmin(admin);
 		} else {
-			try {
-				throw new TFException("Role not found");
-			} catch (TFException e) {
-				e.printStackTrace();
-			}
-			;
-			admin = null;
+			
+			throw new TFException("Role is not found");
 		}
 
 		return admin;
@@ -591,8 +588,10 @@ public class AdminService {
 	}
 
 	public RoleConfiguration saveAdminRoleConfiguration(String roleName, List<Access> accessDetails) {
+
 		RoleConfiguration roleConfiguration = new RoleConfiguration();
 		AdminRole adminRole = adminRepository.findRoleByRoleName(roleName);
+		
 		if (!Objects.isNull(adminRole)) {
 			roleConfiguration.setRoleName(roleName);
 			roleConfiguration.setAccessDetails(accessDetails);
