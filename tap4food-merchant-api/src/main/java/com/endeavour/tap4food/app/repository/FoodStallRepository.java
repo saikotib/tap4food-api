@@ -483,7 +483,7 @@ public class FoodStallRepository {
 		}
 	}
 
-	public void removeCuisine(Long fsId, @Valid Cuisine cuisine) throws TFException {
+	public void removeCuisine(Long fsId, Cuisine cuisine) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		
 		if (Objects.isNull(foodStall)) {
@@ -496,7 +496,7 @@ public class FoodStallRepository {
 				mongoTemplate.remove(existingCuisineName);
 			} 
 		} catch (Exception e) {
-			throw new TFException("Customize type is not available to delete");
+			throw new TFException("Cuisine is not available to delete");
 		}
 		
 		List<Cuisine> names = foodStall.getMenuListing().getCuisines();
