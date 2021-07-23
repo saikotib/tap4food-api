@@ -20,6 +20,8 @@ public class Category {
 	
 	private String category;
 	
+	private Long foodStallId;
+	
 	private Boolean visible = true;
 	
 	@Override

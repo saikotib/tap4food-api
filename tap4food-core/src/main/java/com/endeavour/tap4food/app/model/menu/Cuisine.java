@@ -18,4 +18,6 @@ public class Cuisine {
 	private String name;
 	
 	private Boolean visible;
+	
+	private Long foodStallId;
 }

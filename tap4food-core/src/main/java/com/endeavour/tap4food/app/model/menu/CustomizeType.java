@@ -26,4 +26,5 @@ public class CustomizeType {
 	
 	private Boolean visible;
 	
+	private Long foodStallId;	
 }

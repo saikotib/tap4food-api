@@ -28,5 +28,7 @@ public class MenuListings {
 	
 	private List<Cuisine> cuisines;
 	
+	private Long foodStallId;
+	
 	private String status;
 }
