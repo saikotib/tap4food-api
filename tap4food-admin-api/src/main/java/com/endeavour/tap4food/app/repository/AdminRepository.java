@@ -27,6 +27,7 @@ import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodCourtCollectionConstants;
@@ -41,7 +42,7 @@ public class AdminRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	
+
 	@Autowired
 	private CommonSequenceService commonSequenceService;
 
@@ -252,10 +253,11 @@ public class AdminRepository {
 
 	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
 
-		Long nextFoodCourtSeq = commonSequenceService.getFoodCourtNextSequence(MongoCollectionConstant.COLLECTION_FOODCOURT_SEQ);
+		Long nextFoodCourtSeq = commonSequenceService
+				.getFoodCourtNextSequence(MongoCollectionConstant.COLLECTION_FOODCOURT_SEQ);
 
 		foodCourt.setFoodCourtId(nextFoodCourtSeq);
-		
+
 		return mongoTemplate.save(foodCourt);
 	}
 
@@ -278,38 +280,38 @@ public class AdminRepository {
 		flag = true;
 		return flag;
 	}
-	
+
 	public void correlateFCFS(Long foodStallId, Long foodCourtId) throws TFException {
-		
+
 		Query fcQuery = new Query(Criteria.where(FoodCourtCollectionConstants.FOOD_COURT_NUMBER).is(foodCourtId));
 		Query fsQuery = new Query(Criteria.where(FoodStallCollectionConstants.FOOD_STALL_NUMBER).is(foodStallId));
-		
+
 		FoodStall foodStall = mongoTemplate.findOne(fsQuery, FoodStall.class);
 		FoodCourt foodCourt = mongoTemplate.findOne(fcQuery, FoodCourt.class);
-		
-		if(Objects.isNull(foodCourt)) {
+
+		if (Objects.isNull(foodCourt)) {
 			throw new TFException("Food court not found");
 		}
-		
-		if(Objects.isNull(foodStall)) {
+
+		if (Objects.isNull(foodStall)) {
 			throw new TFException("Food stall not found");
 		}
-		
+
 		foodStall.setFoodCourtId(foodCourt.getFoodCourtId());
 		foodStall.setFoodCourtName(foodCourt.getName());
-		
+
 		mongoTemplate.save(foodStall);
-		
+
 		List<FoodStall> foodStalls = foodCourt.getFoodStalls();
-		
-		if(Objects.isNull(foodStalls)) {
+
+		if (Objects.isNull(foodStalls)) {
 			foodStalls = new ArrayList<FoodStall>();
 		}
 
 		foodStalls.add(foodStall);
-		
+
 		foodCourt.setFoodStalls(foodStalls);
-		
+
 		mongoTemplate.save(foodCourt);
 	}
 
@@ -333,21 +335,47 @@ public class AdminRepository {
 	public Admin saveAdmin(Admin admin) {
 
 		return mongoTemplate.save(admin);
+
 	}
-	
+
+	public List<Admin> findAdminUserByRole(String role) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("role").is(role));
+		List<Admin> admin = mongoTemplate.find(query, Admin.class);
+		return admin;
+	}
+
+	public Boolean deleteAdminUserByRole(String role) {
+
+		Boolean flag = false;
+
+		mongoTemplate.remove(Query.query(Criteria.where("role").is(role)), Admin.class);
+
+		flag = true;
+		return flag;
+
+	}
+
 	public boolean changePassword(String phoneNumber, String password) throws TFException {
 		boolean updateFlag = false;
-		
+
 		Optional<Admin> adminData = this.findAdminByPhoneNumber(phoneNumber);
-		
-		if(adminData.isPresent()) {
+
+		if (adminData.isPresent()) {
 			Admin admin = adminData.get();
 			admin.setPassword(password);
 			mongoTemplate.save(admin);
-		}else {
+		} else {
 			throw new TFException("No admin user found with input phone number");
 		}
-		
+
 		return updateFlag;
+
+	}
+
+	public RoleConfiguration saveAdminRoleConfiguration(RoleConfiguration roleConfiguration) {
+		return roleConfiguration;
+		// TODO Auto-generated method stub
+		
 	}
 }

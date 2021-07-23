@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.controller;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,8 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,14 +25,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.Access;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.AdminService;
+import com.endeavour.tap4food.app.util.AvatarImage;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -348,8 +354,7 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
+
 	@RequestMapping(value = "/update-admin-role", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateAdminRole(@RequestBody AdminRole adminRole) {
 
@@ -368,9 +373,8 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	@RequestMapping(value = "/get-admin-roles", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+
+	@RequestMapping(value = "/get-admin-roles", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAdminRoles() {
 
 		List<AdminRole> adminRoleRes = adminService.getAdminRoles();
@@ -388,13 +392,15 @@ public class AdminController {
 		return response;
 
 	}
-	
-	
-	
-	
 
 	@RequestMapping(value = "/add-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> saveAdminUser(@RequestBody Admin admin) {
+
+		try {
+			admin.setAdminUserProfilePic(new Binary(BsonBinarySubType.BINARY, (new AvatarImage()).avatarImage()));
+		} catch (IOException e) {
+
+		}
 
 		Admin adminUserRes = adminService.saveAdminUser(admin);
 
@@ -412,6 +418,101 @@ public class AdminController {
 
 	}
 
+	@RequestMapping(value = "/get-admin-user", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAdminUserByRole(@RequestParam String role) {
+
+		List<Admin> adminRes = adminService.getAdminUserByRole(role);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (!ObjectUtils.isEmpty(adminRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User Details retrieved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while retrieving Admin User Details").build());
+		}
+
+		return response;
+
+	}
+
+	@RequestMapping(value = "/update-admin-user", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateAdminUser(@RequestParam String role, @RequestBody Admin admin) {
+
+		Admin adminRes = adminService.updateAdmin(admin, role);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (!ObjectUtils.isEmpty(adminRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User Details updated successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while updating Admin User Details").build());
+		}
+
+		return response;
+
+	}
+
+	@RequestMapping(value = "/add-admin-user-profile-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addAdminUserProfilePic(@RequestParam String role,
+			@RequestBody MultipartFile adminProfilePic) {
+
+		Admin adminRes = adminService.addAdminUserProfilePic(adminProfilePic, role);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (!ObjectUtils.isEmpty(adminRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User Profile Pic added successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while adding Admin User Profile Pic").build());
+		}
+
+		return response;
+
+	}
+
+	@RequestMapping(value = "/delete-admin-user", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteAdminUser(@RequestParam String role) {
+
+		Boolean flag = adminService.deleteAdminUser(role);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (flag) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User deleted successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("").build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while deleting Admin User").build());
+		}
+
+		return response;
+
+	}
+
+	@RequestMapping(value = "/add-admin-role-configuration", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveAdminRoleConfiguration(@RequestParam String roleName,
+			@RequestBody List<Access> accessDetails) {
+
+		RoleConfiguration roleConfigurationRes = adminService.saveAdminRoleConfiguration(roleName, accessDetails);
+
+		ResponseEntity<ResponseHolder> response = null;
+		if (Objects.nonNull(roleConfigurationRes)) {
+			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User saved successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(roleConfigurationRes).build());
+		} else {
+			response = ResponseEntity
+					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
+							.data("Error occurred while saving Admin User").build());
+		}
+
+		return response;
+
+	}
+
 }
-
-
