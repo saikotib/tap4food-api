@@ -49,13 +49,10 @@ public class AdminController {
 			@RequestParam String status) throws TFException {
 
 		Merchant merchant = adminService.updateMerchantStatus(status, merchantUniqueId);
-		
-		ResponseHolder response = ResponseHolder.builder()
-				.data(merchant)
-				.status("success")
-				.timestamp(String.valueOf(LocalDateTime.now()))
-				.build();
-		
+
+		ResponseHolder response = ResponseHolder.builder().data(merchant).status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).build();
+
 		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 
 		return responseEntity;
@@ -439,18 +436,18 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/update-admin-user", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateAdminUser(@RequestParam String role, @RequestBody Admin admin) {
+	public ResponseEntity<ResponseHolder> updateAdminUser(@RequestParam long adminUserId, @RequestBody Admin admin)
+			throws TFException {
 
-		Admin adminRes = adminService.updateAdmin(admin, role);
+		Admin adminRes = adminService.updateAdmin(admin, adminUserId);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (!ObjectUtils.isEmpty(adminRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User Details updated successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRes).build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while updating Admin User Details").build());
+			throw new TFException("Error occurred while updating Admin User Details");
+
 		}
 
 		return response;
@@ -458,19 +455,19 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/add-admin-user-profile-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addAdminUserProfilePic(@RequestParam String role,
-			@RequestBody MultipartFile adminProfilePic) {
+	public ResponseEntity<ResponseHolder> addAdminUserProfilePic(@RequestParam long adminUserId,
+			@RequestBody MultipartFile adminProfilePic) throws TFException {
 
-		Admin adminRes = adminService.addAdminUserProfilePic(adminProfilePic, role);
+		Admin adminRes = adminService.addAdminUserProfilePic(adminProfilePic, adminUserId);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (!ObjectUtils.isEmpty(adminRes)) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("Admin User Profile Pic added successfully")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(adminRes).build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while adding Admin User Profile Pic").build());
+
+			throw new TFException("Error occurred while adding Admin User Profile Pic");
+
 		}
 
 		return response;
@@ -478,18 +475,16 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/delete-admin-user", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> deleteAdminUser(@RequestParam String role) {
+	public ResponseEntity<ResponseHolder> deleteAdminUser(@RequestParam long adminUserId) throws TFException {
 
-		Boolean flag = adminService.deleteAdminUser(role);
+		Boolean flag = adminService.deleteAdminUser(adminUserId);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (flag) {
 			response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data("Admin User deleted successfully").build());
 		} else {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("Error").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Error occurred while deleting Admin User").build());
+			throw new TFException("Error occurred while deleting Admin User");
 		}
 
 		return response;
