@@ -93,7 +93,7 @@ public class AdminRepository {
 
 		return Optional.ofNullable(merchant);
 	}
-	
+
 	public Optional<Merchant> findMerchantByUniqueNumber(Long uniqueNumber) {
 		Query query = new Query(Criteria.where("uniqueNumber").is(uniqueNumber));
 
@@ -169,34 +169,34 @@ public class AdminRepository {
 
 		return merchants;
 	}
-	
+
 	public Merchant updateMerchantStatus(Long uniqueNumber, String status) throws TFException {
-		
+
 		Optional<Merchant> merchantData = this.findMerchantByUniqueNumber(uniqueNumber);
-		
-		if(merchantData.isPresent()) {
-			
+
+		if (merchantData.isPresent()) {
+
 			Merchant merchant = merchantData.get();
-			
-			if(status.equalsIgnoreCase("active")) {
+
+			if (status.equalsIgnoreCase("active")) {
 				merchant.setStatus("Active");
-			}else if(status.equalsIgnoreCase("inactive")) {
+			} else if (status.equalsIgnoreCase("inactive")) {
 				merchant.setStatus("Inactive");
-			}else if(status.equalsIgnoreCase("deleted")) {
+			} else if (status.equalsIgnoreCase("deleted")) {
 				merchant.setStatus("Deleted");
-			}else if(status.equalsIgnoreCase("restore")) {
+			} else if (status.equalsIgnoreCase("restore")) {
 				merchant.setStatus("Active");
 			} else {
 				throw new TFException("Invalid status.");
 			}
-			
+
 			mongoTemplate.save(merchant);
-			
+
 			return merchant;
-		}else{
+		} else {
 			throw new TFException("No merchant found with the unique number");
 		}
-		
+
 	}
 
 	public boolean createAdminPassword(final String userName, final String password) {
@@ -365,25 +365,25 @@ public class AdminRepository {
 		query.addCriteria(Criteria.where("role").is(role));
 
 		AdminRole adminRole = mongoTemplate.findOne(query, AdminRole.class);
-		
-		if(!Objects.isNull(adminRole)) {
+
+		if (!Objects.isNull(adminRole)) {
 			adminRole.setRolesConfiguration(this.findRoleConfiguration(role));
 		}
-		
+
 		return adminRole;
 	}
-	
+
 	public RoleConfiguration findRoleConfiguration(String role) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("roleName").is(role));
 
 		RoleConfiguration roleConfiguration = mongoTemplate.findOne(query, RoleConfiguration.class);
-		if(Objects.isNull(roleConfiguration)) {
+		if (Objects.isNull(roleConfiguration)) {
 			return new RoleConfiguration();
-		}else {
+		} else {
 			return roleConfiguration;
 		}
-		
+
 	}
 
 	public Admin saveAdmin(Admin admin) {
@@ -399,11 +399,11 @@ public class AdminRepository {
 		return admin;
 	}
 
-	public Boolean deleteAdminUserByRole(String role) {
+	public Boolean deleteAdminUserByRole(long adminUserId) {
 
 		Boolean flag = false;
 
-		mongoTemplate.remove(Query.query(Criteria.where("role").is(role)), Admin.class);
+		mongoTemplate.remove(Query.query(Criteria.where("adminUserId").is(adminUserId)), Admin.class);
 
 		flag = true;
 		return flag;
@@ -428,5 +428,12 @@ public class AdminRepository {
 
 	public RoleConfiguration saveAdminRoleConfiguration(RoleConfiguration roleConfiguration) {
 		return roleConfiguration;
+	}
+
+	public Admin finAdminByUserId(long adminUserId) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("adminUserId").is(adminUserId));
+		Admin admin = mongoTemplate.findOne(query, Admin.class);
+		return admin;
 	}
 }

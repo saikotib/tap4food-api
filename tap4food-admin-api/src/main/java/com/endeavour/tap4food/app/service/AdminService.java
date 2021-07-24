@@ -129,7 +129,7 @@ public class AdminService {
 		 * 
 		 * return responseEntity.getBody();
 		 */
-		
+
 		Merchant merchant = adminRepository.updateMerchantStatus(merchantUniqueId, status);
 
 		return merchant;
@@ -520,7 +520,7 @@ public class AdminService {
 			admin.setStatus(ActiveStatus.ACTIVE);
 			admin = adminRepository.saveAdmin(admin);
 		} else {
-			
+
 			throw new TFException("Role is not found");
 		}
 
@@ -532,25 +532,36 @@ public class AdminService {
 		return adminRepository.findAdminUserByRole(role);
 	}
 
-	public Admin updateAdmin(Admin admin, String role) {
+	public Admin updateAdmin(Admin admin, final long adminUserId) throws TFException {
 
-		return adminRepository.saveAdmin(admin);
-	}
-
-	public Admin addAdminUserProfilePic(MultipartFile adminProfilePic, String role) {
-		Admin admin = new Admin();
-		try {
-			admin.setAdminUserProfilePic((new Binary(BsonBinarySubType.BINARY, adminProfilePic.getBytes())));
-		} catch (IOException e) {
-			e.printStackTrace();
+		Admin adminRes = adminRepository.finAdminByUserId(adminUserId);
+		if (Objects.nonNull(adminRes)) {
+			admin.setId(adminRes.getId());
+			return adminRepository.saveAdmin(admin);
+		} else {
+			throw new TFException("Admin user not found");
 		}
 
-		return adminRepository.saveAdmin(admin);
 	}
 
-	public Boolean deleteAdminUser(String role) {
+	public Admin addAdminUserProfilePic(MultipartFile adminProfilePic, long adminUserId) throws TFException {
+		Admin admin = adminRepository.finAdminByUserId(adminUserId);
+		if (Objects.nonNull(admin)) {
+			try {
+				admin.setAdminUserProfilePic((new Binary(BsonBinarySubType.BINARY, adminProfilePic.getBytes())));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return adminRepository.saveAdmin(admin);
+		} else {
+			throw new TFException("Admin User not fount");
+		}
 
-		Boolean flag = adminRepository.deleteAdminUserByRole(role);
+	}
+
+	public Boolean deleteAdminUser(long adminUserId) {
+
+		Boolean flag = adminRepository.deleteAdminUserByRole(adminUserId);
 		return flag;
 	}
 
@@ -591,7 +602,7 @@ public class AdminService {
 
 		RoleConfiguration roleConfiguration = new RoleConfiguration();
 		AdminRole adminRole = adminRepository.findRoleByRoleName(roleName);
-		
+
 		if (!Objects.isNull(adminRole)) {
 			roleConfiguration.setRoleName(roleName);
 			roleConfiguration.setAccessDetails(accessDetails);
