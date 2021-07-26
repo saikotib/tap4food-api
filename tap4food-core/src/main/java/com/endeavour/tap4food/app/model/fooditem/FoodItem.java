@@ -1,10 +1,13 @@
 package com.endeavour.tap4food.app.model.fooditem;
 
+import java.util.List;
+
 import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,8 +44,16 @@ public class FoodItem {
 	
 	private boolean isReccommended;
 
-	private Binary pic;
+	private List<Binary> pic;
 	
 	private Long foodStallId;
 	
+	private Double rating;
+	
+	@JsonIgnore
+	private String requestId;   // This is current timestamp in millisecs sennt by React.
+	
+	private boolean availableCustomisation;
+	
+	private List<AddOns> addOns;
 }

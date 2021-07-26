@@ -317,7 +317,6 @@ public class MerchantService {
 
 			try {
 				if (imagetype.equals(AppConstants.PROFILE_PIC)) {
-					System.out.println("servoce if");
 					merchantObj.setProfilePic(new Binary(BsonBinarySubType.BINARY, image.getBytes()));
 				} else if (imagetype.equals(AppConstants.PERSONAL_ID)) {
 					merchantObj.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY, image.getBytes()));

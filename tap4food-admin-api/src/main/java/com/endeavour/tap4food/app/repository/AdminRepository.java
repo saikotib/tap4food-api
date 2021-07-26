@@ -410,8 +410,7 @@ public class AdminRepository {
 
 	}
 
-	public boolean changePassword(String phoneNumber, String password) throws TFException {
-		boolean updateFlag = false;
+	public void changePassword(String phoneNumber, String password) throws TFException {
 
 		Optional<Admin> adminData = this.findAdminByPhoneNumber(phoneNumber);
 
@@ -423,7 +422,6 @@ public class AdminRepository {
 			throw new TFException("No admin user found with input phone number");
 		}
 
-		return updateFlag;
 	}
 
 	public RoleConfiguration saveAdminRoleConfiguration(RoleConfiguration roleConfiguration) {

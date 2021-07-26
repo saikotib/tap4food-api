@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,19 +9,24 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
+import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
+import com.endeavour.tap4food.app.util.AppConstants;
 
 @Service
 public class FoodStallService {
@@ -30,6 +36,7 @@ public class FoodStallService {
 
 	public FoodStall createFoodStall(Long merchantUniqNumber, FoodStall foodStall) throws TFException {
 
+		foodStall.setRating(4.7);
 		foodStallRepository.createNewFoodStall(merchantUniqNumber, foodStall);
 
 		return foodStall;
@@ -193,7 +200,7 @@ public class FoodStallService {
 	}
 
 	public List<Cuisine> getAllCuisines(Long fsId) throws TFException {
-		Optional<List<Cuisine>> cuisines = foodStallRepository.findAllCuisines(fsId);
+		Optional<List<Cuisine>> cuisines = foodStallRepository.getAllCuisines(fsId);
 		if (cuisines.isPresent()) {
 
 			return cuisines.get();
@@ -227,9 +234,7 @@ public class FoodStallService {
 	
 	public FoodStallTimings updateFoodStallTimings(final Long fsId, ArrayList<WeekDay> weekDays) throws TFException {
 		
-		FoodStall foodStall = this.getFoodStallById(fsId);
-		
-		FoodStallTimings foodStallTimings = foodStall.getFoodStallTimings();
+		FoodStallTimings foodStallTimings = getFoodStallTimings(fsId);
 		
 		if(Objects.isNull(foodStallTimings)) {
 			throw new TFException("Timings are not added yet");
@@ -240,6 +245,50 @@ public class FoodStallService {
 		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings, true);
 
 		return foodStallTimings;
+	}
+	
+	public void uploadFoodStallPic(final Long fsId, List<MultipartFile> images, String type) throws TFException {
+
+		FoodStall foodStall = foodStallRepository.getFoodStallById(fsId);
+		
+		if(Objects.isNull(foodStall)) {
+			throw new TFException("Food stall is not found for the given food stall ID");
+		}else {
+			try {
+				if(type.equalsIgnoreCase("FOODSTALL_PICS")) {
+					List<Binary> existingPics = foodStall.getFoodStallPics();
+					
+					if(Objects.isNull(existingPics)) {
+						existingPics = new ArrayList<Binary>();
+					}
+					
+					for(MultipartFile inputImage : images) {
+						existingPics.add(new Binary(BsonBinarySubType.BINARY, inputImage.getBytes()));
+					}
+					
+					foodStall.setFoodStallPics(existingPics);
+					
+				}else if(type.equalsIgnoreCase("MENU_PICS")) {
+					
+					List<Binary> existingMenuPics = foodStall.getMenuPics();
+					
+					if(Objects.isNull(existingMenuPics)) {
+						existingMenuPics = new ArrayList<Binary>();
+					}
+					
+					for(MultipartFile inputImage : images) {
+						existingMenuPics.add(new Binary(BsonBinarySubType.BINARY, inputImage.getBytes()));
+					}
+					
+					foodStall.setMenuPics(existingMenuPics);
+				}				
+				
+			} catch (IOException e) {
+				throw new TFException(e.getMessage());
+			}
+			
+			foodStallRepository.updateFoodStallPic(foodStall);
+		}
 	}
 	
 }

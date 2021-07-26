@@ -47,16 +47,6 @@ public class FoodStallRepository {
 	@Autowired
 	private MerchantRepository merchantRepository;
 
-	public boolean isFoodStallFound(Long foodStallId) {
-		boolean merchantExists = false;
-
-		Query query = new Query(Criteria.where(FoodStallCollectionConstants.FOOD_STALL_NUMBER).is(foodStallId));
-
-		merchantExists = mongoTemplate.exists(query, Merchant.class);
-
-		return merchantExists;
-	}
-	
 	private MenuListings createEmptyMenuListing() {
 		MenuListings menuListing = new MenuListings();
 		
@@ -128,6 +118,12 @@ public class FoodStallRepository {
 		mongoTemplate.save(existingStall);
 
 		return existingStall;
+	}
+	
+	public void updateFoodStallPic(FoodStall foodStall) throws TFException {
+
+		mongoTemplate.save(foodStall);
+
 	}
 
 	private Long getIdForNewFoodStall() {
@@ -519,19 +515,6 @@ public class FoodStallRepository {
 		foodStall.setMenuListing(menuListing);
 	}
 
-	public Optional<List<Cuisine>> findAllCuisines(Long fsId) throws TFException {
-
-		FoodStall foodStall = this.getFoodStallById(fsId);
-
-		if (Objects.isNull(foodStall)) {
-			throw new TFException("Food stall doesn't exist");
-		}
-
-		List<Cuisine> cuisines = foodStall.getMenuListing().getCuisines();
-
-		return Optional.ofNullable(cuisines);
-	}
-	
 	public void updateCategory(Long fsId, Category category) throws TFException {
 		FoodStall foodStall = this.getFoodStallById(fsId);
 		

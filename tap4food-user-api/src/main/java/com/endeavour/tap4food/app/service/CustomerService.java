@@ -1,5 +1,9 @@
 package com.endeavour.tap4food.app.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +13,9 @@ import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.enums.UserStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Otp;
+import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.UserRepository;
 import com.endeavour.tap4food.app.security.model.User;
@@ -114,5 +120,47 @@ public class CustomerService {
 		Otp otp = commonRepository.getRecentOtp(phoneNumber);
 		
 		return otp;		
+	}
+	
+	public List<FoodStall> getFoodStalls(Long foodCourtId){
+		
+		return userRepository.getFoodStalls(foodCourtId);
+	}
+	
+	public Map<String, List<FoodItem>> getFoodItems(Long fsId){
+		
+		Map<String, List<FoodItem>> foodItemsMap = new HashMap<String, List<FoodItem>>();
+		
+		List<FoodItem> foodItems = userRepository.getFoodItems(fsId);
+		List<FoodItem> recomendedFoodItems = new ArrayList<FoodItem>();
+		List<FoodItem> vegItems = new ArrayList<FoodItem>();
+		List<FoodItem> eggItems = new ArrayList<FoodItem>();
+		
+		for(FoodItem foodItem : foodItems) {
+			
+			String category = foodItem.getCategory();
+			
+			if(!foodItemsMap.containsKey(category)) {
+				foodItemsMap.put(category, new ArrayList<FoodItem>());
+			}
+			
+			List<FoodItem> categorisedFoodItemsList = foodItemsMap.get(category);
+			categorisedFoodItemsList.add(foodItem);
+			if(foodItem.isReccommended()) {
+				recomendedFoodItems.add(foodItem);
+			}
+			if(foodItem.isVeg()) {
+				vegItems.add(foodItem);
+			}
+			if(foodItem.isEgg()) {
+				eggItems.add(foodItem);
+			}
+		}
+		
+		foodItemsMap.put("veg", vegItems);
+		foodItemsMap.put("egg", eggItems);
+		foodItemsMap.put("recommended", recomendedFoodItems);
+		
+		return foodItemsMap;
 	}
 }

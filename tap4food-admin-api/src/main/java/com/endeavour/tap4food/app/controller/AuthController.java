@@ -165,9 +165,12 @@ public class AuthController {
 		String jwt = jwtUtils.generateJwtToken(authentication);
 
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		
+		System.out.println("Phone Number : " + userDetails.getPhoneNumber());
+		
 		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 				.collect(Collectors.toList());
-
+		
 		return ResponseEntity.ok(
 				new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), userDetails.getPhoneNumber(), roles));
 	}
@@ -220,7 +223,7 @@ public class AuthController {
 					.data(message)
 					.build();
 			
-			response = ResponseEntity.badRequest().body(responseHolder);
+			response = ResponseEntity.ok().body(responseHolder);
 		}
 		
 		return response;

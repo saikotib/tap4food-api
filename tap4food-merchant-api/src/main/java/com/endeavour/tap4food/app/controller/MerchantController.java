@@ -2,10 +2,7 @@ package com.endeavour.tap4food.app.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -14,10 +11,8 @@ import javax.validation.Valid;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,22 +21,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.endeavour.tap4food.app.model.FoodStallTimings;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
-import com.endeavour.tap4food.app.model.WeekDay;
-import com.endeavour.tap4food.app.model.menu.Category;
-import com.endeavour.tap4food.app.model.menu.Cuisine;
-import com.endeavour.tap4food.app.model.menu.CustomizeType;
-import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.MerchantService;
 import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.ImageConstants;
 /*import org.apache.http.entity.ContentType;*/
 
+import io.swagger.annotations.Api;
+
 @RestController
 @RequestMapping("/api/merchant")
+@Api(tags = "MerchantController", description = "MerchantController")
 public class MerchantController {
 
 	@Autowired
@@ -117,9 +110,9 @@ public class MerchantController {
 	
 
 	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadProfilePic(@Valid @PathVariable("merchant-id") Long id,
+	public ResponseEntity<ResponseHolder> uploadPic(@Valid @PathVariable("merchant-id") Long id,
 			@RequestParam(value = "pic", required = true) MultipartFile pic,
-			@RequestParam(required = true) String type) {
+			@RequestParam(required = true) String type) throws TFException {
 
 		ResponseEntity<ResponseHolder> response = null;
 		Optional<Merchant> merchantResponse = null;
@@ -130,7 +123,7 @@ public class MerchantController {
 		if (!Arrays.asList(ImageConstants.IMAGE_JPEG, ImageConstants.IMAGE_PNG, ImageConstants.IMAGE_JPG)
 				.contains(picType)) {
 			System.out.println("inf");
-			throw new IllegalStateException("File must be an Image");
+			throw new TFException("File must be an Image");
 		} else {
 			System.out.println("else");
 			merchantResponse = merchantService.uploadProfilePic(id, pic, type);
@@ -141,10 +134,7 @@ public class MerchantController {
 			response = ResponseEntity.ok(ResponseHolder.builder().status(type + " succesfully uploaded")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse.get()).build());
 		} else {
-			response = ResponseEntity.badRequest()
-					.body(ResponseHolder.builder().status("Error occurred while uploading " + type)
-							.timestamp(String.valueOf(LocalDateTime.now())).data(merchantResponse).build());
-
+			throw new TFException("Error occurred while uploading " + type);
 		} 
 		
 		//test

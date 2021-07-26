@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.app.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Otp;
+import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.security.model.User;
 
 @Repository
@@ -65,5 +68,23 @@ public class UserRepository {
 		mongoTemplate.upsert(query, update, Otp.class);
 		
 		return false;
+	}
+	
+	public List<FoodItem> getFoodItems(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
+		
+		return foodItems;
+	}
+	
+	public List<FoodStall> getFoodStalls(Long fcId){
+		
+		Query query = new Query(Criteria.where("buName").is("InOrbit"));
+		
+		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
+		
+		return foodStalls;
 	}
 }

@@ -580,13 +580,9 @@ public class AdminService {
 
 			if (encoder.matches(oldPassword, admin.getPassword())) {
 
-				boolean flag = adminRepository.changePassword(phoneNumber, encoder.encode(newPassword));
+				adminRepository.changePassword(phoneNumber, encoder.encode(newPassword));
 
-				if (flag) {
-					message = "Password is changed successfully";
-				} else {
-					message = "Admin data couldn't found";
-				}
+				message = "Password is changed successfully";
 
 			} else {
 				message = "Old password is incorrect";

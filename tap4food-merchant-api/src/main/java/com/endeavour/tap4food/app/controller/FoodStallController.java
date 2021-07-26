@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
@@ -32,9 +34,13 @@ import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.FoodStallService;
+import com.endeavour.tap4food.app.util.ImageConstants;
+
+import io.swagger.annotations.Api;
 
 @RestController
 @RequestMapping("/api/foodstall")
+@Api(tags = "FoodStallController", description = "FoodStallController")
 public class FoodStallController {
 
 	@Autowired
@@ -367,9 +373,7 @@ public class FoodStallController {
 					.timestamp(String.valueOf(LocalDateTime.now())).data(cuisines).build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		} else {
-			ResponseHolder response = ResponseHolder.builder().status("error")
-					.timestamp(String.valueOf(LocalDateTime.now())).data("no subcategories available").build();
-			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+			throw new TFException("no cuisines available");
 		}
 
 	}
@@ -449,6 +453,64 @@ public class FoodStallController {
 
 			throw new TFException("Error occurred while retrieving Food Stall Timings");
 		}
+		return response;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/upload-foodstall-pics", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> uploadProfilePic(@Valid @PathVariable("fs-id") Long fsId,
+			@RequestParam(value = "pic", required = true) List<MultipartFile> pics) throws TFException {
+
+		ResponseEntity<ResponseHolder> response = null;
+
+		for(MultipartFile pic : pics) {
+			System.out.println(pic.getSize());
+			String picType = pic.getOriginalFilename().split("\\.")[1].toLowerCase();
+			System.out.println(picType);
+			if (!Arrays.asList(ImageConstants.IMAGE_JPEG, ImageConstants.IMAGE_PNG, ImageConstants.IMAGE_JPG)
+					.contains(picType)) {
+
+				throw new TFException("File must be an Image");
+			}
+		}
+			
+		foodStallService.uploadFoodStallPic(fsId, pics, "FOODSTALL_PICS");
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("success")
+				.data("Foodstall pic is uploaded")
+				.build();
+		
+		response = ResponseEntity.ok().body(responseHolder);
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/upload-menu-pics", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> uploadMenuPic(@Valid @PathVariable("fs-id") Long fsId,
+			@RequestParam(value = "pic", required = true) List<MultipartFile> pics) throws TFException {
+
+		ResponseEntity<ResponseHolder> response = null;
+
+		for(MultipartFile pic : pics) {
+			System.out.println(pic.getSize());
+			String picType = pic.getOriginalFilename().split("\\.")[1].toLowerCase();
+			System.out.println(picType);
+			if (!Arrays.asList(ImageConstants.IMAGE_JPEG, ImageConstants.IMAGE_PNG, ImageConstants.IMAGE_JPG)
+					.contains(picType)) {
+
+				throw new TFException("File must be an Image");
+			}
+		}
+			
+		foodStallService.uploadFoodStallPic(fsId, pics, "MENU_PICS");
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("success")
+				.data("Foodstall pic is uploaded")
+				.build();
+		
+		response = ResponseEntity.ok().body(responseHolder);
+		
 		return response;
 	}
 	

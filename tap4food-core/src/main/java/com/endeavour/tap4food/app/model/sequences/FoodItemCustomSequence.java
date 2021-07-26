@@ -8,7 +8,7 @@ import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import lombok.Data;
 
 @Data
-@Document(collection = MongoCollectionConstant.COLLECTION_FOODSTALL_SEQ)
+@Document(collection = MongoCollectionConstant.COLLECTION_FOODITEM_SEQ)
 public class FoodItemCustomSequence {
 
 	@Id
