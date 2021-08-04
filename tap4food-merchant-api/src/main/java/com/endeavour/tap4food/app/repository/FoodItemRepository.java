@@ -35,6 +35,20 @@ public class FoodItemRepository {
 		}
 	}
 	
+	public void updateFoodItemPics(FoodItem foodItem) throws TFException {
+		
+		mongoTemplate.save(foodItem);
+		
+	}
+	
+	public void deleteDummy(FoodItem foodItem) throws TFException {
+		
+		Query query = new Query(Criteria.where("id").is(foodItem.getId()));
+		
+		mongoTemplate.remove(query, FoodItem.class);
+		
+	}
+	
 	public FoodItem getFoodItemByReqId(String requestId) throws TFException {
 		
 		Query query = new Query(Criteria.where("requestId").is(requestId));
@@ -42,7 +56,10 @@ public class FoodItemRepository {
 		FoodItem foodItem = mongoTemplate.findOne(query, FoodItem.class);
 		
 		if(Objects.isNull(foodItem)) {
-			throw new TFException("Invalid request ID");
+			
+			foodItem = new FoodItem();
+			foodItem.setRequestId(requestId);
+			mongoTemplate.save(foodItem);
 		}
 		
 		return foodItem;
@@ -50,7 +67,7 @@ public class FoodItemRepository {
 	
 	public List<FoodItem> getFoodItems(Long fsId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
 		
 		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
 		

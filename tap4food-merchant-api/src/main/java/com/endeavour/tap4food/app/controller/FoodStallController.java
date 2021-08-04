@@ -473,11 +473,11 @@ public class FoodStallController {
 			}
 		}
 			
-		foodStallService.uploadFoodStallPic(fsId, pics, "FOODSTALL_PICS");
+		FoodStall foodStal = foodStallService.uploadFoodStallPic(fsId, pics, "FOODSTALL_PICS");
 		
 		ResponseHolder responseHolder = ResponseHolder.builder()
 				.status("success")
-				.data("Foodstall pic is uploaded")
+				.data(foodStal)
 				.build();
 		
 		response = ResponseEntity.ok().body(responseHolder);
@@ -502,11 +502,11 @@ public class FoodStallController {
 			}
 		}
 			
-		foodStallService.uploadFoodStallPic(fsId, pics, "MENU_PICS");
+		FoodStall foodStall = foodStallService.uploadFoodStallPic(fsId, pics, "MENU_PICS");
 		
 		ResponseHolder responseHolder = ResponseHolder.builder()
 				.status("success")
-				.data("Foodstall pic is uploaded")
+				.data(foodStall)
 				.build();
 		
 		response = ResponseEntity.ok().body(responseHolder);

@@ -81,6 +81,8 @@ public class CustomerService {
 			user = userData.get();
 		}
 		
+		System.out.println("Verify OTP : " + otp);
+		
 		if(inputOTP.equalsIgnoreCase(otp.getOtp())) {
 			otpMatch = true;
 			otp.setNumberOfTries(0);

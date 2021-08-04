@@ -105,10 +105,12 @@ public class AuthController {
 	
 
 	@RequestMapping(value = "/signin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws TFException {
 		
 		System.out.println(loginRequest.getPhoneNumber());
 		System.out.println(loginRequest.getOtp());
+		
+		customerService.verifyOTP(loginRequest.getPhoneNumber(), loginRequest.getOtp());
 		
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getPhoneNumber(), loginRequest.getOtp()));
@@ -187,8 +189,6 @@ public class AuthController {
 					.data("Your details are saved. OTP has been delivered to mobile number.")
 					.build();
 		}
-		
-		
 
 		return ResponseEntity.ok(response);
 	};
@@ -197,29 +197,16 @@ public class AuthController {
 	@RequestMapping(value = "/resent-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber) throws TFException{
 		
-		ResponseHolder responseHolder = null;
+		userService.resendOtp(phoneNumber);
 		
-		ResponseEntity<ResponseHolder> responseEntity = null;
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data("OTP is sent again")
+				.build();
 		
-		boolean isOTPDelivered = userService.resendOtp(phoneNumber);
+		ResponseEntity<ResponseHolder> responseEntity = ResponseEntity.ok().body(responseHolder);
 		
-		if(isOTPDelivered) {
-			responseHolder = ResponseHolder.builder()
-					.status("success")
-					.timestamp(String.valueOf(LocalDateTime.now()))
-					.data("OTP is sent again")
-					.build();
-			
-			responseEntity = ResponseEntity.ok().body(responseHolder);
-		}else {
-			responseHolder = ResponseHolder.builder()
-					.status("error")
-					.timestamp(String.valueOf(LocalDateTime.now()))
-					.data("Couldn't send OTP.")
-					.build();
-			
-			responseEntity = ResponseEntity.badRequest().body(responseHolder);
-		}
 		
 		return responseEntity;
 	}

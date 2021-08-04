@@ -120,10 +120,11 @@ public class FoodStallRepository {
 		return existingStall;
 	}
 	
-	public void updateFoodStallPic(FoodStall foodStall) throws TFException {
+	public FoodStall updateFoodStallPic(FoodStall foodStall) throws TFException {
 
 		mongoTemplate.save(foodStall);
 
+		return foodStall;
 	}
 
 	private Long getIdForNewFoodStall() {

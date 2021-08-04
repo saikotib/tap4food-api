@@ -43,6 +43,7 @@ import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.util.ActiveStatus;
+import com.endeavour.tap4food.app.util.ApiURL;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
@@ -167,7 +168,7 @@ public class AdminService {
 
 				String merchantEmail = merchant.getEmail();
 
-				String createPasswordLink = "https://dev.d1mwa6w2plhb6n.amplifyapp.com/merchant/createPassword?uniqueNumber="
+				String createPasswordLink = ApiURL.API_URL + "/merchant/createPassword?uniqueNumber="
 						+ uniqNumber;
 
 				String message = commonService.getCreatePasswordHtmlContent()
@@ -225,7 +226,7 @@ public class AdminService {
 
 			String adminEmail = adminUser.getEmail();
 
-			String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/admin/createAdminPassword?uniqueNumber=ADMIN&userName="
+			String createPasswordLink = ApiURL.API_URL + "/admin/createAdminPassword?uniqueNumber=ADMIN&userName="
 					+ adminUser.getUserName();
 
 			String message = commonService.getResetPasswordHtmlContent()

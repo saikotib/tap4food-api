@@ -3,13 +3,10 @@ package com.endeavour.tap4food.app.controller;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -56,7 +53,7 @@ public class MenuController {
 	}
 	
 	@RequestMapping(value = "/upload-food-item-pics", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadMenuPic(@RequestParam("fs-id") Long fsId,
+	public ResponseEntity<ResponseHolder> uploadFoodItemPics(@RequestParam("fs-id") Long fsId,
 			@RequestParam("request-id") String requestId, 
 			@RequestParam(value = "pic", required = true) List<MultipartFile> foodItemPics) throws TFException {
 
@@ -73,11 +70,11 @@ public class MenuController {
 			}
 		}
 			
-		foodItemService.uploadFoodItemPics(fsId, requestId, foodItemPics);
+		FoodItem foodItem = foodItemService.uploadFoodItemPics(fsId, requestId, foodItemPics);
 		
 		ResponseHolder responseHolder = ResponseHolder.builder()
 				.status("success")
-				.data("Food Item pics are uploaded")
+				.data(foodItem)
 				.build();
 		
 		response = ResponseEntity.ok().body(responseHolder);

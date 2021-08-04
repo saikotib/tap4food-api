@@ -62,24 +62,25 @@ public class UserService {
 
 	}
 
-	public boolean resendOtp(final String phoneNumber) throws TFException {
-		boolean flag = false;
+	public void resendOtp(final String phoneNumber) throws TFException {
 
 		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
-
-		if (userData.isPresent()) {
-			
-			User user = userData.get();
-			
+		
+		User user = new User();
+		
+		if(userData.isPresent()) {
+			user = userData.get();
 			if(user.getStatus().equalsIgnoreCase(UserStatusEnum.LOCKED.name())) {
 				throw new TFException("Your phone number is temporarily locked");
 			}
-
-			if (commonService.sendOTPToPhone(phoneNumber)) {
-				flag = true;
-			}
+		}else {
+			user.setPhoneNumber(phoneNumber);
+			user.setStatus(UserStatusEnum.ACTIVE.name());
+			
+			userRepository.save(user);
 		}
+		
+		commonService.sendOTPToPhone(phoneNumber);
 
-		return flag;
 	}
 }

@@ -33,6 +33,7 @@ import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
+import com.endeavour.tap4food.app.util.ApiURL;
 import com.endeavour.tap4food.app.util.AppConstants;
 import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.DateUtil;
@@ -174,7 +175,7 @@ public class MerchantService {
 
 				subject = "Tap4Food merchant password reset";
 
-				createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
+				createPasswordLink = ApiURL.API_URL + "/merchant/createPassword?uniqueNumber="
 						+ merchant.getUniqueNumber();
 
 				message = commonService.getResetPasswordHtmlContent()
@@ -182,7 +183,7 @@ public class MerchantService {
 						.replaceAll(EmailTemplateConstants.UNIQUE_NUMBER, String.valueOf(merchant.getUniqueNumber()));
 
 			} else {
-				createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
+				createPasswordLink = ApiURL.API_URL + "/merchant/createPassword?uniqueNumber="
 						+ merchant.getUniqueNumber();
 
 				message = commonService.getCreatePasswordHtmlContent()
@@ -248,11 +249,8 @@ public class MerchantService {
 				System.out.println("Unique number is updated forthe merchant...");
 
 				String merchantEmail = merchant.getEmail();
-
-//				String createPasswordLink = "https://qa.d2sid2ekjjxq24.amplifyapp.com/merchant/createPassword?uniqueNumber="
-//						+ uniqNumber;
 				
-				String createPasswordLink = "https://dev.d1mwa6w2plhb6n.amplifyapp.com/merchant/createPassword?uniqueNumber="
+				String createPasswordLink = ApiURL.API_URL + "/merchant/createPassword?uniqueNumber="
 						+ uniqNumber;
 
 				String message = commonService.getCreatePasswordHtmlContent()

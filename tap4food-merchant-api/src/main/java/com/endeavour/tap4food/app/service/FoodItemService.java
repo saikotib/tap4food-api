@@ -37,11 +37,22 @@ public class FoodItemService {
 		if(Objects.isNull(foodStall)) {
 			throw new TFException("Foodstall is not found");
 		}else {
-			foodItemRepository.addFoodItem(foodItem);
+			FoodItem existingFoodItem = foodItemRepository.getFoodItemByReqId(foodItem.getRequestId());
+			
+			if(!Objects.isNull(existingFoodItem)) {
+				
+				foodItem.setId(existingFoodItem.getId());
+				foodItem.setPic(existingFoodItem.getPic());
+				
+				foodItemRepository.addFoodItem(foodItem);
+//				foodItemRepository.deleteDummy(existingFoodItem);
+			}else {
+				System.out.println("creating new item....");
+			}
 		}
 	}
 	
-	public void uploadFoodItemPics(final Long fsId, final String requestId, List<MultipartFile> images) throws TFException {
+	public FoodItem uploadFoodItemPics(final Long fsId, final String requestId, List<MultipartFile> images) throws TFException {
 
 		FoodStall foodStall = foodStallRepository.getFoodStallById(fsId);
 		
@@ -67,7 +78,11 @@ public class FoodItemService {
 			
 			foodItem.setPic(existingPics);
 			
-			foodStallRepository.updateFoodStallPic(foodStall);
+			foodItemRepository.updateFoodItemPics(foodItem);
+			
+			System.out.println(">>>" + foodItem);
+			
+			return foodItem;
 		}
 	}
 	

@@ -247,7 +247,7 @@ public class FoodStallService {
 		return foodStallTimings;
 	}
 	
-	public void uploadFoodStallPic(final Long fsId, List<MultipartFile> images, String type) throws TFException {
+	public FoodStall uploadFoodStallPic(final Long fsId, List<MultipartFile> images, String type) throws TFException {
 
 		FoodStall foodStall = foodStallRepository.getFoodStallById(fsId);
 		
@@ -288,6 +288,8 @@ public class FoodStallService {
 			}
 			
 			foodStallRepository.updateFoodStallPic(foodStall);
+			
+			return foodStall;
 		}
 	}
 	

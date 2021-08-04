@@ -67,7 +67,9 @@ public class MerchantController {
 	}
 
 	@RequestMapping(value = "/create-merchant", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> createMerchant(@Valid @RequestBody Merchant merchant) {
+	public ResponseEntity<?> createMerchant(@Valid @RequestBody Merchant merchant, 
+			@RequestParam(value = "childMerchantCreationFlag", required = false) boolean childMerchantCreationFlag,
+			@RequestParam(value = "parent-merchant", required = false) Long parentMerchantId) {
 
 		/* merchant.setCreatedBy("Admin"); */
 		try {
@@ -106,8 +108,6 @@ public class MerchantController {
 
 		return response;
 	}
-
-	
 
 	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadPic(@Valid @PathVariable("merchant-id") Long id,
@@ -248,6 +248,8 @@ public class MerchantController {
 
 		return response;
 	}
+	
+	
 
 
 }
