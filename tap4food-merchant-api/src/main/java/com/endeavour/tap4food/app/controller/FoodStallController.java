@@ -3,9 +3,7 @@ package com.endeavour.tap4food.app.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -30,6 +28,7 @@ import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
+import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
@@ -130,10 +129,10 @@ public class FoodStallController {
 
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-category", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-category", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Category category) throws TFException {
 
-		foodStallService.hideCategory(foodStallId, category);
+		category = foodStallService.toggleCategory(foodStallId, category);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(category).build();
@@ -175,10 +174,10 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-subcategory", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-subcategory", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideSubCategory(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody SubCategory menuSubCategories) throws TFException {
 
-		foodStallService.hideSubCategory(foodStallId, menuSubCategories);
+		menuSubCategories = foodStallService.toggleSubCategory(foodStallId, menuSubCategories);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(menuSubCategories).build();
@@ -219,10 +218,10 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-cuisine", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-cuisine", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideCuisine(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody Cuisine cuisine) throws Exception {
 
-		foodStallService.hideCustomizeType(foodStallId, cuisine);
+		cuisine = foodStallService.toggleCusine(foodStallId, cuisine);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(cuisine).build();
@@ -253,31 +252,9 @@ public class FoodStallController {
 	}
 	
 	@RequestMapping(path = "/{fs-id}/edit-customize-food-item", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> editCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, @RequestParam("customise-type") String customiseType, @RequestBody Map<String, String> foodItemDataMap) throws TFException {
+	public ResponseEntity<ResponseHolder> editCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, @RequestBody CustFoodItem foodItem) throws TFException {
 
-		if(!foodItemDataMap.containsKey("prev-item-name")) {
-			throw new TFException("Existing item name is missing");
-		}
-		
-		if(!foodItemDataMap.containsKey("prev-item-price")) {
-			throw new TFException("Existing item price is missing");
-		}
-		
-		if(!foodItemDataMap.containsKey("new-item-name")) {
-			throw new TFException("Latest item name is missing");
-		}
-		
-		if(!foodItemDataMap.containsKey("new-item-price")) {
-			throw new TFException("Latest item price is missing");
-		}		
-		
-		Map<String, Double> oldDataMap = new HashMap<String, Double>();
-		Map<String, Double> newDataMap = new HashMap<String, Double>();
-		
-		oldDataMap.put(foodItemDataMap.get("prev-item-name"), Double.parseDouble(foodItemDataMap.get("prev-item-price")));
-		newDataMap.put(foodItemDataMap.get("new-item-name"), Double.parseDouble(foodItemDataMap.get("new-item-price")));
-		
-		foodStallService.editCustomizeFoodItem(foodStallId, customiseType.trim(), oldDataMap, newDataMap);
+		foodStallService.editCustomizeFoodItem(foodStallId, foodItem);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data("Customise Food item is updated successfully").build();
@@ -296,10 +273,10 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 
-	@RequestMapping(path = "/{fs-id}/toggle-visible-customize-type", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{fs-id}/toggle-customize-type", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> hideCustomizeType(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustomizeType customizeType) throws TFException {
 
-		foodStallService.hideCustomizeType(foodStallId, customizeType);
+		customizeType = foodStallService.toggleCustomizeType(foodStallId, customizeType);
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(customizeType).build();
@@ -307,21 +284,21 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
-	@RequestMapping(path = "/{fs-id}/add-customize-food-item", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody Map<String, String> customizeFoodItemMap) throws TFException {
+	@RequestMapping(path = "/{fs-id}/toggle-customize-fooditem", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> hideCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, @Valid @RequestBody CustFoodItem customizeFoodItem) throws TFException {
 
-		if(!customizeFoodItemMap.containsKey("name")) {
-			throw new TFException("Item name is missing");
-		}
-		
-		if(!customizeFoodItemMap.containsKey("price")) {
-			throw new TFException("Item price is missing");
-		}
-		
-		Map<String, Double> foodItemMap = new HashMap<String, Double>();
-		foodItemMap.put(customizeFoodItemMap.get("name"), Double.parseDouble(customizeFoodItemMap.get("price")));
-		
-		foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, foodItemMap);
+		customizeFoodItem = foodStallService.toggleCustomizeFoodItem(foodStallId, customizeFoodItem);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(customizeFoodItem).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = "/{fs-id}/add-customize-food-item", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody CustFoodItem customizeFoodItem) throws TFException {
+
+		foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, customizeFoodItem);
 
 		ResponseHolder response = ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
 				.data("Customise food item saved successfully").build();
@@ -390,6 +367,23 @@ public class FoodStallController {
 		} else {
 			ResponseHolder response = ResponseHolder.builder().status("error")
 					.timestamp(String.valueOf(LocalDateTime.now())).data("no subcategories available").build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+	
+	@RequestMapping(value = "/{fs-id}/fetch-customise-fooditems", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getCustomiseFoodItems(@PathVariable("fs-id") Long foodStallId) throws TFException {
+		
+		List<CustFoodItem> customiseFoodItem = foodStallService.getAllCustomiseFoodItems(foodStallId);
+		
+		if (!customiseFoodItem.isEmpty()) {
+			ResponseHolder response = ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(customiseFoodItem).build();
+			return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		} else {
+			ResponseHolder response = ResponseHolder.builder().status("error")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("No data found").build();
 			return new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
 		}
 

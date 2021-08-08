@@ -3,11 +3,8 @@ package com.endeavour.tap4food.app.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
-import javax.validation.Valid;
 
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
@@ -19,14 +16,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
-import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
+import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
-import com.endeavour.tap4food.app.util.AppConstants;
 
 @Service
 public class FoodStallService {
@@ -60,11 +56,11 @@ public class FoodStallService {
 
 	public void editCategory(Long fsId, Category category) throws TFException {
 
-		foodStallRepository.updateCategory(fsId, category);
+		foodStallRepository.updateCategory(fsId, category, false);
 	}
 
 	public void editSubCategory(Long fsId, SubCategory subCategory) throws TFException {
-		foodStallRepository.updateSubCategory(fsId, subCategory);
+		foodStallRepository.updateSubCategory(fsId, subCategory, false);
 	}
 
 	public void removeCategory(Long fsId, Category category) throws TFException {
@@ -75,24 +71,13 @@ public class FoodStallService {
 		foodStallRepository.removeSubCategory(fsId, subCategory);
 	}
 
-	public void hideCategory(Long fsId, Category category) throws TFException {
-		if (category.getVisible().equals(false)) {
-			category.setVisible(false);
-			foodStallRepository.saveCategory(fsId, category);
-		} else {
-			category.setVisible(true);
-			foodStallRepository.saveCategory(fsId, category);
-		}
+	public Category toggleCategory(Long fsId, Category category) throws TFException {
+		return foodStallRepository.updateCategory(fsId, category, true);
 	}
 
-	public void hideSubCategory(Long fsId,  SubCategory subCategory) throws TFException {
-		if (subCategory.getVisible().equals(false)) {
-			subCategory.setVisible(false);
-			foodStallRepository.saveSubCategory(fsId, subCategory);
-		} else {
-			subCategory.setVisible(true);
-			foodStallRepository.saveSubCategory(fsId, subCategory);
-		}
+	public SubCategory toggleSubCategory(Long fsId,  SubCategory subCategory) throws TFException {
+
+		return foodStallRepository.updateSubCategory(fsId, subCategory, true);
 	}
 
 	public List<Category> getAllCategories(Long fsId) throws TFException {
@@ -123,23 +108,33 @@ public class FoodStallService {
 	
 	public List<CustomizeType> getAllCustomiseTypes(Long fsId) throws TFException {
 		Optional<List<CustomizeType>> customiseTypesData = foodStallRepository.getAllCustomiseTypes(fsId);
+		
+		List<CustomizeType> customiseTypes = new ArrayList<CustomizeType>();
+		
 		if (customiseTypesData.isPresent()) {
 			
-			List<CustomizeType> customiseTypes = customiseTypesData.get();
-			for(CustomizeType customiseType : customiseTypes) {
-				customiseType.getCustomizeFoodItems();
-			}
+			customiseTypes = customiseTypesData.get();
+		} 
 
-			return customiseTypes;
-
-		} else {
-			return new ArrayList<CustomizeType>();
-		}
+		return customiseTypes;
 	}
 	
-	public void addCustomizeFoodItem(Long fsId, String customiseTypeName,  Map<String, Double> customiseFoodItemMap) throws TFException {
+	public void addCustomizeFoodItem(Long fsId, String customiseTypeName,  CustFoodItem customiseFoodItem) throws TFException {
 
-		foodStallRepository.saveCustomizeFoodItem(fsId, customiseTypeName, customiseFoodItemMap);
+		foodStallRepository.saveCustomizeFoodItem(fsId, customiseTypeName, customiseFoodItem);
+	}
+	
+	public List<CustFoodItem> getAllCustomiseFoodItems(Long fsId) throws TFException {
+		Optional<List<CustFoodItem>> customiseFoodItemData = foodStallRepository.getAllCustomiseFoodItems(fsId);
+		
+		List<CustFoodItem> customiseFoodItems = new ArrayList<CustFoodItem>();
+		
+		if (customiseFoodItemData.isPresent()) {
+			
+			customiseFoodItems = customiseFoodItemData.get();
+		} 
+
+		return customiseFoodItems;
 	}
 
 	public void editCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
@@ -148,28 +143,24 @@ public class FoodStallService {
 			throw new TFException("ID field is mandatory");
 		}
 		
-		foodStallRepository.updateCustomizeType(fsId, customizeType);
+		foodStallRepository.updateCustomizeType(fsId, customizeType, false);
 	}
 	
-	public void editCustomizeFoodItem(Long fsId, String customiseType, Map<String, Double> oldDataMap, Map<String, Double> newDataMap) throws TFException {
+	public void editCustomizeFoodItem(Long fsId, CustFoodItem foodItem) throws TFException {
 		
-		foodStallRepository.updateCustomizeFoodItem(fsId, customiseType, oldDataMap, newDataMap);
+		foodStallRepository.updateCustomizeFoodItem(fsId, foodItem, false);
 	}
 
 	public void removeCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
 		foodStallRepository.removeCustomizeType(fsId, customizeType);
 	}
 
-	public void hideCustomizeType(Long fsId,  CustomizeType customizeType) throws TFException {
-		if (customizeType.getVisible().equals(false)) {
-			customizeType.setVisible(false);
-			foodStallRepository.saveCustomizeType(fsId, customizeType);
-
-		} else {
-			customizeType.setVisible(true);
-			foodStallRepository.saveCustomizeType(fsId, customizeType);
-		}
-
+	public CustomizeType toggleCustomizeType(Long fsId,  CustomizeType customizeType) throws TFException {
+		return foodStallRepository.updateCustomizeType(fsId, customizeType, true);
+	}
+	
+	public CustFoodItem toggleCustomizeFoodItem(Long fsId,  CustFoodItem customizeFoodItem) throws TFException {
+		return foodStallRepository.updateCustomizeFoodItem(fsId, customizeFoodItem, true);
 	}
 
 	public void addCuisineName(Long fsId,  Cuisine cuisine) throws TFException {
@@ -178,7 +169,7 @@ public class FoodStallService {
 	}
 
 	public void editCusine(Long fsId, Cuisine cuisine) throws TFException {
-		foodStallRepository.updateCuisine(fsId, cuisine);
+		foodStallRepository.updateCuisine(fsId, cuisine, false);
 
 	}
 
@@ -187,16 +178,9 @@ public class FoodStallService {
 
 	}
 
-	public void hideCustomizeType(Long fsId,  Cuisine cuisine) throws TFException {
+	public Cuisine toggleCusine(Long fsId,  Cuisine cuisine) throws TFException {
 
-		if (cuisine.getVisible().equals(false)) {
-			cuisine.setVisible(false);
-			foodStallRepository.saveCuisine(fsId, cuisine);
-
-		} else {
-			cuisine.setVisible(true);
-			foodStallRepository.saveCuisine(fsId, cuisine);
-		}
+		return foodStallRepository.updateCuisine(fsId, cuisine, true);
 	}
 
 	public List<Cuisine> getAllCuisines(Long fsId) throws TFException {

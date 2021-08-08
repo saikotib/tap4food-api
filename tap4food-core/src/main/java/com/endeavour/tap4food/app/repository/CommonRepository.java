@@ -33,6 +33,7 @@ public class CommonRepository {
 			
 			Update update = new Update();
 			update.set("otp", otp.getOtp());
+			update.set("isExpired", false);
 			
 			mongoTemplate.upsert(query, update, Otp.class);
 			

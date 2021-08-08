@@ -2,7 +2,9 @@ package com.endeavour.tap4food.app.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.bson.BsonBinarySubType;
@@ -14,8 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.fooditem.AddOns;
-import com.endeavour.tap4food.app.model.fooditem.CustomisedFoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.repository.FoodItemRepository;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
 
@@ -45,11 +48,17 @@ public class FoodItemService {
 				foodItem.setPic(existingFoodItem.getPic());
 				
 				foodItemRepository.addFoodItem(foodItem);
-//				foodItemRepository.deleteDummy(existingFoodItem);
+				
+				System.out.println("Food Item is added. Now adding to procing");
+				this.addItemPricing(foodItem);
 			}else {
 				System.out.println("creating new item....");
 			}
 		}
+	}
+	
+	public void addItemPricing(FoodItem foodItem) {
+		foodItemRepository.addItemPricing(foodItem);
 	}
 	
 	public FoodItem uploadFoodItemPics(final Long fsId, final String requestId, List<MultipartFile> images) throws TFException {
@@ -96,16 +105,91 @@ public class FoodItemService {
 		return foodItemRepository.getAddOns(fsId);
 	}
 	
-	public void addCustomisedFoodItems(String requestId, List<CustomisedFoodItem> customisedFoodItems) throws TFException {
+	public void addFoodItemCustomiseDetails(String requestId, FoodItemCustomiseDetails foodItemCustomiseDetails) throws TFException {
 		
 		FoodItem foodItem = foodItemRepository.getFoodItemByReqId(requestId);
 
-		foodItemRepository.addCustomisedFoodItems(foodItem.getFoodItemId(), customisedFoodItems);
-	}
-	
-	public List<CustomisedFoodItem> getCustomisedFoodItems(Long foodItemId){
+		foodItemRepository.addFoodItemCustomiseDetails(foodItem.getFoodItemId(), foodItemCustomiseDetails);
 		
-		return foodItemRepository.getCustomisedFoodItems(foodItemId);
+		if(Objects.nonNull(foodItemCustomiseDetails.getId())) {
+			System.out.println("Food item customisation details are saved successfully");
+		}
+		
+		this.addItemCustomizationPricing(foodItem, foodItemCustomiseDetails);
 	}
 	
+	public void addItemCustomizationPricing(FoodItem foodItem, FoodItemCustomiseDetails customizationDetails) {
+
+		String category = foodItem.getCategory();
+		String subCategory = foodItem.getSubCategory();
+		String foodItemName = foodItem.getFoodItemName();
+		Long foodItemId = foodItem.getFoodItemId();
+		String foodItemDescription = foodItem.getDescription();
+		
+		Map<String, List<String>> customiseTypesMap = this.processCustomizationLists(customizationDetails.getCustomiseTypes());
+		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems());
+		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications());
+		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions());
+		Map<String, List<String>> customiseFoodItemsSelectButtons = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsSelectButtons());
+		
+		List<String> addOnItems = customizationDetails.getAddOnItemsIds();
+		
+		List<String> foodItemCombinations = new ArrayList<String>();
+		for(List<String> list : customizeFoodItems.values()) {
+			foodItemCombinations = prepareCombinations(foodItemCombinations, list);
+		}
+		
+		System.out.println("Combinations : " + foodItemCombinations);
+		
+		List<FoodItemCustomizationPricing> foodItemCustPricing = new ArrayList<FoodItemCustomizationPricing>();
+		
+		for(String combination : foodItemCombinations) {
+			FoodItemCustomizationPricing custPricingData = new FoodItemCustomizationPricing();
+			custPricingData.setCategory(category);
+			custPricingData.setSubCategory(subCategory);
+			custPricingData.setFoodItemId(foodItemId);
+			custPricingData.setFoodItemName(foodItemName);
+			custPricingData.setPrice(Double.valueOf(0));
+			custPricingData.setCustomiseType(combination);
+			
+			foodItemCustPricing.add(custPricingData);
+		}
+		
+		foodItemRepository.addItemCustomizationPricing(foodItemCustPricing);
+	}
+	
+	public List<String> prepareCombinations(List<String> combinations, List<String> list) {
+		
+		List<String> latestCombinations = new ArrayList<String>();
+		for(String str1 : combinations) {
+			for(String str2 : list) {
+				String str = str1 + " " + str2;
+				latestCombinations.add(str);
+			}
+		}
+
+		if(!combinations.containsAll(list))
+			combinations.addAll(list);
+		combinations.addAll(latestCombinations);
+		
+		return combinations;
+	}
+	
+	private Map<String, List<String>> processCustomizationLists(List<String> dataList){
+		Map<String, List<String>> dataMap = new HashMap<String, List<String>>();
+		
+		for(String data : dataList) {
+			String dataTokens[] = data.split("~");
+			
+			if(!dataMap.containsKey(dataTokens[0])) {
+				dataMap.put(dataTokens[0], new ArrayList<String>());
+			}
+			
+			List<String> processedList = dataMap.get(dataTokens[0]);
+			processedList.add(dataTokens[1]);
+			dataMap.put(dataTokens[0], processedList);
+		}
+		
+		return dataMap;
+	}
 }

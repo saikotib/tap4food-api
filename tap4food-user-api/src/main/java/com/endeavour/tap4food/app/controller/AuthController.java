@@ -102,6 +102,22 @@ public class AuthController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/update-otp-expiry", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateOtpExpiryStatus(@RequestParam("phone-number") String phoneNumber) throws TFException {
+
+		customerService.setOtpExpited(phoneNumber);
+		
+		ResponseHolder response = null;
+		
+		response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data("OTP expiry is set successfully!")
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	
 
 	@RequestMapping(value = "/signin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)

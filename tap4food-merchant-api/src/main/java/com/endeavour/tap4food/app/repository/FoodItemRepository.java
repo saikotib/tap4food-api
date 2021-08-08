@@ -12,8 +12,10 @@ import org.springframework.stereotype.Repository;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.fooditem.AddOns;
-import com.endeavour.tap4food.app.model.fooditem.CustomisedFoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
@@ -101,23 +103,41 @@ public class FoodItemRepository {
 		return foodStallID;
 	}
 	
-	public void addCustomisedFoodItems(Long foodItemId, List<CustomisedFoodItem> customisedFoodItems) throws TFException {
+	public FoodItemCustomiseDetails addFoodItemCustomiseDetails(Long foodItemId, FoodItemCustomiseDetails foodItemCustomiseDetails) throws TFException {
 
+		foodItemCustomiseDetails.setFoodItemId(foodItemId);
 		
-		for(CustomisedFoodItem customisedFoodItem : customisedFoodItems) {
-			
-			customisedFoodItem.setFoodItemId(foodItemId);
-			mongoTemplate.save(customisedFoodItem);
-		}
+		mongoTemplate.save(foodItemCustomiseDetails);
 		
+		return foodItemCustomiseDetails;
 	}
 	
-	public List<CustomisedFoodItem> getCustomisedFoodItems(Long foodItemId){
+	public void addItemPricing(FoodItem foodItem) {
 		
-		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		FoodItemPricing itemPricingInfo = new FoodItemPricing();
+		itemPricingInfo.setCategory(foodItem.getCategory());
+		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
+		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
+		itemPricingInfo.setPrice(Double.valueOf(0));
 		
-		List<CustomisedFoodItem> customisedFoodItems = mongoTemplate.find(query, CustomisedFoodItem.class);
+		mongoTemplate.save(itemPricingInfo);
+	}
+	
+	public void addItemCustomizationRawData(FoodItem foodItem, FoodItemCustomiseDetails customizationDetails) {
 		
-		return customisedFoodItems;
+		FoodItemPricing itemPricingInfo = new FoodItemPricing();
+		itemPricingInfo.setCategory(foodItem.getCategory());
+		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
+		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
+		itemPricingInfo.setPrice(Double.valueOf(0));
+		
+		mongoTemplate.save(itemPricingInfo);
+	}
+	
+	public void addItemCustomizationPricing(List<FoodItemCustomizationPricing> pricingDataList) {
+		
+		for(FoodItemCustomizationPricing pricingData : pricingDataList) {
+			mongoTemplate.save(pricingData);
+		}
 	}
 }

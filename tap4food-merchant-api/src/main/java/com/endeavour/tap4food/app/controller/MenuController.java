@@ -16,8 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.fooditem.AddOns;
-import com.endeavour.tap4food.app.model.fooditem.CustomisedFoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.FoodItemService;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -114,29 +114,16 @@ public class MenuController {
 	public ResponseEntity<ResponseHolder> addFoodItemCustomiseDetails(@RequestParam("merchant-id") Long merchantId,
 			@RequestParam("fs-id") Long fsId,
 			@RequestParam("request-id") String requestId,
-			@RequestBody List<CustomisedFoodItem> customisedFoodItems) throws TFException{
+			@RequestBody FoodItemCustomiseDetails foodItemCustomiseDetails) throws TFException{
 		
-		foodItemService.addCustomisedFoodItems(requestId, customisedFoodItems);
+		foodItemService.addFoodItemCustomiseDetails(requestId, foodItemCustomiseDetails);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
-				.data("Customisation details are added")
+				.data("Customisation details are saved")
 				.build();
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/get-customised-food-items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getCustomisedFoodItems(@RequestParam("fs-id") Long fsId,
-			@RequestParam("food-item-id") Long foodItemId){
-		
-		List<CustomisedFoodItem> customisedFoodItems = foodItemService.getCustomisedFoodItems(foodItemId);
-		
-		ResponseHolder response = ResponseHolder.builder()
-				.status("success")
-				.data(customisedFoodItems)
-				.build();
-		
-		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
-	}
 }

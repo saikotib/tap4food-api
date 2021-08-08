@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ public class CustomerService {
 		otpObject.setIsExpired(false);
 		otpObject.setOtp(otp);
 		otpObject.setPhoneNumber(phoneNumber);
+		otpObject.setIsExpired(false);
 		
 		commonRepository.persistOTP(otpObject);
 				
@@ -65,6 +67,16 @@ public class CustomerService {
 		log.info("The OTP generated : {}", otp);
 		
 		return true;		
+	}
+	
+	public void setOtpExpited(String phoneNumber) {
+		
+		Otp otp = commonRepository.getRecentOtp(phoneNumber);
+		
+		if(!Objects.isNull(otp)) {
+			otp.setIsExpired(true);
+			commonRepository.saveOtp(otp);
+		}
 	}
 	
 	public boolean verifyOTP(final String phoneNumber, final String inputOTP) throws TFException {
@@ -82,6 +94,10 @@ public class CustomerService {
 		}
 		
 		System.out.println("Verify OTP : " + otp);
+		
+		if(otp.getIsExpired()) {
+			throw new TFException("OTP is expired");
+		}
 		
 		if(inputOTP.equalsIgnoreCase(otp.getOtp())) {
 			otpMatch = true;

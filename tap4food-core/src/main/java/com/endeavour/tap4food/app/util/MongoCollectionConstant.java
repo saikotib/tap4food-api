@@ -28,6 +28,8 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_MENU_CUSTOMIZE_TYPE = "customizeTypes";	
 	
+	public static final String COLLECTION_MENU_CUSTOMIZE_FOOD_ITEM = "customizeFoodItems";
+	
 	public static final String COLLECTION_MENU_LISTINGS = "menuListings";
 	
 	public static final String COLLECTION_FOODSTALL_SEQ = "foodStallSequences";
@@ -46,8 +48,11 @@ public class MongoCollectionConstant {
 
 	public static final String COLLECTION_FOOD_ITEM = "foodItems";
 	
-	public static final String COLLECTION_FOOD_ITEM_CUSTOMISATION = "foodItemCustomisation";
+	public static final String COLLECTION_FOOD_ITEM_CUSTOMISATION = "foodItemCustomisationDetails";
 	
 	public static final String COLLECTION_FOODITEM_PICS = "foodItemPics";
+	
+	public static final String COLLECTION_FOODITEM_PRICING = "foodItemPricing";
 
+	public static final String COLLECTION_FOODITEM_CUST_PRICING = "foodItemCustimzationPricing";
 }
