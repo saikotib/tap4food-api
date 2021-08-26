@@ -2,6 +2,7 @@ package com.endeavour.tap4food.app.repository;
 
 import static com.mongodb.client.model.Sorts.descending;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -19,16 +20,17 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodCourtUniqueNumber;
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
-import com.endeavour.tap4food.app.model.menu.Category;
-import com.endeavour.tap4food.app.model.menu.Cuisine;
-import com.endeavour.tap4food.app.model.menu.CustomizeType;
-import com.endeavour.tap4food.app.model.menu.SubCategory;
+import com.endeavour.tap4food.app.response.dto.StallManager;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -38,6 +40,9 @@ public class MerchantRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+	
+//	@Autowired
+//	private FoodStallRepository foodStallRepository;
 
 	private String merchantCollection = MongoCollectionConstant.COLLECTION_MERCHANT_UNIQUE_NUMBER;
 
@@ -68,6 +73,48 @@ public class MerchantRepository {
 
 		return Optional.ofNullable(merchant);
 	}
+	
+	public Merchant getMerchant(Long merchantId) throws TFException {
+		
+		Optional<Merchant> merchantData = this.findByUniqueNumber(merchantId);
+		
+		if(merchantData.isPresent()) {
+			return merchantData.get();
+		}else {
+			throw new TFException("Merchant not found");
+		}		
+	}
+	
+	public List<StallManager> getStallManagers(Long parentMerchantId) throws TFException {
+		
+		Query query = new Query(Criteria.where("parentMerchant").is(parentMerchantId));
+		
+		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
+		
+		List<StallManager> stallManagers = new ArrayList<StallManager>();
+		
+		for(Merchant manager : merchants) {
+			StallManager stallManager = new StallManager();
+			stallManager.setEmail(manager.getEmail());
+			stallManager.setManagerName(manager.getUserName());
+			stallManager.setPhoneNumber(manager.getPhoneNumber());
+			stallManager.setManagerId(manager.getUniqueNumber());
+			
+			query = new Query(Criteria.where("managerId").is(manager.getUniqueNumber()));
+			
+			FoodStall stall = mongoTemplate.findOne(query, FoodStall.class);
+
+			if(Objects.nonNull(stall)) {
+				stallManager.setFoodStallId(stall.getFoodStallId());
+				stallManager.setFoodStallName(stall.getFoodStallName());
+				
+				stallManagers.add(stallManager);
+			}
+			
+		}
+		
+		return stallManagers;	
+	}
 
 	public Optional<Merchant> findByUniqueNumber(Long uniqueNumber) {
 		Query query = new Query(Criteria.where("uniqueNumber").is(uniqueNumber));
@@ -75,7 +122,7 @@ public class MerchantRepository {
 		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
 
 		System.out.println("Merchant : " + merchant);
-
+		
 		return Optional.ofNullable(merchant);
 	}
 
@@ -147,14 +194,14 @@ public class MerchantRepository {
 		return Optional.ofNullable(merchant);
 	}
 
-	public boolean createMerchant(Merchant merchant) {
+	public Merchant createMerchant(Merchant merchant) {
 
 		boolean flag = false;
 		mongoTemplate.save(merchant);
 		if (merchant.getId() != null) {
 			flag = true;
 		}
-		return flag;
+		return merchant;
 	}
 
 	public boolean updateUniqueNumber(Merchant merchant) {
@@ -179,6 +226,8 @@ public class MerchantRepository {
 				Merchant existingMerchant = existingMerchantData.get();
 				existingMerchant.setPersonalIdNumber(merchant.getPersonalIdNumber());
 				existingMerchant.setUserName(Objects.isNull(merchant.getUserName()) ? existingMerchant.getUserName() : merchant.getUserName());
+				existingMerchant.setBlockedTimeMs(merchant.getBlockedTimeMs());
+				existingMerchant.setStatus(merchant.getStatus());
 				
 				if(changePasswordFlag) {
 					existingMerchant.setPassword(merchant.getPassword());
@@ -300,4 +349,19 @@ public class MerchantRepository {
 		
 	}
 
+	public List<BusinessUnit> getBusinessUnits(String country, String state, String city){
+		Query query = new Query(Criteria.where("country").is(country).andOperator(Criteria.where("state").is(state), Criteria.where("city").is(city)));
+		
+		List<BusinessUnit> businessUnits = mongoTemplate.find(query, BusinessUnit.class);
+		
+		return businessUnits;
+	}
+	
+	public List<FoodCourt> getFoodcourts(Long buId ){
+		Query query = new Query(Criteria.where("businessUnitId").is(buId));
+		
+		List<FoodCourt> foodCourts = mongoTemplate.find(query, FoodCourt.class);
+		
+		return foodCourts;
+	}
 }

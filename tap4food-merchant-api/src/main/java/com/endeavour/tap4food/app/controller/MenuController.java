@@ -18,6 +18,8 @@ import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.fooditem.AddOns;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.FoodItemService;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -95,6 +97,58 @@ public class MenuController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/get-fooditems-pricing-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemPricingInfo(@RequestParam("fs-id") Long fsId){
+		
+		List<FoodItemPricing> foodItems = foodItemService.getFoodItemPricingDetails(fsId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/update-fooditem-price", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodItemPrice(@RequestParam("fs-id") Long fsId, @RequestParam("pricing-id") String pricingId, @RequestParam("price") Double price) throws TFException{
+		
+		FoodItemPricing foodItemPricing = foodItemService.updateFoodItemPrice(fsId, pricingId, price);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItemPricing)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-fooditems-customizing-pricing-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemCustomizingPricingInfo(@RequestParam("fs-id") Long fsId){
+		
+		List<FoodItemCustomizationPricing> foodItems = foodItemService.getFoodItemCustomizationPricingDetails(fsId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/update-fooditem-customization-price", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodItemCustomizationPrice(@RequestParam("fs-id") Long fsId, @RequestParam("pricing-id") String pricingId, @RequestParam("price") Double price){
+		
+		FoodItemCustomizationPricing foodItemPricing = foodItemService.updateFoodItemCustomizationPrice(fsId, pricingId, price);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItemPricing)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/load-add-ons", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> loadAddOns(@RequestParam("merchant-id") Long merchantId,
 			@RequestParam("fs-id") Long fsId){
@@ -104,8 +158,7 @@ public class MenuController {
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
 				.data(addOns)
-				.build();
-		
+				.build();		
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}

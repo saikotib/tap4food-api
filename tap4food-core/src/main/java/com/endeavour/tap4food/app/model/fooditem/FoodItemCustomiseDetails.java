@@ -20,6 +20,8 @@ public class FoodItemCustomiseDetails {
 	private Long foodItemId;
 
 	private String foodItemName;
+	
+	private Long foodStallId;
 
 	private String foodItemDescription;
 

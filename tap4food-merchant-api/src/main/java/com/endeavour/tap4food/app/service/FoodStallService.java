@@ -1,14 +1,21 @@
 package com.endeavour.tap4food.app.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,18 +30,30 @@ import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
+import com.endeavour.tap4food.app.util.MediaConstants;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class FoodStallService {
 
 	@Autowired
 	private FoodStallRepository foodStallRepository;
+	
+	@Autowired
+	private CommonService commonService;
+	
+	@Value("${images.server}")
+	private String mediaServerUrl;
 
 	public FoodStall createFoodStall(Long merchantUniqNumber, FoodStall foodStall) throws TFException {
 
 		foodStall.setRating(4.7);
+		
 		foodStallRepository.createNewFoodStall(merchantUniqNumber, foodStall);
 
+		commonService.createMediaFolderStructure(merchantUniqNumber, foodStall.getFoodStallId());
 		return foodStall;
 	}
 	
@@ -119,9 +138,9 @@ public class FoodStallService {
 		return customiseTypes;
 	}
 	
-	public void addCustomizeFoodItem(Long fsId, String customiseTypeName,  CustFoodItem customiseFoodItem) throws TFException {
+	public CustFoodItem addCustomizeFoodItem(Long fsId, String customiseTypeName,  CustFoodItem customiseFoodItem) throws TFException {
 
-		foodStallRepository.saveCustomizeFoodItem(fsId, customiseTypeName, customiseFoodItem);
+		return foodStallRepository.saveCustomizeFoodItem(fsId, customiseTypeName, customiseFoodItem);
 	}
 	
 	public List<CustFoodItem> getAllCustomiseFoodItems(Long fsId) throws TFException {
@@ -206,7 +225,10 @@ public class FoodStallService {
 	
 	public FoodStall getFoodStallById(Long fsId) {
 		
-		return foodStallRepository.getFoodStallById(fsId);
+		FoodStall stall = foodStallRepository.getFoodStallById(fsId);
+		stall.setQrCode(mediaServerUrl + "/QRCodes/" + stall.getFoodCourtId() + ".png");
+		
+		return stall;
 	}
 	
 	public FoodStallTimings getFoodStallTimings(final Long fsId) throws TFException {
@@ -240,31 +262,87 @@ public class FoodStallService {
 		}else {
 			try {
 				if(type.equalsIgnoreCase("FOODSTALL_PICS")) {
-					List<Binary> existingPics = foodStall.getFoodStallPics();
+					
+					String uploadPath = commonService.getMerhantMediaDirs().get(MediaConstants.GET_KEY_STALL_PROFILE_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(foodStall.getMerchantId())).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStall.getFoodStallId()));
+					
+					Path path = Paths.get(uploadPath);
+					
+					Set<String> existingPics = foodStall.getFoodStallPics();
 					
 					if(Objects.isNull(existingPics)) {
-						existingPics = new ArrayList<Binary>();
+						existingPics = new HashSet<String>();
 					}
 					
 					for(MultipartFile inputImage : images) {
-						existingPics.add(new Binary(BsonBinarySubType.BINARY, inputImage.getBytes()));
+						
+						File existingFile = new File(uploadPath + File.separator + inputImage.getOriginalFilename());
+						
+						if(existingFile.exists()) {
+							if(existingFile.delete()) {
+								log.info("Deleted the existing file");
+							}
+						}
+						
+						Files.copy(inputImage.getInputStream(), path.resolve(inputImage.getOriginalFilename()));
+						
+						log.info("Profile Image Path : " + uploadPath);
+						log.info("Profile Image Name : " + inputImage.getOriginalFilename());
+						
+						log.info("Is Base Loc found :" + uploadPath.contains(commonService.getMediaBaseLocation()));
+						
+						String picLink = uploadPath.replaceAll(commonService.getMediaBaseLocation(), "").replaceAll("\\\\", "/");
+
+						picLink = mediaServerUrl + picLink + "/" + inputImage.getOriginalFilename();
+						
+						log.info("profilePicLink :" + picLink);
+					
+						
+						existingPics.add(picLink);
 					}
 					
 					foodStall.setFoodStallPics(existingPics);
 					
 				}else if(type.equalsIgnoreCase("MENU_PICS")) {
 					
-					List<Binary> existingMenuPics = foodStall.getMenuPics();
+					String uploadPath = commonService.getMerhantMediaDirs().get(MediaConstants.GET_KEY_MENU_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(foodStall.getMerchantId())).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStall.getFoodStallId()));
 					
-					if(Objects.isNull(existingMenuPics)) {
-						existingMenuPics = new ArrayList<Binary>();
+					Path path = Paths.get(uploadPath);
+					
+					Set<String> existingPics = foodStall.getMenuPics();
+					
+					if(Objects.isNull(existingPics)) {
+						existingPics = new HashSet<String>();
 					}
 					
 					for(MultipartFile inputImage : images) {
-						existingMenuPics.add(new Binary(BsonBinarySubType.BINARY, inputImage.getBytes()));
+						
+						File existingFile = new File(uploadPath + File.separator + inputImage.getOriginalFilename());
+						
+						if(existingFile.exists()) {
+							if(existingFile.delete()) {
+								log.info("Deleted the existing file");
+							}
+						}
+						
+						Files.copy(inputImage.getInputStream(), path.resolve(inputImage.getOriginalFilename()));
+						
+						log.info("Profile Image Path : " + uploadPath);
+						log.info("Profile Image Name : " + inputImage.getOriginalFilename());
+						
+						log.info("Is Base Loc found :" + uploadPath.contains(commonService.getMediaBaseLocation()));
+						
+						String picLink = uploadPath.replaceAll(commonService.getMediaBaseLocation(), "").replaceAll("\\\\", "/");
+
+						picLink = mediaServerUrl + picLink + "/" + inputImage.getOriginalFilename();
+						
+						log.info("profilePicLink :" + picLink);
+					
+						
+						existingPics.add(picLink);
 					}
 					
-					foodStall.setMenuPics(existingMenuPics);
+					foodStall.setMenuPics(existingPics);
+					
 				}				
 				
 			} catch (IOException e) {

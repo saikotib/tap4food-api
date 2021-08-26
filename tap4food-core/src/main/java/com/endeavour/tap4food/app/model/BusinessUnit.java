@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,7 +26,7 @@ public class BusinessUnit {
 	@Id
 	private String id;
 	
-	private String businessUnitId;
+	private Long businessUnitId;
 	
 	private String name;
 	
@@ -50,5 +51,8 @@ public class BusinessUnit {
 	
 	@DBRef
 	private List<FoodCourt> foodCourts;
+	
+	@Transient
+	public static final String SEQUENCE = "businessUnit_Seq";
 }
 

@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.repository;
 import static com.mongodb.client.model.Sorts.descending;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -160,16 +161,43 @@ public class AdminRepository {
 		return false;
 	}
 
-	public List<Merchant> fetchMerchants() {
+	public Map<Long, Merchant> fetchMerchants() {
 
 		Query query = new Query(new Criteria().andOperator(Criteria.where("uniqueNumber").exists(true),
-				Criteria.where("uniqueNumber").ne("")));
+				Criteria.where("uniqueNumber").ne(""), Criteria.where("isPhoneNumberVerified").is(true)));
 
+		query.fields().include("uniqueNumber", "userName", "phoneNumber", "email", "personalIdNumber", "createdBy", "status", "createdDate", "phoneNumberVerified");
 		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
+		
+		Map<Long, Merchant> merchantMap = new HashMap<Long, Merchant>();
+		
+		for(Merchant merchant : merchants) {
+			merchantMap.put(merchant.getUniqueNumber(), merchant);
+		}
 
-		return merchants;
+		return merchantMap;
 	}
-
+	
+	public Map<Long, List<FoodStall>> getFoodStalls(){
+		Query query = new Query();
+		
+		query.fields().include("foodStallId", "foodStallName", "foodStallLicenseNumber", "merchantId", 
+				"location", "foodCourtName", "buType", "buName", "deliveryTime");
+		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
+		
+		Map<Long, List<FoodStall>> foodStallMap = new HashMap<Long, List<FoodStall>>();
+		
+		for(FoodStall stall : foodStalls) {
+			if(!foodStallMap.containsKey(stall.getMerchantId())) {
+				foodStallMap.put(stall.getMerchantId(), new ArrayList<FoodStall>());
+			}
+			
+			foodStallMap.get(stall.getMerchantId()).add(stall);
+		}
+		
+		return foodStallMap;
+	}
+	
 	public Merchant updateMerchantStatus(Long uniqueNumber, String status) throws TFException {
 
 		Optional<Merchant> merchantData = this.findMerchantByUniqueNumber(uniqueNumber);
@@ -278,9 +306,8 @@ public class AdminRepository {
 		return res;
 	}
 
-	public Optional<BusinessUnit> findAdminByBusinessTypeId(String buId) {
-		Query query = new Query();
-		query.addCriteria(Criteria.where("businessUnitId").is(buId));
+	public Optional<BusinessUnit> findBusinessUnit(Long buId) {
+		Query query = new Query(Criteria.where("businessUnitId").is(buId));
 
 		BusinessUnit businessUnit = mongoTemplate.findOne(query, BusinessUnit.class);
 
@@ -297,9 +324,11 @@ public class AdminRepository {
 		return mongoTemplate.save(foodCourt);
 	}
 
-	public List<FoodCourt> findFoodCourtsByBusinessTypeId(String buId) {
+	public List<FoodCourt> findFoodCourtsByBusinessTypeId(Long buId) {
 
-		return mongoTemplate.findAll(FoodCourt.class);
+		Query query = new Query(Criteria.where("businessUnitId").is(buId));
+		
+		return mongoTemplate.find(query, FoodCourt.class);
 	}
 
 	public Optional<FoodCourt> findFoodCourtByFoodCourtId(String foodCourtId) {

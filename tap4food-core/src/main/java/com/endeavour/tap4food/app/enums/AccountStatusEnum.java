@@ -8,5 +8,6 @@ public enum AccountStatusEnum {
 	APPROVED,
 	REJECTED,
 	ACTIVE,
-	INACTIVE
+	INACTIVE,
+	LOCKED
 }

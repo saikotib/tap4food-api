@@ -16,6 +16,8 @@ public class FoodItemCustomizationPricing {
 	
 	private Long foodItemId;
 	
+	private Long foodStallId;
+	
 	private String category;
 	
 	private String subCategory;
@@ -25,4 +27,7 @@ public class FoodItemCustomizationPricing {
 	private String customiseType;
 	
 	private Double price;
+	
+	private String notes;
+	
 }

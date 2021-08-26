@@ -33,6 +33,7 @@ import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
+import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.AdminService;
 import com.endeavour.tap4food.app.util.AvatarImage;
@@ -82,12 +83,12 @@ public class AdminController {
 			responseEntity = ResponseEntity.badRequest().body(response);
 
 		} else {
-			merchant = adminService.createMerchant(merchant);
+			MerchantFoodStall merchantFoodstall = adminService.createMerchant(merchant);
 
-			if (!Objects.isNull(merchant.getId())) {
+			if (Objects.nonNull(merchantFoodstall)) {
 
 				ResponseHolder response = ResponseHolder.builder().status("success")
-						.timestamp(String.valueOf(LocalDateTime.now())).data(merchant).build();
+						.timestamp(String.valueOf(LocalDateTime.now())).data(merchantFoodstall).build();
 
 				responseEntity = ResponseEntity.ok().body(response);
 
@@ -109,7 +110,7 @@ public class AdminController {
 	@RequestMapping(value = "/fetch-merchants", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> fetchMerchants() {
 
-		List<Merchant> merchants = adminService.fetchMerchants();
+		List<MerchantFoodStall> merchants = adminService.fetchMerchants();
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(merchants).build();
@@ -196,7 +197,7 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/bunit/{bu-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadLogo(@Valid @PathVariable("bu-id") String buId,
+	public ResponseEntity<ResponseHolder> uploadLogo(@Valid @PathVariable("bu-id") Long buId,
 			@RequestParam(value = "logo", required = true) MultipartFile logo) {
 
 		Optional<BusinessUnit> businessUnitRes = adminService.uploadLogo(buId, logo);
@@ -218,7 +219,7 @@ public class AdminController {
 	/* Food Court End Points */
 
 	@RequestMapping(value = "/bunit/{bu-id}/add-food-court", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addFoodCourt(@Valid @PathVariable("bu-id") String buId,
+	public ResponseEntity<ResponseHolder> addFoodCourt(@Valid @PathVariable("bu-id") Long buId,
 			@RequestBody FoodCourt foodCourt) {
 
 		Optional<FoodCourt> foodCourtRes = adminService.addFoodCourt(buId, foodCourt);

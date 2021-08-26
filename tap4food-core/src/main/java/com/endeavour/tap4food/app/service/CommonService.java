@@ -1,23 +1,21 @@
 package com.endeavour.tap4food.app.service;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
-import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
@@ -35,12 +31,15 @@ import org.springframework.util.FileCopyUtils;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.util.CommonUtil;
+import com.endeavour.tap4food.app.util.MediaConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class CommonService {
+	
+	private static final Logger logger = Logger.getLogger(CommonService.class.getName());
 
 	@Autowired
 	private CommonRepository commonRepository;
@@ -59,6 +58,9 @@ public class CommonService {
 	
 	@Value("${spring.mail.password}")
 	private String password;
+	
+	@Value("${images.base.path}")
+	private String mediaBaseLocation;
 	
 	@Bean
 	public String getCreatePasswordHtmlContent() {
@@ -142,6 +144,7 @@ public class CommonService {
 		otpObject.setIsExpired(false);
 		otpObject.setOtp(otp);
 		otpObject.setPhoneNumber(phoneNumber);
+		otpObject.setOtpSentTimeInMs(System.currentTimeMillis());
 		
 		commonRepository.persistOTP(otpObject);
 		
@@ -191,4 +194,79 @@ public class CommonService {
         log.info("Mail is delivered to : {}", reciepentMail);
 	}
 	
+	public void createMediaFolderStructure(Long merchantNumber) {
+		
+		File merchantProfilePicDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_MERCHANT_PROFILE_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)));
+		File merchantPesonalIdPicDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_MERCHANT_PERSONAL_ID_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)));
+		
+		if(!merchantProfilePicDir.exists()) {
+			merchantProfilePicDir.mkdirs();
+			logger.info("The merchant profile pics directory is created");
+		}
+		
+		logger.info("merchantPesonalIdPicDir : " + merchantPesonalIdPicDir.getAbsolutePath());
+		
+		if(!merchantPesonalIdPicDir.exists()) {
+			merchantPesonalIdPicDir.mkdirs();
+			logger.info("The merchant personal ID pics directory is created");
+		}
+		
+		logger.info("merchantPesonalIdPicDir : " + merchantPesonalIdPicDir.getAbsolutePath());
+	}
+	
+	public void createMediaFolderStructure(Long merchantNumber, Long foodStallId) {
+		
+		File stallMenuPicsDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_MENU_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
+		File stallProfilePicDic = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_STALL_PROFILE_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
+		File ffoodItemPicDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_FOODITEM_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
+		
+		createMediaFolderStructure(merchantNumber);
+		
+		if(!stallMenuPicsDir.exists()) {
+			stallMenuPicsDir.mkdirs();
+			logger.info("The Foodstall menu pics directory is created");
+		}
+		
+		if(!stallProfilePicDic.exists()) {
+			stallProfilePicDic.mkdirs();
+			logger.info("The Foodstall profile pics directory is created");
+		}
+		
+		if(!ffoodItemPicDir.exists()) {
+			ffoodItemPicDir.mkdirs();
+			logger.info("The Fooditem pics directory is created");
+		}
+		
+		logger.info("stallMenuPicsDir : " + stallMenuPicsDir.getAbsolutePath());
+		
+		logger.info("stallProfilePicDic : " + stallProfilePicDic.getAbsolutePath());
+		
+		logger.info("ffoodItemPicDir : " + ffoodItemPicDir.getAbsolutePath());
+	}
+
+	@Bean
+	public Map<String, String> getMerhantMediaDirs() {
+		Map<String, String> dirsMap = new HashMap<String, String>();
+		dirsMap.put(MediaConstants.GET_KEY_MERCHANT_PROFILE_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + MediaConstants.MERCHANT_PROFILE_PIC);
+		dirsMap.put(MediaConstants.GET_KEY_MERCHANT_PERSONAL_ID_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + MediaConstants.MERCHANT_PESRONALID_PIC);
+		dirsMap.put(MediaConstants.GET_KEY_STALL_PROFILE_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOODSTALL_PROFILE_PIC);
+		dirsMap.put(MediaConstants.GET_KEY_MENU_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOODSTALL_MENU_PICS);
+		dirsMap.put(MediaConstants.GET_KEY_FOODITEM_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOOD_ITEM_PIC);
+	
+		System.out.println(dirsMap);
+		return dirsMap;
+	}
+	
+	public String getMediaBaseLocation() {
+		return this.mediaBaseLocation;
+	}
+	
+	public Long getTimeDiff(Long otpSentTimeInMs) {
+		
+		Long currentTimeInMs = System.currentTimeMillis();
+		
+		Long diff = currentTimeInMs - otpSentTimeInMs;
+		
+		return diff;
+	}
 }

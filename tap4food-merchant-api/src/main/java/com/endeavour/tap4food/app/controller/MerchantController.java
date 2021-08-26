@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -11,6 +12,7 @@ import javax.validation.Valid;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,9 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.app.response.dto.StallManager;
 import com.endeavour.tap4food.app.service.MerchantService;
 import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -65,30 +70,47 @@ public class MerchantController {
 
 		return responseEntity;
 	}
-
+	
+	
 	@RequestMapping(value = "/create-merchant", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> createMerchant(@Valid @RequestBody Merchant merchant, 
-			@RequestParam(value = "childMerchantCreationFlag", required = false) boolean childMerchantCreationFlag,
-			@RequestParam(value = "parent-merchant", required = false) Long parentMerchantId) {
+	public ResponseEntity<ResponseHolder> createMerchant(@Valid @RequestBody Merchant merchant, 
+			@RequestParam(value = "stall-manager-creation-flag", required = false) boolean stallManagerCreationFlag,
+			@RequestParam(value = "parent-merchant", required = false) Long parentMerchantId, 
+			@RequestParam(value = "fs-id", required = false) Long fsId) throws TFException {
 
-		/* merchant.setCreatedBy("Admin"); */
-		try {
-			merchant.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
-			merchant.setProfilePic(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
-		} catch (IOException e) {
-
-		}
-
-		boolean createMerchantResFlag = merchantService.createMerchant(merchant);
 		ResponseEntity response = null;
-
-		if (createMerchantResFlag) {
-			response = ResponseEntity
-					.ok(ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
-							.data("Merchant details saved successfully").build());
-		} else {
-			response = ResponseEntity.badRequest().body("Error occurred");
+		
+		if(stallManagerCreationFlag) {
+			
+			if(Objects.isNull(parentMerchantId)) {
+				throw new TFException("Invalid maerchant/owner ID");
+			}
+			
+			if(Objects.isNull(fsId)) {
+				throw new TFException("Invalid Foodstall ID");
+			}
+			
+			merchant = merchantService.createStallManager(merchant, fsId, parentMerchantId);
+			
+			if (Objects.nonNull(merchant)) {
+				response = ResponseEntity
+						.ok(ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
+								.data(merchant).build());
+			} else {
+				response = ResponseEntity.badRequest().body("Error occurred");
+			}
+		}else {
+			merchant = merchantService.createMerchant(merchant);
+			
+			if (Objects.nonNull(merchant)) {
+				response = ResponseEntity
+						.ok(ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
+								.data(merchant).build());
+			} else {
+				response = ResponseEntity.badRequest().body("Error occurred");
+			}
 		}
+		
 
 		return response;
 
@@ -137,9 +159,6 @@ public class MerchantController {
 			throw new TFException("Error occurred while uploading " + type);
 		} 
 		
-		//test
-		
-
 		return response;
 	}
 
@@ -207,7 +226,7 @@ public class MerchantController {
 	}
 
 	@RequestMapping(value = "/get-merchant-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getMerchantDetailsByUniqueId(@Valid @RequestParam Long uniqueNumber) {
+	public ResponseEntity<ResponseHolder> getMerchantDetailsByUniqueId(@Valid @RequestParam Long uniqueNumber) throws TFException {
 
 		Optional<Merchant> merchantDetailsResponse = merchantService.getMerchantDetailsByUniqueId(uniqueNumber);
 		ResponseEntity<ResponseHolder> response = null;
@@ -225,6 +244,18 @@ public class MerchantController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/get-stall-managers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getStallManagers(@RequestParam("parent-merchant") Long parentMerchantId) throws TFException {
+
+		List<StallManager> stallManagers = merchantService.getStallManagers(parentMerchantId);
+		ResponseEntity<ResponseHolder> response = null;
+
+		response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(stallManagers).build());
+
+		return response;
+	}
+	
 	
 	@RequestMapping(value = "/{merchant-id}/delete-pic", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> deleteProfilePic(@Valid @PathVariable("merchant-id") Long id,
@@ -233,7 +264,7 @@ public class MerchantController {
 		ResponseEntity<ResponseHolder> response = null;
 		Optional<Merchant> merchantResponse = null;
 
-			merchantResponse = merchantService.deleteProfilePic(id,type);
+		merchantResponse = merchantService.deleteProfilePic(id,type);
 
 		if (merchantResponse.isPresent()) {
 
@@ -249,7 +280,36 @@ public class MerchantController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/get-business-units", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getBusinessUnits(@RequestParam("country") String country, 
+			@RequestParam("state") String state,
+			@RequestParam("city") String city){
+		
+		List<BusinessUnit> businessUnits = merchantService.getBusinessUnits(country, state, city);
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(businessUnits)
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;
+	}
 	
+	@RequestMapping(value = "/get-foodcourts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodCourts(@RequestParam("buId") Long buId ){
+		List<FoodCourt> foodCourts = merchantService.getFoodcourts(buId);
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(foodCourts)
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;
+	}
 
 
 }

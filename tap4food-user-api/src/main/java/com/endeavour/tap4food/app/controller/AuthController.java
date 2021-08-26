@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.enums.UserRoleEnum;
+import com.endeavour.tap4food.app.enums.UserStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.payload.request.LoginRequest;
 import com.endeavour.tap4food.app.payload.request.SignupRequest;
@@ -196,6 +197,8 @@ public class AuthController {
 			}
 
 			user.setRoles(roles);
+			
+			user.setStatus(UserStatusEnum.ACTIVE.name());
 			
 			userService.saveUser(user);
 			

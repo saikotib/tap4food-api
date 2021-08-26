@@ -19,6 +19,8 @@ import com.endeavour.tap4food.app.model.fooditem.AddOns;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.repository.FoodItemRepository;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
 
@@ -100,6 +102,62 @@ public class FoodItemService {
 		return foodItemRepository.getFoodItems(fsId);
 	}
 	
+	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
+		
+		return foodItemRepository.getFoodItemPricingDetails(fsId);
+	}
+	
+	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double newPrice) throws TFException {
+		FoodItemPricing itemPricing = foodItemRepository.updateFoodItemPrice(fsId, pricingId, newPrice);
+		
+		System.out.println("FoodItem price is updated.");
+		
+		return itemPricing;
+	}
+	
+	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetails(Long fsId, Long foodItemId){
+		
+		List<FoodItemCustomizationPricing> customizationPricingDetailsList = foodItemRepository.getFoodItemPricingDetailsWithCustomization(fsId);
+		
+		List<FoodItemCustomizationPricing> foodItemCustomizationPricingDetailsList = new ArrayList<FoodItemCustomizationPricing>();
+				
+		for(FoodItemCustomizationPricing customizationPricingInfo : customizationPricingDetailsList) {
+			
+			if(customizationPricingInfo.getFoodItemId().equals(foodItemId)) {
+				foodItemCustomizationPricingDetailsList.add(customizationPricingInfo);
+			}
+		}
+		
+		return foodItemCustomizationPricingDetailsList;
+	}
+	
+	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetails(Long fsId){
+		
+		return foodItemRepository.getFoodItemPricingDetailsWithCustomization(fsId);
+	}
+	
+	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetailsForResponse(Long fsId){
+		
+		List<FoodItemCustomizationPricing> responseList = new ArrayList<FoodItemCustomizationPricing>();
+		
+		List<FoodItemCustomizationPricing> existingList = this.getFoodItemCustomizationPricingDetails(fsId);
+		
+		for(FoodItemCustomizationPricing pricingObject : existingList) {
+			pricingObject.setCustomiseType(pricingObject.getCustomiseType().replaceAll("##", " "));
+			responseList.add(pricingObject);
+		}
+		
+		
+		return responseList;
+	}
+	
+	public FoodItemCustomizationPricing updateFoodItemCustomizationPrice(Long fsId, String pricingId, Double newPrice) {
+		System.out.println("In updateFoodItemCustomizationPrice()");
+		FoodItemCustomizationPricing itemPricing = foodItemRepository.updateFoodItemCustomizingPrice(fsId, pricingId, newPrice);
+		
+		return itemPricing;
+	}
+	
 	public List<AddOns> getAddOns(Long fsId){
 		
 		return foodItemRepository.getAddOns(fsId);
@@ -108,6 +166,8 @@ public class FoodItemService {
 	public void addFoodItemCustomiseDetails(String requestId, FoodItemCustomiseDetails foodItemCustomiseDetails) throws TFException {
 		
 		FoodItem foodItem = foodItemRepository.getFoodItemByReqId(requestId);
+		
+		foodItemCustomiseDetails.setFoodStallId(foodItem.getFoodStallId());
 
 		foodItemRepository.addFoodItemCustomiseDetails(foodItem.getFoodItemId(), foodItemCustomiseDetails);
 		
@@ -126,7 +186,7 @@ public class FoodItemService {
 		Long foodItemId = foodItem.getFoodItemId();
 		String foodItemDescription = foodItem.getDescription();
 		
-		Map<String, List<String>> customiseTypesMap = this.processCustomizationLists(customizationDetails.getCustomiseTypes());
+		List<String> customiseTypes = customizationDetails.getCustomiseTypes();
 		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems());
 		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications());
 		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions());
@@ -151,6 +211,7 @@ public class FoodItemService {
 			custPricingData.setFoodItemName(foodItemName);
 			custPricingData.setPrice(Double.valueOf(0));
 			custPricingData.setCustomiseType(combination);
+			custPricingData.setFoodStallId(foodItem.getFoodStallId());
 			
 			foodItemCustPricing.add(custPricingData);
 		}
@@ -163,7 +224,7 @@ public class FoodItemService {
 		List<String> latestCombinations = new ArrayList<String>();
 		for(String str1 : combinations) {
 			for(String str2 : list) {
-				String str = str1 + " " + str2;
+				String str = str1 + "##" + str2;
 				latestCombinations.add(str);
 			}
 		}

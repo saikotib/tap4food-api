@@ -298,10 +298,10 @@ public class FoodStallController {
 	@RequestMapping(path = "/{fs-id}/add-customize-food-item", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody CustFoodItem customizeFoodItem) throws TFException {
 
-		foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, customizeFoodItem);
+		customizeFoodItem = foodStallService.addCustomizeFoodItem(foodStallId, customiseTypeName, customizeFoodItem);
 
 		ResponseHolder response = ResponseHolder.builder().status("success").timestamp(String.valueOf(LocalDateTime.now()))
-				.data("Customise food item saved successfully").build();
+				.data(customizeFoodItem).build();
 
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}

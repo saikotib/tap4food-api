@@ -18,9 +18,9 @@ public class CustFoodItem {
 
 	private String foodItemName;
 
-	private Double price;
+	//	private Double price;
 
-	private Boolean visible;
+	private boolean visible;
 
 	private Long foodStallId;
 }

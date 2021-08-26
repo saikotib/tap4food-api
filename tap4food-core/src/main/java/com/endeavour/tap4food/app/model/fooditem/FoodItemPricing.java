@@ -14,6 +14,8 @@ public class FoodItemPricing {
 	
 	private Long foodItemId;
 	
+	private Long foodStallId;
+	
 	private String category;
 	
 	private String subCategory;
@@ -21,4 +23,6 @@ public class FoodItemPricing {
 	private String foodItemName;
 		
 	private Double price;
+	
+	private String notes;
 }

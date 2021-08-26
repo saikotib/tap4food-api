@@ -24,7 +24,7 @@ public class Merchant {
 	
 	private String userName;
 	
-	private Binary profilePic;
+	private String profilePic;
 	
 	private String phoneNumber;
 	
@@ -32,7 +32,7 @@ public class Merchant {
 	
 	private String personalIdNumber;  // This is the ID card number of the merchant contact person.
 
-	private Binary personalIdCard;
+	private String personalIdCard;
 	
 	private String password;
 	
@@ -45,6 +45,12 @@ public class Merchant {
 	private String lastUpdatedDate;
 	
 	private boolean isPhoneNumberVerified;
+	
+	private Long blockedTimeMs;
+	
+	private boolean isManager;
+	
+	private Long parentMerchant;
 	
 	@DBRef
 	private MerchantBankDetails bankDetails;

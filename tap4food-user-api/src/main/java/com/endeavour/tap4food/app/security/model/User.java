@@ -43,6 +43,8 @@ public class User {
 	
 	private String status;
 	
+	private Long lockedTimeMs;
+	
 	@DBRef
 	private Set<UserRole> roles = new HashSet<>();
 	

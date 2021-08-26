@@ -1,11 +1,14 @@
 package com.endeavour.tap4food.app.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -17,12 +20,11 @@ import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.enums.BusinessUnitEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Access;
@@ -32,16 +34,16 @@ import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantRequests;
 import com.endeavour.tap4food.app.model.AdminDashboardData.MerchantVsRevenue;
 import com.endeavour.tap4food.app.model.AdminDashboardData.ReportParams;
 import com.endeavour.tap4food.app.model.AdminDashboardData.Subscriptions;
-import com.endeavour.tap4food.app.payload.request.ChangePasswordRequest;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
-import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.util.ActiveStatus;
 import com.endeavour.tap4food.app.util.ApiURL;
 import com.endeavour.tap4food.app.util.DateUtil;
@@ -136,9 +138,10 @@ public class AdminService {
 		return merchant;
 	}
 
-	public Merchant createMerchant(Merchant merchant) {
+	public MerchantFoodStall createMerchant(Merchant merchant) {
 
 		merchant.setStatus("Active");
+		merchant.setPhoneNumberVerified(true);
 
 		Long currentTimeInMilli = System.currentTimeMillis();
 
@@ -151,16 +154,25 @@ public class AdminService {
 
 		Optional<Merchant> merchantOptionalObject = adminRepository
 				.findMerchantByPhoneNumber(merchant.getPhoneNumber());
+		
+		MerchantFoodStall merchantFoodStall = new MerchantFoodStall();
 
 		if (merchantOptionalObject.isPresent()) {
 
 			merchant = merchantOptionalObject.get();
 
 			if (Objects.isNull(merchant.getUniqueNumber())) {
-
+				
 				Long uniqNumber = this.getUniqueNumber();
 
 				merchant.setUniqueNumber(uniqNumber);
+				
+				merchantFoodStall.setMerchantId(merchant.getUniqueNumber());
+				merchantFoodStall.setDate(merchant.getCreatedDate());
+				merchantFoodStall.setOwner(merchant.getUserName());
+				merchantFoodStall.setPhoneNumber(merchant.getPhoneNumber());
+				merchantFoodStall.setStatus(AccountStatusEnum.ACTIVE.name());
+				merchantFoodStall.setFoodStallName("");
 
 				adminRepository.updateUniqueNumber(merchant);
 
@@ -181,7 +193,7 @@ public class AdminService {
 			}
 		}
 
-		return merchant;
+		return merchantFoodStall;
 	}
 
 	private Long getUniqueNumber() {
@@ -191,20 +203,45 @@ public class AdminService {
 		return uniqNumber;
 	}
 
-	public List<Merchant> fetchMerchants() {
+	public List<MerchantFoodStall> fetchMerchants() {
 
-		List<Merchant> allMerchants = adminRepository.fetchMerchants();
+		Map<Long, Merchant> allMerchants = adminRepository.fetchMerchants();
+		
+		Map<Long, List<FoodStall>> allFoodStalls = adminRepository.getFoodStalls();
+		
+		List<MerchantFoodStall> merchantFoodStallInfoList = new ArrayList<MerchantFoodStall>();
+		
+		for(Merchant merchant : allMerchants.values()) {
+			
+			MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
+			merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
+			merchantFoodStallInfo.setDate(merchant.getCreatedDate());
+			merchantFoodStallInfo.setFoodStallName("");
+			merchantFoodStallInfo.setOwner(merchant.getUserName());
+			merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
+			merchantFoodStallInfo.setStatus(merchant.getStatus());
+			
+			if(allFoodStalls.containsKey(merchant.getUniqueNumber())) {
+				for(FoodStall foodStall : allFoodStalls.get(merchant.getUniqueNumber())) {
+					merchantFoodStallInfo.setFoodStallName(foodStall.getFoodStallName());
+					
+					merchantFoodStallInfoList.add(merchantFoodStallInfo);
+				}
+			}else {
+				merchantFoodStallInfoList.add(merchantFoodStallInfo);
+			}
+		}
 
-		Comparator<Merchant> compareByUniqueNumber = new Comparator<Merchant>() {
+		Comparator<MerchantFoodStall> compareByUniqueNumber = new Comparator<MerchantFoodStall>() {
 			@Override
-			public int compare(Merchant merchant1, Merchant merchant2) {
-				return merchant2.getUniqueNumber().compareTo(merchant1.getUniqueNumber());
+			public int compare(MerchantFoodStall merchant1, MerchantFoodStall merchant2) {
+				return merchant2.getMerchantId().compareTo(merchant1.getMerchantId());
 			}
 		};
-
-		Collections.sort(allMerchants, compareByUniqueNumber);
-
-		return allMerchants;
+		
+		Collections.sort(merchantFoodStallInfoList, compareByUniqueNumber);
+		
+		return merchantFoodStallInfoList;
 	}
 
 	public boolean verifyOTP(final String phoneNumber, final String inputOTP) {
@@ -260,7 +297,9 @@ public class AdminService {
 	}
 
 	public BusinessUnit saveBusinessUnits(@Valid BusinessUnit businessUnit) {
-
+		
+		businessUnit.setBusinessUnitId(adminNextSequenceService.getNextSequence(BusinessUnit.SEQUENCE));
+		
 		return adminRepository.saveBusinessUnit(businessUnit);
 	}
 
@@ -273,8 +312,8 @@ public class AdminService {
 		return Optional.ofNullable(adminRepository.findBusinessUnitsByFilter(filterMap));
 	}
 
-	public Optional<BusinessUnit> uploadLogo(final String buId, MultipartFile logo) {
-		Optional<BusinessUnit> businessUnit = adminRepository.findAdminByBusinessTypeId(buId);
+	public Optional<BusinessUnit> uploadLogo(final Long buId, MultipartFile logo) {
+		Optional<BusinessUnit> businessUnit = adminRepository.findBusinessUnit(buId);
 
 		if (businessUnit.isPresent()) {
 			try {
@@ -288,12 +327,13 @@ public class AdminService {
 		return businessUnit;
 	}
 
-	public Optional<FoodCourt> addFoodCourt(final String buId, FoodCourt foodCourt) {
-		Optional<BusinessUnit> businessUnit = adminRepository.findAdminByBusinessTypeId(buId);
+	public Optional<FoodCourt> addFoodCourt(final Long buId, FoodCourt foodCourt) {
+		Optional<BusinessUnit> businessUnit = adminRepository.findBusinessUnit(buId);
 
 		if (businessUnit.isPresent()) {
 			if (!businessUnit.get().getType().equals(BusinessUnitEnum.RESTAURANT)) {
 				foodCourt.setBusinessUnitId(buId);
+				foodCourt.setFoodCourtId(adminNextSequenceService.getNextSequence(FoodCourt.SEQ_NAME));
 				foodCourt = adminRepository.saveFoodCourt(foodCourt);
 
 				List<FoodCourt> foodCourts = adminRepository.findFoodCourtsByBusinessTypeId(buId);
@@ -319,7 +359,7 @@ public class AdminService {
 			adminRepository.saveFoodCourt(foodCourtObject);
 
 			Optional<BusinessUnit> businessUnit = adminRepository
-					.findAdminByBusinessTypeId(foodCourtRes.get().getBusinessUnitId());
+					.findBusinessUnit(foodCourtRes.get().getBusinessUnitId());
 
 			List<FoodCourt> foodCourts = adminRepository
 					.findFoodCourtsByBusinessTypeId(foodCourtRes.get().getBusinessUnitId());
@@ -343,7 +383,7 @@ public class AdminService {
 			adminRepository.saveFoodCourt(foodCourt.get());
 
 			Optional<BusinessUnit> businessUnit = adminRepository
-					.findAdminByBusinessTypeId(foodCourt.get().getBusinessUnitId());
+					.findBusinessUnit(foodCourt.get().getBusinessUnitId());
 
 			List<FoodCourt> foodCourts = adminRepository
 					.findFoodCourtsByBusinessTypeId(foodCourt.get().getBusinessUnitId());
@@ -361,7 +401,7 @@ public class AdminService {
 
 		if (foodCourt.isPresent()) {
 			Optional<BusinessUnit> businessUnit = adminRepository
-					.findAdminByBusinessTypeId(foodCourt.get().getBusinessUnitId());
+					.findBusinessUnit(foodCourt.get().getBusinessUnitId());
 
 			adminRepository.deleteFoodCourtById(foodCourtId);
 

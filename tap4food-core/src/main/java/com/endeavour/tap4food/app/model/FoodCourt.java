@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-@Document(collection = "foodCourt")
+@Document(collection = "foodCourts")
 public class FoodCourt {
 
 	@Id
@@ -24,7 +25,7 @@ public class FoodCourt {
 	
 	private Long foodCourtId;
 	
-	private String businessUnitId;
+	private Long businessUnitId;
 	
 	private String name;
 	
@@ -32,4 +33,7 @@ public class FoodCourt {
 	
 	@DBRef
 	private List<FoodStall> foodStalls;
+	
+	@Transient
+	public static final String SEQ_NAME = "foodCourt_sequence";
 }

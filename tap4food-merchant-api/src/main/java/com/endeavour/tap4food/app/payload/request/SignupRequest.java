@@ -12,11 +12,11 @@ import lombok.Data;
 public class SignupRequest {
 
 	@NotBlank
-    @Size(min = 5, max = 20)
+    @Size(min = 2, max = 30)
     private String username;
  
     @NotBlank
-    @Size(max = 50)
+    @Size(max = 60)
     @Email
     private String email;
     

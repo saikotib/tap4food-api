@@ -1,13 +1,12 @@
 package com.endeavour.tap4food.app.model;
 
 import java.util.List;
+import java.util.Set;
 
 import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +35,9 @@ public class FoodStall {
 
 	private String deliveryTime; // This is food delivery time (ex: 20 mins)
 
-	private Long merchantUniqueNumber;
+	private Long merchantId;
+	
+	private Long managerId;
 
 	private Long foodCourtId;
 	
@@ -56,11 +57,13 @@ public class FoodStall {
 	
 	private Long buId;
 	
-	private List<Binary> foodStallPics;
+	private Set<String> foodStallPics;
 	
-	private List<Binary> menuPics;
+	private Set<String> menuPics;
 	
 	private Double rating;
+	
+	private String qrCode;
 	
 	@DBRef
 	private MenuListings menuListing;

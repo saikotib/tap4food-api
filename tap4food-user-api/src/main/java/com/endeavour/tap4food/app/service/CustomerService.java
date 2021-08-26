@@ -37,6 +37,10 @@ public class CustomerService {
 	@Autowired
 	private UserRepository userRepository;
 	
+	private int otpValidTime = 5 * 60 * 1000;  // 5 mins in milliseconds
+	
+	private int blockReleasTime = 5 * 60 * 1000;  // 5 mins in milliseconds
+	
 	public boolean sendOTPToPhone(final String phoneNumber) throws TFException {
 		
 		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
@@ -44,7 +48,12 @@ public class CustomerService {
 		if(userData.isPresent()) {
 			User user = userData.get();
 			if(user.getStatus().equals(UserStatusEnum.LOCKED)) {
-				throw new TFException("You phone number is blocked.");
+				if(commonService.getTimeDiff(user.getLockedTimeMs()) > blockReleasTime) {
+					user.setStatus(UserStatusEnum.ACTIVE.name());
+					userRepository.save(user);
+				}else {
+					throw new TFException("You phone number is blocked.");
+				}
 			}
 		}
 		
@@ -55,6 +64,7 @@ public class CustomerService {
 		otpObject.setOtp(otp);
 		otpObject.setPhoneNumber(phoneNumber);
 		otpObject.setIsExpired(false);
+		otpObject.setOtpSentTimeInMs(System.currentTimeMillis());
 		
 		commonRepository.persistOTP(otpObject);
 				
@@ -93,8 +103,6 @@ public class CustomerService {
 			user = userData.get();
 		}
 		
-		System.out.println("Verify OTP : " + otp);
-		
 		if(otp.getIsExpired()) {
 			throw new TFException("OTP is expired");
 		}
@@ -104,13 +112,14 @@ public class CustomerService {
 			otp.setNumberOfTries(0);
 			user.setStatus(UserStatusEnum.ACTIVE.name());
 		}else {
-			if(otp.getNumberOfTries() == null) {
+			if(otp.getNumberOfTries() == null || otp.getNumberOfTries() == 0) {
 				otp.setNumberOfTries(1);
-			}else if(otp.getNumberOfTries() >= 1 && otp.getNumberOfTries() < 3) {
+			}else if(otp.getNumberOfTries() >= 1 && otp.getNumberOfTries() < 2) {
 				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
-			}else if(otp.getNumberOfTries() == 3) {
+			}else if(otp.getNumberOfTries() == 2) {
 				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
-		
+				
+				user.setLockedTimeMs(System.currentTimeMillis());
 				user.setStatus(UserStatusEnum.LOCKED.name());	
 				
 			}

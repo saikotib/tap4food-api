@@ -1,7 +1,9 @@
 package com.endeavour.tap4food.app.repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
@@ -67,6 +70,33 @@ public class FoodItemRepository {
 		return foodItem;
 	}
 	
+	public FoodItemCustomiseDetails getFoodItemCustomizeDetails(Long foodItemId) throws TFException {
+		
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItemCustomiseDetails foodItemCustomiseDetails = mongoTemplate.findOne(query, FoodItemCustomiseDetails.class);
+		
+		return foodItemCustomiseDetails;
+	}
+	
+	public Map<String, List<String>> getCustomiseFoodItems(Long fsId){
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+
+		List<CustFoodItem> customiseFoodItems = mongoTemplate.find(query, CustFoodItem.class);
+		
+		Map<String, List<String>> customiseFoodItemsMap = new HashMap<String, List<String>>();
+		
+		for(CustFoodItem custFoodItem : customiseFoodItems) {
+			if(!customiseFoodItemsMap.containsKey(custFoodItem.getCustomiseType())) {
+				customiseFoodItemsMap.put(custFoodItem.getCustomiseType(), new ArrayList<String>());
+			}
+			
+			customiseFoodItemsMap.get(custFoodItem.getCustomiseType()).add(custFoodItem.getFoodItemName());
+		}
+		
+		return customiseFoodItemsMap;
+	}
+	
 	public List<FoodItem> getFoodItems(Long fsId){
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
@@ -76,6 +106,56 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
+	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
+		
+		List<FoodItemPricing> foodItems = mongoTemplate.find(query, FoodItemPricing.class);
+		
+		return foodItems;
+	}
+	
+	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double newPrice) {
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
+		
+		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
+		itemPricingObject.setPrice(newPrice);
+		
+		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + newPrice : itemPricingObject.getNotes() + " ## " + "New Price updated :" + newPrice;
+		
+		itemPricingObject.setNotes(notes);
+		
+		mongoTemplate.save(itemPricingObject);
+		
+		return itemPricingObject;
+	}
+	
+	public List<FoodItemCustomizationPricing> getFoodItemPricingDetailsWithCustomization(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
+		
+		List<FoodItemCustomizationPricing> foodItems = mongoTemplate.find(query, FoodItemCustomizationPricing.class);
+		
+		return foodItems;
+	}
+	
+	public FoodItemCustomizationPricing updateFoodItemCustomizingPrice(Long fsId, String pricingId, Double newPrice) {
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
+		
+		FoodItemCustomizationPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemCustomizationPricing.class);
+		
+		System.out.println(">>" + itemPricingObject);
+		itemPricingObject.setPrice(newPrice);
+		
+		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + newPrice : itemPricingObject.getNotes() + " ## " + "New Price updated :" + newPrice;
+		
+		itemPricingObject.setNotes(notes);
+		
+		mongoTemplate.save(itemPricingObject);
+		
+		return itemPricingObject;
+	}
+
 	public List<AddOns> getAddOns(Long fsId){
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("isAddOn").is(true)));
@@ -119,6 +199,8 @@ public class FoodItemRepository {
 		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
 		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
 		itemPricingInfo.setPrice(Double.valueOf(0));
+		itemPricingInfo.setFoodItemId(foodItem.getFoodItemId());
+		itemPricingInfo.setFoodStallId(foodItem.getFoodStallId());
 		
 		mongoTemplate.save(itemPricingInfo);
 	}

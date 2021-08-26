@@ -23,5 +23,9 @@ public class Otp {
 	
 	private Integer numberOfTries;
 	
+	private Long otpSentTimeInMs;
+	
+	private String userType;
+	
 //	private ZonedDateTime optSentTime;
 }

@@ -178,7 +178,7 @@ public class AuthController {
 	@RequestMapping(value = "/verify-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> verifyOtp(@RequestParam(value = "phone-number", required = true) String phoneNumber, 
 			@RequestParam(value = "otp", required = true) String otp,
-			@RequestParam(value = "forgot-password", required = false) boolean forgotPasswordFlag) {
+			@RequestParam(value = "forgot-password", required = false) boolean forgotPasswordFlag) throws TFException {
 
 		boolean isVerified = merchantService.verifyOTP(phoneNumber, otp, forgotPasswordFlag);
 		
@@ -341,7 +341,7 @@ public class AuthController {
 				responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.BAD_REQUEST);
 			}
 
-			merchantService.saveUser(merchant);
+			merchantService.saveMerchant(merchant);
 			
 			response = ResponseHolder.builder()
 					.status("success")

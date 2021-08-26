@@ -1,43 +1,44 @@
 package com.endeavour.tap4food.app.service;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import org.bson.BsonBinarySubType;
-import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.enums.AccountStatusEnum;
+import com.endeavour.tap4food.app.enums.UserStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
-import com.endeavour.tap4food.app.model.FoodStallTimings;
+import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.Otp;
-import com.endeavour.tap4food.app.model.WeekDay;
-import com.endeavour.tap4food.app.model.menu.Category;
-import com.endeavour.tap4food.app.model.menu.Cuisine;
-import com.endeavour.tap4food.app.model.menu.CustomizeType;
-import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.CommonRepository;
+import com.endeavour.tap4food.app.repository.FoodStallRepository;
 import com.endeavour.tap4food.app.repository.MerchantRepository;
+import com.endeavour.tap4food.app.response.dto.StallManager;
 import com.endeavour.tap4food.app.util.ApiURL;
 import com.endeavour.tap4food.app.util.AppConstants;
-import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
+import com.endeavour.tap4food.app.util.MediaConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +57,14 @@ public class MerchantService {
 
 	@Autowired
 	PasswordEncoder encoder;
+	
+	@Autowired
+	private FoodStallRepository foodStallRepository;
+	
+	@Value("${images.server}")
+	private String mediaServerUrl;
+	
+	private static final int OTP_EXPIRY_TIME_IN_MS = 5 * 60 * 1000;
 
 	public Optional<Merchant> findByEmailId(String emailId) {
 
@@ -72,11 +81,9 @@ public class MerchantService {
 		return merchantRepository.findByUniqueNumber(uniqueNumber);
 	}
 
-	public void saveUser(Merchant merchant) {
+	public void saveMerchant(Merchant merchant) {
 		
 		Optional<Merchant> draftedMerchantData = this.findByPhoneNumber(merchant.getPhoneNumber());
-		
-		System.out.println(">>" + draftedMerchantData);
 		
 		if(draftedMerchantData.isPresent()) {
 			Merchant draftedMerchant = draftedMerchantData.get();
@@ -124,7 +131,7 @@ public class MerchantService {
 		if (userByEmail.isPresent()) {
 			
 			if(userByEmail.get().isPhoneNumberVerified()) {
-				validationMessage = "The email id is already used..";
+				validationMessage = "The email id is already used.";
 
 				return validationMessage;
 			}
@@ -134,7 +141,7 @@ public class MerchantService {
 		Optional<Merchant> userByPhOptional = this.findByPhoneNumber(phoneNumber);
 
 		if (userByPhOptional.isPresent()) {
-			if(userByEmail.get().isPhoneNumberVerified()) {
+			if(userByPhOptional.get().isPhoneNumberVerified()) {
 				validationMessage = "The phone number is already used.";
 
 				return validationMessage;
@@ -146,22 +153,59 @@ public class MerchantService {
 
 	}
 
-	public boolean verifyOTP(final String phoneNumber, final String inputOTP, final boolean forgotPasswordFlag) {
+	public boolean verifyOTP(final String phoneNumber, final String inputOTP, final boolean forgotPasswordFlag) throws TFException {
 
 		boolean otpMatch = false;
 
 		Otp otp = commonRepository.getRecentOtp(phoneNumber);
 
+		Long timeDiff = commonService.getTimeDiff(Long.valueOf(otp.getOtpSentTimeInMs()));
+		
+		if(timeDiff > OTP_EXPIRY_TIME_IN_MS) {
+			throw new TFException("OTP is expired");
+		}
+		
 		if (inputOTP.equalsIgnoreCase(otp.getOtp())) {
 			otpMatch = true;
+			otp.setNumberOfTries(0);
 		} else {
-			return otpMatch;
+			if(otp.getNumberOfTries() == null) {
+				otp.setNumberOfTries(1);
+			}else if(otp.getNumberOfTries() >= 1 && otp.getNumberOfTries() < 3) {
+				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
+			}else if(otp.getNumberOfTries() == 3) {
+				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
+			}
+			
+			commonRepository.saveOtp(otp);
+			
+			if(otp.getNumberOfTries() >= 3) {
+				throw new TFException("This phone number is temporarily blocked.");
+			}
+			
+			otpMatch = false;
 		}
 
 		Optional<Merchant> merchantOptionalObject = merchantRepository.findByPhoneNumber(phoneNumber);
 
-		if (merchantOptionalObject.isPresent()) {
-			Merchant merchant = merchantOptionalObject.get();
+		Merchant merchant = null;
+		
+		if (merchantOptionalObject.isPresent() && !otpMatch) {
+			merchant = merchantOptionalObject.get();
+			merchant.setStatus(AccountStatusEnum.LOCKED.name());
+			merchant.setBlockedTimeMs(System.currentTimeMillis());
+			
+			merchant.setPhoneNumberVerified(true);
+			
+			merchantRepository.updateMerchant(merchant, false);
+		}
+		
+		if (merchantOptionalObject.isPresent() && otpMatch) {
+			merchant = merchantOptionalObject.get();
+			
+			if(merchant.getStatus().equals(AccountStatusEnum.LOCKED.name())) {
+				throw new TFException("Phone number is temporarily blocked");
+			}
 
 			String merchantEmail = merchant.getEmail();
 
@@ -197,8 +241,10 @@ public class MerchantService {
 			
 			merchant.setPhoneNumberVerified(true);
 			merchantRepository.phoneVerifyStatusUpdate(merchant);
+			
+			commonService.createMediaFolderStructure(merchant.getUniqueNumber());
 		}
-
+		
 		return otpMatch;
 	}
 
@@ -226,10 +272,36 @@ public class MerchantService {
 
 		return true;
 	}
+	
+	public Merchant createStallManager(Merchant merchant, Long foodStallId, Long parentMerchantId) throws TFException {
+		
+		merchant.setManager(true);
+		merchant.setParentMerchant(parentMerchantId);
+		merchant.setStatus(AccountStatusEnum.ACTIVE.name());
+		merchant.setPhoneNumberVerified(true);
+		
+		merchant = this.createMerchant(merchant);
+		
+		FoodStall foodStall = foodStallRepository.getFoodStallById(foodStallId);
+		
+		if(Objects.isNull(foodStall)) {
+			throw new TFException("Foodstall not found.");
+		}
+		
+		if(Objects.nonNull(foodStall.getManagerId())) {
+			throw new TFException("Manager is already assigned for this foodstall.");
+		}
+				
+		foodStall.setManagerId(merchant.getUniqueNumber());
+		
+		foodStallRepository.updateFoodStall(foodStall);
+		
+		return merchant;
+	}
 
-	public boolean createMerchant(Merchant merchant) {
-		boolean flag = false;
-		flag = merchantRepository.createMerchant(merchant);
+	public Merchant createMerchant(Merchant merchant) {
+		
+		merchantRepository.createMerchant(merchant);
 
 		Optional<Merchant> merchantOptionalObject = merchantRepository
 				.findByMerchantByPhoneNumber(merchant.getPhoneNumber());
@@ -246,7 +318,7 @@ public class MerchantService {
 
 				merchantRepository.updateUniqueNumber(merchant);
 
-				System.out.println("Unique number is updated forthe merchant...");
+				System.out.println("Unique number is updated for the merchant...");
 
 				String merchantEmail = merchant.getEmail();
 				
@@ -274,7 +346,7 @@ public class MerchantService {
 			}
 		}
 
-		return flag;
+		return merchant;
 	}
 
 	public Merchant merchantStatusUpdate(Long uniqueNumber, String status) {
@@ -315,9 +387,63 @@ public class MerchantService {
 
 			try {
 				if (imagetype.equals(AppConstants.PROFILE_PIC)) {
-					merchantObj.setProfilePic(new Binary(BsonBinarySubType.BINARY, image.getBytes()));
+					
+					String uploadPath = commonService.getMerhantMediaDirs().get(MediaConstants.GET_KEY_MERCHANT_PROFILE_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(id));
+					
+					new File(uploadPath).mkdirs();
+					
+					Path path = Paths.get(uploadPath);
+					File existingFile = new File(uploadPath + File.separator + image.getOriginalFilename());
+					
+					if(existingFile.exists()) {
+						if(existingFile.delete()) {
+							log.info("Deleted the existing file");
+						}
+					}
+					
+					Files.copy(image.getInputStream(), path.resolve(image.getOriginalFilename()));
+					
+					log.info("Profile Image Path : " + uploadPath);
+					log.info("Profile Image Name : " + image.getOriginalFilename());
+					
+					log.info("Is Base Loc found :" + uploadPath.contains(commonService.getMediaBaseLocation()));
+					
+					String profilePicLink = uploadPath.replaceAll(commonService.getMediaBaseLocation(), "").replaceAll("\\\\", "/");
+
+					profilePicLink = mediaServerUrl + profilePicLink + "/" + image.getOriginalFilename();
+					
+					log.info("profilePicLink :" + profilePicLink);
+					
+					merchantObj.setProfilePic(profilePicLink);
 				} else if (imagetype.equals(AppConstants.PERSONAL_ID)) {
-					merchantObj.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY, image.getBytes()));
+					
+					String uploadPath = commonService.getMerhantMediaDirs().get(MediaConstants.GET_KEY_MERCHANT_PERSONAL_ID_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(id));
+					
+					new File(uploadPath).mkdirs();
+					
+					Path path = Paths.get(uploadPath);
+					File existingFile = new File(uploadPath + File.separator + image.getOriginalFilename());
+					
+					if(existingFile.exists()) {
+						if(existingFile.delete()) {
+							log.info("Deleted the existing file");
+						}
+					}
+					
+					Files.copy(image.getInputStream(), path.resolve(image.getOriginalFilename()));
+					
+					log.info("Personal ID Image Path : " + uploadPath);
+					log.info("Personal ID Image Name : " + image.getOriginalFilename());
+					
+					log.info("Is Base Loc found :" + uploadPath.contains(commonService.getMediaBaseLocation()));
+					
+					String personalIdPicLink = uploadPath.replaceAll(commonService.getMediaBaseLocation(), "").replaceAll("\\\\", "/");
+
+					personalIdPicLink = mediaServerUrl + personalIdPicLink + "/" + image.getOriginalFilename();
+					
+					log.info("Personal IDPicLink :" + personalIdPicLink);
+					
+					merchantObj.setPersonalIdCard(personalIdPicLink);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -402,14 +528,29 @@ public class MerchantService {
 	}
 
 	public Optional<MerchantBankDetails> getBankDetailsByUniqueId(final Long uniqueId) {
-
+		
 		return merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
 	}
 
-	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) {
-		Optional<Merchant> merchantData = merchantRepository.findByUniqueNumber(uniqueNumber);
-		return merchantData;
-	}
+	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) throws TFException {
+		Merchant merchant = merchantRepository.getMerchant(uniqueNumber);
+		
+		if(merchant.isManager()) {
+			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, true);
+			merchant.setFoodStalls(foodStalls);
+		}else {
+			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, false);
+			merchant.setFoodStalls(foodStalls);
+		}
+
+		return Optional.ofNullable(merchant);
+	}	
+	
+	public List<StallManager> getStallManagers(final Long parentMerchantId) throws TFException {
+		
+
+		return merchantRepository.getStallManagers(parentMerchantId);
+	}	
 
 	public Optional<Merchant> deleteProfilePic(@Valid Long id, String type) {
 
@@ -420,15 +561,10 @@ public class MerchantService {
 				&& (type.equals(AppConstants.PROFILE_PIC) || type.equals(AppConstants.PERSONAL_ID))) {
 			merchantObj = merchant.get();
 
-			try {
-				if (type.equals(AppConstants.PROFILE_PIC)) {
-
-					merchantObj.setProfilePic(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
-				} else if (type.equals(AppConstants.PERSONAL_ID)) {
-					merchantObj.setPersonalIdCard(new Binary(BsonBinarySubType.BINARY,(new AvatarImage()).avatarImage()));
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			if (type.equals(AppConstants.PROFILE_PIC)) {
+				merchantObj.setProfilePic("");
+			} else if (type.equals(AppConstants.PERSONAL_ID)) {
+				merchantObj.setPersonalIdCard("");
 			}
 
 			merchantRepository.save(merchantObj);
@@ -437,6 +573,18 @@ public class MerchantService {
 		}
 
 		return merchant;
+	}
+	
+	public List<BusinessUnit> getBusinessUnits(String country, String state, String city){
+		
+		
+		return merchantRepository.getBusinessUnits(country, state, city);
+	}
+	
+	public List<FoodCourt> getFoodcourts(Long buId ){
+		
+		
+		return merchantRepository.getFoodcourts(buId);
 	}
 
 }
