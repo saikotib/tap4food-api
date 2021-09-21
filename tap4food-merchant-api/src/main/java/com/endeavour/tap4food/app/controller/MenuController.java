@@ -20,6 +20,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.FoodItemService;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -41,6 +42,7 @@ public class MenuController {
 			@RequestBody FoodItem foodItem) throws TFException{
 		
 		foodItem.setRequestId(requestId);
+		foodItem.setTotalReviews(1);
 		
 		foodItemService.addFoodItem(merchantId, fsId, foodItem);
 		
@@ -87,7 +89,7 @@ public class MenuController {
 	@RequestMapping(value = "/get-food-items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodItems(@RequestParam("fs-id") Long fsId){
 		
-		List<FoodItem> foodItems = foodItemService.getFoodItems(fsId);
+		List<FoodItemResponse> foodItems = foodItemService.getFoodItems(fsId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -127,6 +129,19 @@ public class MenuController {
 	public ResponseEntity<ResponseHolder> getFoodItemCustomizingPricingInfo(@RequestParam("fs-id") Long fsId){
 		
 		List<FoodItemCustomizationPricing> foodItems = foodItemService.getFoodItemCustomizationPricingDetails(fsId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-fooditem-customizing-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemCustomizingPricingInfo(@RequestParam("fs-id") Long fsId, @RequestParam("foodItemId") Long foodItemId){
+		
+		List<FoodItemCustomizationPricing> foodItems = foodItemService.getFoodItemCustomizationPricingDetails(fsId, foodItemId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -178,5 +193,6 @@ public class MenuController {
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
+	
 	
 }

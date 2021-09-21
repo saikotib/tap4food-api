@@ -46,7 +46,6 @@ public class BusinessUnit {
 	
 	private BusinessUnitTypeEnum status;   // ACTIVE, INACTIVE, DELETED
 
-	
 	//If teh Business Unit is Restaurant then no foodcourts 
 	
 	@DBRef

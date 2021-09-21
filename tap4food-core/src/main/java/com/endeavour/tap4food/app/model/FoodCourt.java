@@ -31,8 +31,12 @@ public class FoodCourt {
 	
 	private Binary logo;
 	
+	private String qrCodeUrl;
+	
 	@DBRef
 	private List<FoodStall> foodStalls;
+	
+	private boolean isQRCodeGenerated;
 	
 	@Transient
 	public static final String SEQ_NAME = "foodCourt_sequence";

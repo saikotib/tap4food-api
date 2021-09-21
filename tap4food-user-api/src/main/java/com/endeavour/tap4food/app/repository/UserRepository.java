@@ -81,7 +81,7 @@ public class UserRepository {
 	
 	public List<FoodStall> getFoodStalls(Long fcId){
 		
-		Query query = new Query(Criteria.where("buName").is("InOrbit"));
+		Query query = new Query(Criteria.where("foodCourtId").is(fcId));
 		
 		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
 		

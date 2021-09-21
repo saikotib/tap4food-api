@@ -23,7 +23,7 @@ public class QRCodeController {
 	private QRCodeService qrCodeService;
 
 	@RequestMapping(value = "/generate", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> createQRCode(@RequestParam("foodcourtid") String foodCourtId) throws WriterException, IOException{
+	public ResponseEntity<ResponseHolder> createQRCode(@RequestParam("foodcourtid") Long foodCourtId) throws WriterException, IOException{
 		
 		String qrImage =  qrCodeService.generateQRCodeImage(foodCourtId);
 		

@@ -69,9 +69,9 @@ public class CustomerController {
 	}
 	
 	@RequestMapping(value = "/get-foodstalls", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getFoodStalls(){
+	public ResponseEntity<ResponseHolder> getFoodStalls(@RequestParam("fcId") Long fcId){
 		
-		List<FoodStall> foodStalls = customerService.getFoodStalls(0L);
+		List<FoodStall> foodStalls = customerService.getFoodStalls(fcId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")

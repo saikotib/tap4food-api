@@ -43,6 +43,7 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
+import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.util.ActiveStatus;
 import com.endeavour.tap4food.app.util.ApiURL;
@@ -327,28 +328,34 @@ public class AdminService {
 		return businessUnit;
 	}
 
-	public Optional<FoodCourt> addFoodCourt(final Long buId, FoodCourt foodCourt) {
+	public Optional<FoodCourt> addFoodCourt(final Long buId, FoodCourt foodCourt) throws TFException {
 		Optional<BusinessUnit> businessUnit = adminRepository.findBusinessUnit(buId);
 
 		if (businessUnit.isPresent()) {
 			if (!businessUnit.get().getType().equals(BusinessUnitEnum.RESTAURANT)) {
+				
+				BusinessUnit bu = businessUnit.get();
+				
 				foodCourt.setBusinessUnitId(buId);
 				foodCourt.setFoodCourtId(adminNextSequenceService.getNextSequence(FoodCourt.SEQ_NAME));
 				foodCourt = adminRepository.saveFoodCourt(foodCourt);
 
 				List<FoodCourt> foodCourts = adminRepository.findFoodCourtsByBusinessTypeId(buId);
-				businessUnit.get().setFoodCourts(foodCourts);
-				adminRepository.saveBusinessUnit(businessUnit.get());
+				foodCourts.add(foodCourt);
+				bu.setFoodCourts(foodCourts);
+				adminRepository.saveBusinessUnit(bu);
 			}
 
+		}else {
+			throw new TFException("Invalid business unit");
 		}
 
 		return Optional.ofNullable(foodCourt);
 	}
 
-	public Optional<FoodCourt> updateFoodCourt(final String foodCourtId, FoodCourt foodCourt) {
+	public Optional<FoodCourt> updateFoodCourt(final Long foodCourtId, FoodCourt foodCourt) {
 
-		Optional<FoodCourt> foodCourtRes = adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+		Optional<FoodCourt> foodCourtRes = adminRepository.findFoodCourt(foodCourtId);
 
 		FoodCourt foodCourtObject = new FoodCourt();
 
@@ -371,8 +378,8 @@ public class AdminService {
 		return Optional.ofNullable(foodCourtObject);
 	}
 
-	public Optional<FoodCourt> uploadFoodCourtLogo(final String foodCourtId, MultipartFile logo) {
-		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+	public Optional<FoodCourt> uploadFoodCourtLogo(final Long foodCourtId, MultipartFile logo) {
+		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourt(foodCourtId);
 
 		if (foodCourt.isPresent()) {
 			try {
@@ -395,29 +402,66 @@ public class AdminService {
 		return foodCourt;
 	}
 
-	public boolean deleteFoodCourtId(@Valid String foodCourtId) {
+	public boolean deleteFoodCourtId(@Valid Long foodCourtId) {
 		boolean flag = false;
-		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourt(foodCourtId);
 
 		if (foodCourt.isPresent()) {
 			Optional<BusinessUnit> businessUnit = adminRepository
 					.findBusinessUnit(foodCourt.get().getBusinessUnitId());
+			
+			BusinessUnit bu = businessUnit.get();
 
 			adminRepository.deleteFoodCourtById(foodCourtId);
 
 			List<FoodCourt> foodCourts = adminRepository
 					.findFoodCourtsByBusinessTypeId(foodCourt.get().getBusinessUnitId());
 
-			businessUnit.get().setFoodCourts(foodCourts);
-			adminRepository.saveBusinessUnit(businessUnit.get());
+			bu.setFoodCourts(foodCourts);
+			adminRepository.saveBusinessUnit(bu);
 			flag = true;
 		}
 
 		return flag;
 	}
 
-	public Optional<FoodCourt> getFoodCourtById(@Valid String foodCourtId) {
-		return adminRepository.findFoodCourtByFoodCourtId(foodCourtId);
+	public Optional<FoodCourt> getFoodCourtById(Long foodCourtId) {
+		return adminRepository.findFoodCourt(foodCourtId);
+	}
+	
+	public List<FoodCourtResponse> getFoodCourts() {
+		
+		List<BusinessUnit> buList = adminRepository.findBusinessUnits();
+		
+		System.out.println("BULIST : " + buList);
+		
+		List<FoodCourtResponse> foodCourtsResponseList = new ArrayList<FoodCourtResponse>();
+		
+		for(BusinessUnit bu : buList) {
+			FoodCourtResponse foodCourtResponse = new FoodCourtResponse();
+			
+			foodCourtResponse.setBuName(bu.getName());
+			foodCourtResponse.setCity(bu.getCity());
+			foodCourtResponse.setCountry(bu.getCountry());
+			foodCourtResponse.setState(bu.getState());
+			
+			List<FoodCourt> foodCourts = bu.getFoodCourts();
+			
+			if(Objects.nonNull(foodCourts)) {
+
+				for(FoodCourt fc : foodCourts) {
+					foodCourtResponse.setFoodCourtName(fc.getName());
+					foodCourtResponse.setQRCodeGenerated(fc.isQRCodeGenerated());
+					foodCourtResponse.setQrCodeUrl(fc.getQrCodeUrl());
+					foodCourtResponse.setFoodCourtId(fc.getFoodCourtId());
+					
+					foodCourtsResponseList.add(foodCourtResponse);
+				}
+			}
+			
+		}
+		
+		return foodCourtsResponseList;
 	}
 
 	public AdminDashboardData loadAdminDashboardData() {

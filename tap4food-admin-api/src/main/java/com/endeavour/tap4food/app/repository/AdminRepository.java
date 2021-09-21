@@ -313,6 +313,13 @@ public class AdminRepository {
 
 		return Optional.ofNullable(businessUnit);
 	}
+	
+	public List<BusinessUnit> findBusinessUnits() {
+
+		List<BusinessUnit> businessUnits = mongoTemplate.findAll(BusinessUnit.class);
+
+		return businessUnits;
+	}
 
 	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
 
@@ -323,6 +330,20 @@ public class AdminRepository {
 
 		return mongoTemplate.save(foodCourt);
 	}
+	
+	public void updateFoodCourt(Long foodCourtId, String qrCodeUrl, boolean isQrCodeGenerated) {
+		
+		Optional<FoodCourt> foodCourtData = this.findFoodCourt(foodCourtId);
+		
+		if(foodCourtData.isPresent()) {
+			FoodCourt foodCourt = foodCourtData.get();
+			
+			foodCourt.setQRCodeGenerated(isQrCodeGenerated);
+			foodCourt.setQrCodeUrl(qrCodeUrl);
+			
+			mongoTemplate.save(foodCourt);
+		}
+	}
 
 	public List<FoodCourt> findFoodCourtsByBusinessTypeId(Long buId) {
 
@@ -331,15 +352,21 @@ public class AdminRepository {
 		return mongoTemplate.find(query, FoodCourt.class);
 	}
 
-	public Optional<FoodCourt> findFoodCourtByFoodCourtId(String foodCourtId) {
+	public Optional<FoodCourt> findFoodCourt(Long foodCourtId) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("foodCourtId").is(foodCourtId));
 
 		FoodCourt foodCourt = mongoTemplate.findOne(query, FoodCourt.class);
 		return Optional.ofNullable(foodCourt);
 	}
+	
+	public List<FoodCourt> findFoodCourts() {
 
-	public boolean deleteFoodCourtById(final String foodCourtId) {
+		List<FoodCourt> foodCourts = mongoTemplate.findAll(FoodCourt.class);
+		return foodCourts;
+	}
+
+	public boolean deleteFoodCourtById(final Long foodCourtId) {
 		boolean flag = false;
 		mongoTemplate.remove(Query.query(Criteria.where("foodCourtId").is(foodCourtId)), FoodCourt.class);
 		flag = true;

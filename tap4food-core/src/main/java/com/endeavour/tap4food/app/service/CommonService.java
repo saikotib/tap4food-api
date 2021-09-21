@@ -218,7 +218,8 @@ public class CommonService {
 		
 		File stallMenuPicsDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_MENU_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
 		File stallProfilePicDic = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_STALL_PROFILE_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
-		File ffoodItemPicDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_FOODITEM_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
+		File foodItemPicDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_FOODITEM_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
+		File offerPicDir = new File(getMerhantMediaDirs().get(MediaConstants.GET_KEY_OFFER_PIC_DIR).replaceAll(MediaConstants.IDENTIFIER_MERCHANTID, String.valueOf(merchantNumber)).replaceAll(MediaConstants.IDENTIFIER_FSID, String.valueOf(foodStallId)));
 		
 		createMediaFolderStructure(merchantNumber);
 		
@@ -232,16 +233,23 @@ public class CommonService {
 			logger.info("The Foodstall profile pics directory is created");
 		}
 		
-		if(!ffoodItemPicDir.exists()) {
-			ffoodItemPicDir.mkdirs();
+		if(!foodItemPicDir.exists()) {
+			foodItemPicDir.mkdirs();
 			logger.info("The Fooditem pics directory is created");
+		}
+		
+		if(!offerPicDir.exists()) {
+			offerPicDir.mkdirs();
+			logger.info("The Offer pics directory is created");
 		}
 		
 		logger.info("stallMenuPicsDir : " + stallMenuPicsDir.getAbsolutePath());
 		
 		logger.info("stallProfilePicDic : " + stallProfilePicDic.getAbsolutePath());
 		
-		logger.info("ffoodItemPicDir : " + ffoodItemPicDir.getAbsolutePath());
+		logger.info("foodItemPicDir : " + foodItemPicDir.getAbsolutePath());
+		
+		logger.info("offerPicDir : " + offerPicDir.getAbsolutePath());
 	}
 
 	@Bean
@@ -252,6 +260,7 @@ public class CommonService {
 		dirsMap.put(MediaConstants.GET_KEY_STALL_PROFILE_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOODSTALL_PROFILE_PIC);
 		dirsMap.put(MediaConstants.GET_KEY_MENU_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOODSTALL_MENU_PICS);
 		dirsMap.put(MediaConstants.GET_KEY_FOODITEM_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOOD_ITEM_PIC);
+		dirsMap.put(MediaConstants.GET_KEY_OFFER_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.OFFERS);
 	
 		System.out.println(dirsMap);
 		return dirsMap;

@@ -38,6 +38,8 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_FOODITEM_SEQ = "foodItemSequences";
 	
+	public static final String COLLECTION_OFFER_SEQ = "offerSequences";
+	
 	public static final String COLLECTION_COUNTRY = "countries";
 	
 	public static final String COLLECTION_STATE = "states";
@@ -55,4 +57,16 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_FOODITEM_PRICING = "foodItemPricing";
 
 	public static final String COLLECTION_FOODITEM_CUST_PRICING = "foodItemCustimzationPricing";
+	
+	public static final String COLLECTION_FOODITEM_DIRECT_OFFER_PRICING = "foodItemDirectOfferPricing";
+	
+	public static final String COLLECTION_FOODITEM_COMBO_OFFER_PRICING = "foodItemComboOfferPricing";
+	
+	public static final String COLLECTION_OFFERS = "offers";
+	
+	public static final String COLLECTION_OFFERS_FOOD_ITEMS_LISTS = "offersFoodItemsLists";
+	
+	public static final String COLLECTION_OFFERS_FOOD_ITEM_CUST_DETAILS = "offersFoodItemCustomizationDetails";
+	
+	public static final String COLLECTION_OFFERS_OFFER_SUGGESTION_ITEMS = "offersSuggestionFoodItems";
 }

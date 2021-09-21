@@ -222,6 +222,11 @@ public class AuthController {
 
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		
+		if(userDetails.getStatus() == null) {
+			System.out.println("Status is NULL. Need to check why it went null.");
+			userDetails.setStatus(AccountStatusEnum.ACTIVE.name());
+		}
+		
 		System.out.println("Status : " + userDetails.getStatus());
 		
 		ResponseEntity response = null;

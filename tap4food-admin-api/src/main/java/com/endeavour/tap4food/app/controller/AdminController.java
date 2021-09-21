@@ -33,6 +33,7 @@ import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
+import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.AdminService;
@@ -220,7 +221,7 @@ public class AdminController {
 
 	@RequestMapping(value = "/bunit/{bu-id}/add-food-court", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> addFoodCourt(@Valid @PathVariable("bu-id") Long buId,
-			@RequestBody FoodCourt foodCourt) {
+			@RequestBody FoodCourt foodCourt) throws TFException {
 
 		Optional<FoodCourt> foodCourtRes = adminService.addFoodCourt(buId, foodCourt);
 
@@ -239,7 +240,7 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/food-court/{fc-id}/update-food-court ", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId,
+	public ResponseEntity<ResponseHolder> updateFoodCourt(@Valid @PathVariable("fc-id") Long foodCourtId,
 			@RequestBody FoodCourt foodCourt) {
 
 		Optional<FoodCourt> foodCourtRes = adminService.updateFoodCourt(foodCourtId, foodCourt);
@@ -259,7 +260,7 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/food-court/{fc-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> uploadFoodCourtLogo(@Valid @PathVariable("fc-id") String foodCourtId,
+	public ResponseEntity<ResponseHolder> uploadFoodCourtLogo(@Valid @PathVariable("fc-id") Long foodCourtId,
 			@RequestParam(value = "logo", required = true) MultipartFile logo) {
 
 		Optional<FoodCourt> foodCourt = adminService.uploadFoodCourtLogo(foodCourtId, logo);
@@ -279,7 +280,7 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/food-court/{fc-id}/get", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> deleteFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
+	public ResponseEntity<ResponseHolder> deleteFoodCourt(@Valid @PathVariable("fc-id") Long foodCourtId) {
 
 		Optional<FoodCourt> foodCourt = adminService.getFoodCourtById(foodCourtId);
 
@@ -296,9 +297,21 @@ public class AdminController {
 		return response;
 
 	}
+	
+	@RequestMapping(value = "/get-food-courts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodCourts() {
+
+		List<FoodCourtResponse> foodCourts = adminService.getFoodCourts();
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court detailes retreived successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourts).build());
+		
+		return response;
+
+	}
 
 	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getFoodCourt(@Valid @PathVariable("fc-id") String foodCourtId) {
+	public ResponseEntity<ResponseHolder> getFoodCourt(@Valid @PathVariable("fc-id") Long foodCourtId) {
 
 		boolean flag = adminService.deleteFoodCourtId(foodCourtId);
 

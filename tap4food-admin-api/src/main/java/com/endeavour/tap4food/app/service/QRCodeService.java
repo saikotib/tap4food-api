@@ -15,10 +15,12 @@ import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.EncodeHintType;
@@ -48,16 +50,18 @@ public class QRCodeService {
 	@Value("${images.server}")
 	private String imagesServer;
 	
-	public void generatQRCode() {
+	@Value("${tap4food.logo}")
+	private String logoFilePath;
 
-	}
+	@Autowired
+	private AdminRepository adminRepository;
 
-	public String generateQRCodeImage(String foodCourtId)
+	public String generateQRCodeImage(Long foodCourtId)
 			throws WriterException, IOException {
 		
 		String qrCodePath = imagesPath + File.separator + "QRCodes";
 		
-		imagesServer = imagesServer + "/QRCodes/" + foodCourtId + ".png";
+		String imagesServerPath = imagesServer + "/QRCodes/" + foodCourtId + ".png";
 		
 		File qrCodeDirPath = new File(qrCodePath);
 		
@@ -65,7 +69,9 @@ public class QRCodeService {
 
 		generateColoredQRCode(foodCourtUrl + foodCourtId, qrCodePath + File.separator + foodCourtId + ".png");
 		
-		return imagesServer;
+		adminRepository.updateFoodCourt(foodCourtId, imagesServerPath, true);
+		
+		return imagesServerPath;
 	}
 
 	public void generateColoredQRCode(String data, String filePath) {
@@ -73,7 +79,8 @@ public class QRCodeService {
 
 		while (this.getLogoFile() == null) {
 			try {
-				File resource = new ClassPathResource("logo.png").getFile();
+				File resource = new File(logoFilePath);
+				
 				this.setLogoFile(resource);
 				System.out.println("Logo File is set.");
 			} catch (Exception e) {
@@ -118,7 +125,7 @@ public class QRCodeService {
 			Color mainColor = new Color(51, 102, 153);
 			graphics.setColor(mainColor);
 			// Write message under the QR-code
-			graphics.drawString(foodCourtUrl, 30, image.getHeight() - graphics.getFont().getSize());
+//			graphics.drawString(foodCourtUrl, 30, image.getHeight() - graphics.getFont().getSize());
 
 			// Write Bit Matrix as image
 			for (int i = 0; i < matrixWidth; i++) {

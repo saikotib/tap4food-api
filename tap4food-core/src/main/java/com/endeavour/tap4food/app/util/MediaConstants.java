@@ -12,6 +12,8 @@ public class MediaConstants {
 	
 	public static final String FOOD_ITEM_PIC = "foodItemPic";
 	
+	public static final String OFFERS = "offers";
+	
 	public static final String IDENTIFIER_MERCHANTID = "#MERCHANT_ID#";
 	
 	public static final String IDENTIFIER_FSID = "#FS_ID#";
@@ -25,4 +27,6 @@ public class MediaConstants {
 	public static final String GET_KEY_MENU_PIC_DIR = "MENU_PIC_DIR";
 	
 	public static final String GET_KEY_FOODITEM_PIC_DIR = "FOODITEM_PIC_DIR";
+	
+	public static final String GET_KEY_OFFER_PIC_DIR = "OFFER_PIC_DIR";
 }

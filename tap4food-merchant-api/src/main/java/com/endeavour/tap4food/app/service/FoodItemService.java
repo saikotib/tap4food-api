@@ -2,7 +2,7 @@ package com.endeavour.tap4food.app.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,10 +19,11 @@ import com.endeavour.tap4food.app.model.fooditem.AddOns;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemDirectOffer;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
-import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.repository.FoodItemRepository;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
+import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 
 @Service
 public class FoodItemService {
@@ -97,9 +98,35 @@ public class FoodItemService {
 		}
 	}
 	
-	public List<FoodItem> getFoodItems(Long fsId){
+	public List<FoodItemResponse> getFoodItems(Long fsId){
 		
-		return foodItemRepository.getFoodItems(fsId);
+		List<FoodItem> foodItems = foodItemRepository.getFoodItems(fsId);
+		
+		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
+		
+		for(FoodItem item : foodItems) {
+			FoodItemResponse foodItem = new FoodItemResponse();
+			foodItem.setDbId(item.getId());
+			foodItem.setAddOn(item.isAddOn());
+			foodItem.setCategory(item.getCategory());
+			foodItem.setCuisine(item.getCuisine());
+			foodItem.setDescription(item.getDescription());
+			foodItem.setEgg(item.isEgg());
+			foodItem.setFoodItemId(item.getFoodItemId());
+			foodItem.setFoodItemName(item.getFoodItemName());
+			foodItem.setFoodStallId(item.getFoodStallId());
+			foodItem.setPic(item.getPic());
+			foodItem.setPrice(foodItemRepository.getFoodItemPrice(item.getFoodItemId()));
+			foodItem.setRating(item.getRating());
+			foodItem.setReccommended(item.isReccommended());
+			foodItem.setSubCategory(item.getSubCategory());
+			foodItem.setTotalReviews(item.getTotalReviews());
+			foodItem.setVeg(item.isVeg());
+			
+			foodItemsResponseList.add(foodItem);
+		}
+		
+		return foodItemsResponseList;
 	}
 	
 	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
@@ -112,28 +139,21 @@ public class FoodItemService {
 		
 		System.out.println("FoodItem price is updated.");
 		
-		return itemPricing;
-	}
-	
-	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetails(Long fsId, Long foodItemId){
-		
-		List<FoodItemCustomizationPricing> customizationPricingDetailsList = foodItemRepository.getFoodItemPricingDetailsWithCustomization(fsId);
-		
-		List<FoodItemCustomizationPricing> foodItemCustomizationPricingDetailsList = new ArrayList<FoodItemCustomizationPricing>();
-				
-		for(FoodItemCustomizationPricing customizationPricingInfo : customizationPricingDetailsList) {
-			
-			if(customizationPricingInfo.getFoodItemId().equals(foodItemId)) {
-				foodItemCustomizationPricingDetailsList.add(customizationPricingInfo);
-			}
+		if(Objects.nonNull(itemPricing)) {
+			foodItemRepository.updateFoodItemCustomizingPrice(itemPricing.getFoodItemId(), newPrice);
 		}
 		
-		return foodItemCustomizationPricingDetailsList;
+		return itemPricing;
 	}
 	
 	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetails(Long fsId){
 		
 		return foodItemRepository.getFoodItemPricingDetailsWithCustomization(fsId);
+	}
+	
+	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetails(Long fsId, Long foodItemId){
+		
+		return foodItemRepository.getFoodItemPricingDetailsWithCustomization(fsId, foodItemId);
 	}
 	
 	public List<FoodItemCustomizationPricing> getFoodItemCustomizationPricingDetailsForResponse(Long fsId){
@@ -194,14 +214,31 @@ public class FoodItemService {
 		
 		List<String> addOnItems = customizationDetails.getAddOnItemsIds();
 		
+		boolean isSingleCustType = true;
+		
+		if(customizeFoodItems.size() > 1) {
+			isSingleCustType = false;
+		}
+		
 		List<String> foodItemCombinations = new ArrayList<String>();
-		for(List<String> list : customizeFoodItems.values()) {
-			foodItemCombinations = prepareCombinations(foodItemCombinations, list);
+		
+		System.out.println("customizeFoodItems data for combinations : " + customizeFoodItems);
+		
+		if(foodItem.isPizza()) {
+			int count = 0;
+			for(List<String> list : customizeFoodItems.values()) {
+				foodItemCombinations = preparePizzaCombinations(foodItemCombinations, list, isSingleCustType, count++);
+			}
+		}else {
+			for(List<String> list : customizeFoodItems.values()) {
+				foodItemCombinations = prepareCombinations(foodItemCombinations, list, isSingleCustType);
+			}
 		}
 		
 		System.out.println("Combinations : " + foodItemCombinations);
 		
 		List<FoodItemCustomizationPricing> foodItemCustPricing = new ArrayList<FoodItemCustomizationPricing>();
+		List<FoodItemDirectOffer> foodItemOffers = new ArrayList<FoodItemDirectOffer>();
 		
 		for(String combination : foodItemCombinations) {
 			FoodItemCustomizationPricing custPricingData = new FoodItemCustomizationPricing();
@@ -209,7 +246,13 @@ public class FoodItemService {
 			custPricingData.setSubCategory(subCategory);
 			custPricingData.setFoodItemId(foodItemId);
 			custPricingData.setFoodItemName(foodItemName);
-			custPricingData.setPrice(Double.valueOf(0));
+			
+			Double foodItemPrice = foodItemRepository.getFoodItemPrice(foodItemId);
+			if(Objects.isNull(foodItemPrice))
+				custPricingData.setPrice(Double.valueOf(0));
+			else
+				custPricingData.setPrice(foodItemPrice);
+			
 			custPricingData.setCustomiseType(combination);
 			custPricingData.setFoodStallId(foodItem.getFoodStallId());
 			
@@ -219,7 +262,7 @@ public class FoodItemService {
 		foodItemRepository.addItemCustomizationPricing(foodItemCustPricing);
 	}
 	
-	public List<String> prepareCombinations(List<String> combinations, List<String> list) {
+	public List<String> prepareCombinations(List<String> combinations, List<String> list, boolean isSingleCustType) {
 		
 		List<String> latestCombinations = new ArrayList<String>();
 		for(String str1 : combinations) {
@@ -229,7 +272,29 @@ public class FoodItemService {
 			}
 		}
 
-		if(!combinations.containsAll(list))
+		if((combinations.isEmpty() && !combinations.containsAll(list)) || isSingleCustType)
+			combinations.addAll(list);
+		combinations.addAll(latestCombinations);
+		
+		return combinations;
+	}
+	
+	public List<String> preparePizzaCombinations(List<String> combinations, List<String> list, boolean isSingleCustType, int count) {
+		
+		List<String> latestCombinations = new ArrayList<String>();
+		for(String str1 : combinations) {
+			
+			String dilimTokens[] = str1.split("##");
+			int dilimCount = dilimTokens.length - 1;	
+			
+			if((count - 1) == dilimCount)
+			for(String str2 : list) {
+				String str = str1 + "##" + str2;
+				latestCombinations.add(str);
+			}
+		}
+
+		if((combinations.isEmpty() && !combinations.containsAll(list)) || isSingleCustType)
 			combinations.addAll(list);
 		combinations.addAll(latestCombinations);
 		
@@ -237,7 +302,7 @@ public class FoodItemService {
 	}
 	
 	private Map<String, List<String>> processCustomizationLists(List<String> dataList){
-		Map<String, List<String>> dataMap = new HashMap<String, List<String>>();
+		Map<String, List<String>> dataMap = new LinkedHashMap<String, List<String>>();
 		
 		for(String data : dataList) {
 			String dataTokens[] = data.split("~");

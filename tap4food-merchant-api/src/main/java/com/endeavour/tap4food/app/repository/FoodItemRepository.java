@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
@@ -106,6 +107,14 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
+	public Double getFoodItemPrice(Long foodItemId) {
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
+		return foodItem.getPrice();
+	}
+	
 	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
@@ -139,6 +148,15 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
+	public List<FoodItemCustomizationPricing> getFoodItemPricingDetailsWithCustomization(Long fsId, Long foodItemId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").is(foodItemId)));
+		
+		List<FoodItemCustomizationPricing> foodItems = mongoTemplate.find(query, FoodItemCustomizationPricing.class);
+		
+		return foodItems;
+	}
+	
 	public FoodItemCustomizationPricing updateFoodItemCustomizingPrice(Long fsId, String pricingId, Double newPrice) {
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
 		
@@ -154,6 +172,15 @@ public class FoodItemRepository {
 		mongoTemplate.save(itemPricingObject);
 		
 		return itemPricingObject;
+	}
+	
+	public void updateFoodItemCustomizingPrice(Long foodItemId, Double newPrice) {
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		Update update = new Update();
+		update.set("price", newPrice);
+		
+		mongoTemplate.updateMulti(query, update, FoodItemCustomizationPricing.class);
 	}
 
 	public List<AddOns> getAddOns(Long fsId){

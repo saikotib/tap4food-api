@@ -49,7 +49,10 @@ public class FoodStallService {
 
 	public FoodStall createFoodStall(Long merchantUniqNumber, FoodStall foodStall) throws TFException {
 
-		foodStall.setRating(4.7);
+		String qrCodeUrl = mediaServerUrl + "/QRCodes/"+ foodStall.getFoodCourtId() +".png";
+		
+		foodStall.setRating(4.7); // Need to make it dynamic
+		foodStall.setQrCode(qrCodeUrl);
 		
 		foodStallRepository.createNewFoodStall(merchantUniqNumber, foodStall);
 

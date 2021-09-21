@@ -43,12 +43,16 @@ public class FoodItem {
 	private boolean isEgg;
 	
 	private boolean isReccommended;
+	
+	private boolean isPizza;
 
 	private List<Binary> pic;
 	
 	private Long foodStallId;
-	
+		
 	private Double rating;
+	
+	private long totalReviews;
 	
 	@JsonIgnore
 	private String requestId;   // This is current timestamp in millisecs sennt by React.

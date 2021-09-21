@@ -474,7 +474,7 @@ public class MerchantService {
 
 				merchant = merchantRepository.updateMerchant(merchant, true);
 
-				if(Objects.isNull(merchant)) {
+				if(Objects.nonNull(merchant)) {
 					message = "Password is changed successfully";
 				}
 					
@@ -577,8 +577,9 @@ public class MerchantService {
 	
 	public List<BusinessUnit> getBusinessUnits(String country, String state, String city){
 		
+		List<BusinessUnit> buList = merchantRepository.getBusinessUnits(country, state, city);
 		
-		return merchantRepository.getBusinessUnits(country, state, city);
+		return buList;
 	}
 	
 	public List<FoodCourt> getFoodcourts(Long buId ){
