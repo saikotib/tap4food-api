@@ -17,6 +17,7 @@ import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.service.CustomerService;
 
@@ -91,6 +92,34 @@ public class CustomerController {
 				.status("success")
 				.timestamp(String.valueOf(LocalDateTime.now()))
 				.data(foodItemsMap)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-fooditem-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemDetails(@RequestParam("fooditem-id") Long foodItemId){
+				
+		FoodItem foodItem = customerService.getFoodItemDetails(foodItemId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(foodItem)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-fooditem-combination-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemCombinationDetails(@RequestParam("fooditem-id") Long foodItemId){
+				
+		CustomizationResponse combinationResponse = customerService.getCombinationResponse(foodItemId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(combinationResponse)
 				.build();
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);

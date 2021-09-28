@@ -23,6 +23,12 @@ public class FoodItemPricing {
 	private String subCategory;
 	
 	private String foodItemName;
+	
+	private String combination;
+	
+	private Double combinationPrice;
+	
+	private boolean isBaseItem;
 		
 	private Double price;
 	

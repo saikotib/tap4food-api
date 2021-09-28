@@ -349,32 +349,19 @@ public class MerchantService {
 		return merchant;
 	}
 
-	public Merchant merchantStatusUpdate(Long uniqueNumber, String status) {
-
-		Merchant merchant = null;
-
-		Optional<Merchant> merchantResponse = merchantRepository.findByUniqueNumber(uniqueNumber);
-		System.out.println("merchant response" + merchantResponse.get());
-		if (merchantResponse.isPresent()) {
-
-			merchant = merchantResponse.get();
-
-			merchant.setStatus(status);
-
-			merchant = merchantRepository.updateMerchant(merchant, false);
-		}
-
-		// Mail has to go here.
-
-		return merchant;
-	}
-
-	public Merchant updateMerchant(@Valid Merchant merchant) {
+	public Merchant updateMerchant(Merchant merchant) {
 
 		return merchantRepository.updateMerchant(merchant, false);
 	}
 
-	
+	public Merchant updateMerchantStatus(Long merchantId, String status) throws TFException {
+
+		Merchant merchant = merchantRepository.updateMerchantStatus(merchantId, status);
+		
+		//Mail has to go here. 
+		
+		return merchant;
+	}
 
 	public Optional<Merchant> uploadProfilePic(final Long id, MultipartFile image, String imagetype) {
 

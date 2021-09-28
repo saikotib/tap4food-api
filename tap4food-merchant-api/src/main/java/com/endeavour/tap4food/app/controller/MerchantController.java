@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.validation.Valid;
+import javax.websocket.server.PathParam;
 
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
@@ -47,11 +48,11 @@ public class MerchantController {
 
 	@RequestMapping(value = "/update-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> merchantStatusUpdate(@RequestParam Long uniqueNumber,
-			@RequestParam String status) {
+			@RequestParam String status) throws TFException {
 
 		ResponseEntity<ResponseHolder> responseEntity = null;
 
-		Merchant merchant = merchantService.merchantStatusUpdate(uniqueNumber, status);
+		Merchant merchant = merchantService.updateMerchantStatus(uniqueNumber, status);
 
 		if (!Objects.isNull(merchant)) {
 
@@ -117,7 +118,6 @@ public class MerchantController {
 	}
 
 	@RequestMapping(value = "/update", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-
 	public ResponseEntity<?> updateMerchant(@Valid @RequestBody Merchant merchant) {
 		ResponseEntity response = null;
 

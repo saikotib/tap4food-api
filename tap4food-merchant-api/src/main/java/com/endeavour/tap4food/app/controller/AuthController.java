@@ -281,7 +281,7 @@ public class AuthController {
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+	public ResponseEntity<ResponseHolder> signup(@Valid @RequestBody SignupRequest signUpRequest) {
 		
 		final String email = signUpRequest.getEmail();
 		final String phoneNumber = signUpRequest.getPhoneNumber();
@@ -307,7 +307,7 @@ public class AuthController {
 			merchant.setUserName(signUpRequest.getUsername());
 			merchant.setEmail(signUpRequest.getEmail());
 			merchant.setPhoneNumber(signUpRequest.getPhoneNumber());
-			merchant.setStatus(AccountStatusEnum.ACTIVE.name());
+			merchant.setStatus(AccountStatusEnum.REQUEST_FOR_APPROVAL.name());
 			
 //			User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(), signUpRequest.getPhoneNumber());
 

@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.fooditem.AddOns;
@@ -32,16 +33,17 @@ public class FoodItemRepository {
 	@Autowired
 	private CommonSequenceService commonSequenceService;
 	
-	public void addFoodItem(FoodItem foodItem) throws TFException {
+	public FoodItem addFoodItem(FoodItem foodItem) throws TFException {
 		try {
 			foodItem.setFoodItemId(getIdForNewFoodItem());
 			mongoTemplate.save(foodItem);
 		}catch (Exception e) {
 			throw new TFException("Error occured while adding food item");
 		}
+		return foodItem;
 	}
 	
-	public void updateFoodItemPics(FoodItem foodItem) throws TFException {
+	public void updateFoodItem(FoodItem foodItem) throws TFException {
 		
 		mongoTemplate.save(foodItem);
 		
@@ -67,6 +69,15 @@ public class FoodItemRepository {
 			foodItem.setRequestId(requestId);
 			mongoTemplate.save(foodItem);
 		}
+		
+		return foodItem;
+	}
+	
+	public FoodItem getFoodItem(Long foodItemId) throws TFException {
+		
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItem foodItem = mongoTemplate.findOne(query, FoodItem.class);
 		
 		return foodItem;
 	}
@@ -100,7 +111,19 @@ public class FoodItemRepository {
 	
 	public List<FoodItem> getFoodItems(Long fsId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
+		Query query = new Query(Criteria.where("foodStallId").is(fsId)
+				.andOperator(Criteria.where("foodItemId").exists(true),
+						Criteria.where("baseItem").exists(false)));
+		
+		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
+		
+		return foodItems;
+	}
+	
+	public List<FoodItem> getCombinationFoodItems(Long fsId, Long foodItemId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId)
+				.andOperator(Criteria.where("baseItem").is(foodItemId)));
 		
 		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
 		
@@ -109,6 +132,14 @@ public class FoodItemRepository {
 	
 	public Double getFoodItemPrice(Long foodItemId) {
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
+		return foodItem.getPrice();
+	}
+	
+	public Double getFoodItemPrice(String pricingId) {
+		Query query = new Query(Criteria.where("_id").is(pricingId));
 		
 		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
 		
@@ -124,13 +155,41 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
-	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double newPrice) {
+	public FoodItemPricing getFoodItemPricingDetails(String pricingId){
+		
+		Query query = new Query(Criteria.where("_id").is(pricingId));
+		
+		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
+		return foodItem;
+	}
+	
+	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double itemPrice, Double combinationPrice, boolean isCombination) {
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
 		
 		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
-		itemPricingObject.setPrice(newPrice);
+		itemPricingObject.setPrice(itemPrice + combinationPrice);
 		
-		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + newPrice : itemPricingObject.getNotes() + " ## " + "New Price updated :" + newPrice;
+		if(isCombination) {
+			itemPricingObject.setCombinationPrice(combinationPrice);
+		}
+		
+		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + (itemPrice + combinationPrice) : itemPricingObject.getNotes() + " ## " + "New Price updated :" + (itemPrice + combinationPrice);
+		
+		itemPricingObject.setNotes(notes);
+		
+		mongoTemplate.save(itemPricingObject);
+		
+		return itemPricingObject;
+	}
+	
+	public FoodItemPricing updateCombinationFoodItemPrice(Long foodItemId, Double itemPrice) {
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
+		itemPricingObject.setPrice(itemPrice + itemPricingObject.getCombinationPrice());
+		
+		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + itemPricingObject.getPrice() : itemPricingObject.getNotes() + " ## " + "New Price updated :" + itemPricingObject.getPrice();
 		
 		itemPricingObject.setNotes(notes);
 		
@@ -173,6 +232,8 @@ public class FoodItemRepository {
 		
 		return itemPricingObject;
 	}
+	
+	
 	
 	public void updateFoodItemCustomizingPrice(Long foodItemId, Double newPrice) {
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
@@ -226,6 +287,15 @@ public class FoodItemRepository {
 		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
 		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
 		itemPricingInfo.setPrice(Double.valueOf(0));
+		itemPricingInfo.setCombinationPrice(Double.valueOf(0));
+		
+		if(StringUtils.hasText(foodItem.getCombination())) {
+			itemPricingInfo.setCombination(foodItem.getCombination());
+			itemPricingInfo.setBaseItem(false);
+		}else {
+			itemPricingInfo.setBaseItem(true);
+		}
+		
 		itemPricingInfo.setFoodItemId(foodItem.getFoodItemId());
 		itemPricingInfo.setFoodStallId(foodItem.getFoodStallId());
 		

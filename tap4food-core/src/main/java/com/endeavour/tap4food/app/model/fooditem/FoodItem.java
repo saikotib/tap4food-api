@@ -54,10 +54,16 @@ public class FoodItem {
 	
 	private long totalReviews;
 	
+	private Long baseItem;
+	
+	private String combination;
+	
 	@JsonIgnore
 	private String requestId;   // This is current timestamp in millisecs sennt by React.
 	
 	private boolean availableCustomisation;
 	
 	private List<AddOns> addOns;
+	
+	private Double price;
 }

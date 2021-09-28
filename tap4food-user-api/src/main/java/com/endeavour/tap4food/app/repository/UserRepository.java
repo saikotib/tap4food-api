@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.security.model.User;
 
 @Repository
@@ -72,12 +74,30 @@ public class UserRepository {
 	
 	public List<FoodItem> getFoodItems(Long fsId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("baseItem").exists(false)));
 		
 		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
 		
 		return foodItems;
 	}
+	
+	public FoodItem getFoodItem(Long foodItemId){
+		
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItem foodItem = mongoTemplate.findOne(query, FoodItem.class);
+		
+		return foodItem;
+	}
+	
+	public List<FoodItem> getFoodItemCombinations(Long foodItemId){
+		
+		Query query = new Query(Criteria.where("baseItem").is(foodItemId));
+		
+		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
+		
+		return foodItems;
+	} 
 	
 	public List<FoodStall> getFoodStalls(Long fcId){
 		
@@ -86,5 +106,21 @@ public class UserRepository {
 		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
 		
 		return foodStalls;
+	}
+	
+	public FoodItemCustomiseDetails getFoodItemCustomDetails(Long foodItemId) {
+		
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		return mongoTemplate.findOne(query, FoodItemCustomiseDetails.class);
+	}
+	
+	public FoodItemPricing getCombinationPrices(Long itemId){
+		
+		Query query = new Query(Criteria.where("foodItemId").is(itemId));
+		
+		FoodItemPricing pricingInfo = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
+		return pricingInfo;
 	}
 }

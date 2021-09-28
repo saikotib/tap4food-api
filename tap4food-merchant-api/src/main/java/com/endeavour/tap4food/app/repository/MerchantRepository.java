@@ -243,6 +243,17 @@ public class MerchantRepository {
 		
 		return merchant;
 	}
+	
+	public Merchant updateMerchantStatus(Long merchantId, String status) throws TFException {
+		
+		Merchant merchant = this.getMerchant(merchantId);
+		
+		merchant.setStatus(status);
+		
+		mongoTemplate.save(merchant);
+		
+		return merchant;
+	}
 
 	public void phoneVerifyStatusUpdate(Merchant merchant) {
 		

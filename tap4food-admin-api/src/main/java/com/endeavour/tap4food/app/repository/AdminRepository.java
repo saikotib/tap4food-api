@@ -206,17 +206,7 @@ public class AdminRepository {
 
 			Merchant merchant = merchantData.get();
 
-			if (status.equalsIgnoreCase("active")) {
-				merchant.setStatus("Active");
-			} else if (status.equalsIgnoreCase("inactive")) {
-				merchant.setStatus("Inactive");
-			} else if (status.equalsIgnoreCase("deleted")) {
-				merchant.setStatus("Deleted");
-			} else if (status.equalsIgnoreCase("restore")) {
-				merchant.setStatus("Active");
-			} else {
-				throw new TFException("Invalid status.");
-			}
+			merchant.setStatus(status);
 
 			mongoTemplate.save(merchant);
 
