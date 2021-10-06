@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
@@ -125,6 +127,38 @@ public class FoodItemService {
 			foodItem.setSubCategory(item.getSubCategory());
 			foodItem.setTotalReviews(item.getTotalReviews());
 			foodItem.setVeg(item.isVeg());
+			foodItem.setHasCustomizations(item.isAvailableCustomisation());
+			
+			foodItemsResponseList.add(foodItem);
+		}
+		
+		return foodItemsResponseList;
+	}
+	
+	public List<FoodItemResponse> getFoodItemsForOffers(Long fsId){
+		
+		List<FoodItem> foodItems = foodItemRepository.getFoodItemsForOffers(fsId);
+		
+		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
+		
+		for(FoodItem item : foodItems) {
+			FoodItemResponse foodItem = new FoodItemResponse();
+			foodItem.setDbId(item.getId());
+			foodItem.setAddOn(item.isAddOn());
+			foodItem.setCategory(item.getCategory());
+			foodItem.setCuisine(item.getCuisine());
+			foodItem.setDescription(item.getDescription());
+			foodItem.setEgg(item.isEgg());
+			foodItem.setFoodItemId(item.getFoodItemId());
+			foodItem.setFoodItemName(item.getFoodItemName());
+			foodItem.setFoodStallId(item.getFoodStallId());
+			foodItem.setPrice(foodItemRepository.getFoodItemPrice(item.getFoodItemId()));
+			foodItem.setRating(item.getRating());
+			foodItem.setReccommended(item.isReccommended());
+			foodItem.setSubCategory(item.getSubCategory());
+			foodItem.setTotalReviews(item.getTotalReviews());
+			foodItem.setVeg(item.isVeg());
+			foodItem.setCombination(StringUtils.isEmpty(item.getCombination()) ? "" : item.getCombination().replaceAll("##", " "));
 			
 			foodItemsResponseList.add(foodItem);
 		}
@@ -139,11 +173,32 @@ public class FoodItemService {
 		List<FoodItemPricing> latestPricingDetails = new ArrayList<FoodItemPricing>();
 		
 		for(FoodItemPricing pricing : pricingDetails) {
-			String name = pricing.getFoodItemName();
-			name = name.replaceAll("##", " ");
-			pricing.setFoodItemName(name);
 			
-			latestPricingDetails.add(pricing);
+			System.out.println("Pricing : " + pricing.getFoodItemName());
+			
+			FoodItem item = null;
+			try {
+				item = foodItemRepository.getFoodItem(pricing.getFoodItemId());
+				
+				System.out.println("FoodItem : " + item.getFoodItemName() + " : comb : " + item.getCombination());
+				
+				if(item.isPizza() && item.isDefaultCombination()) {
+					continue;
+				}
+				
+				String name = pricing.getFoodItemName();
+				name = name.replaceAll("##", " ");
+				pricing.setFoodItemName(name);
+
+				pricing.setCombination(item.getCombination());
+				
+				latestPricingDetails.add(pricing);
+				
+			} catch (TFException e) {
+				e.printStackTrace();
+			}
+			
+			
 		}
 		
 		
@@ -355,6 +410,7 @@ public class FoodItemService {
 		System.out.println("foodItemCombinations >>" + foodItemCombinations);
 		
 		if(foodItem.isPizza()) {
+			boolean isDefaultCombination = true;
 			for(String combination : foodItemCombinations) {
 				
 				if(!combination.contains("##") || (combination.indexOf("##") < combination.lastIndexOf("##"))) {
@@ -377,12 +433,44 @@ public class FoodItemService {
 				custSupportItem.setDescription("NA");
 				custSupportItem.setCuisine(foodItem.getCuisine());
 				custSupportItem.setPizza(foodItem.isPizza());
+				custSupportItem.setDefaultCombination(isDefaultCombination);
+				
+				if(isDefaultCombination && foodItem.isPizza()) {
+					foodItem.setCombination(combination);
+					foodItemRepository.updateFoodItem(foodItem);
+					System.out.println("Base Item updated with combination : " + foodItem.getCombination() + " : " + foodItem.getFoodItemName());
+				}
+				
+				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
+				this.addItemPricing(custSupportItem);
+				
+				isDefaultCombination = false;
+			}
+		}else {
+			for(String combination : foodItemCustCombinations) {
+				FoodItem custSupportItem = new FoodItem();
+				
+				custSupportItem.setAddOn(false);
+				custSupportItem.setBaseItem(foodItem.getFoodItemId());
+				custSupportItem.setFoodStallId(foodItem.getFoodStallId());
+				
+				custSupportItem.setCombination(combination);
+				
+				custSupportItem.setFoodItemName(foodItem.getFoodItemName());
+				custSupportItem.setCategory(foodItem.getCategory());
+				custSupportItem.setSubCategory(foodItem.getSubCategory());
+				custSupportItem.setAvailableCustomisation(false);
+				custSupportItem.setDescription("NA");
+				custSupportItem.setCuisine(foodItem.getCuisine());
+				custSupportItem.setPizza(foodItem.isPizza());
+				custSupportItem.setDefaultCombination(false);
+				
 				
 				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
 				this.addItemPricing(custSupportItem);
 			}
-		}else {
-			for(List<String> list : customizeFoodItems.values()) {
+
+			/* for(List<String> list : customizeFoodItems.values()) {
 				for(String custName : list) {
 					FoodItem custSupportItem = new FoodItem();
 					
@@ -404,7 +492,7 @@ public class FoodItemService {
 					this.addItemPricing(custSupportItem);
 				
 				}
-			}
+			} */
 		}
 		
 		System.out.println("Combinations : " + foodItemCustCombinations);

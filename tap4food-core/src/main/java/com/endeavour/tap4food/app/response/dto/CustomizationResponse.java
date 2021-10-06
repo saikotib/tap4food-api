@@ -3,6 +3,8 @@ package com.endeavour.tap4food.app.response.dto;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 @Data
@@ -25,7 +27,10 @@ public class CustomizationResponse {
 		
 		private int order;
 		
-		private List<Double> prices;
+		private List<ItemPatternPrice> prices;
+		
+		@JsonProperty("isMulti")
+		private boolean isMulti;
 	}
 	
 }

@@ -22,6 +22,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.UserRepository;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
+import com.endeavour.tap4food.app.response.dto.ItemPatternPrice;
 import com.endeavour.tap4food.app.security.model.User;
 import com.endeavour.tap4food.app.util.CommonUtil;
 
@@ -249,6 +250,18 @@ public class CustomerService {
 		Map<String, String> descriptionsMap = this.getCustomiseTypeDescriptions(foodItemCustomiseDetails.getCustomiseFoodItemsDescriptions());
 		Map<String, List<String>> customizeTypeWiseFoodItemsMap = this.getCustomizeTypeWiseFoodItems(foodItemCustomiseDetails.getCustomiseFoodItems());
 		
+		List<FoodItem> combinationItems = userRepository.getFoodItemCombinations(foodItemId);
+		
+		Map<String, FoodItem> combinationItemsMap = new HashMap<String, FoodItem>();
+		
+		for(FoodItem item : combinationItems) {
+			item.setCombination(item.getCombination().replaceAll("##", "~"));
+			combinationItemsMap.put(item.getCombination(), item);
+		}
+		
+		String topKey = null;
+		List<String> topKeyList = new ArrayList<String>();
+		
 		int order = 1;
 		for(Map.Entry<String, String> entry : descriptionsMap.entrySet()) {
 			CustomizationResponse.Option option = new CustomizationResponse.Option();
@@ -259,20 +272,48 @@ public class CustomerService {
 			option.setOptionItems(customizeTypeWiseFoodItemsMap.get(entry.getKey()));
 			
 			if(order == 1) {
-				option.setPrices(new ArrayList<Double>());
+				option.setPrices(new ArrayList<ItemPatternPrice>());
+				
+				topKey = entry.getKey();
+				topKeyList = customizeTypeWiseFoodItemsMap.get(topKey);
+				
+			}else {
+				List<ItemPatternPrice> itemPatternPrices = new ArrayList<ItemPatternPrice>();
+				for(String topKeyItem : topKeyList) {
+					
+					List<String> custItems = customizeTypeWiseFoodItemsMap.get(entry.getKey());
+					
+					for(String customizeTypeWiseFoodItem : custItems) {
+
+						String custType = topKeyItem + "~" +customizeTypeWiseFoodItem;
+						
+						FoodItem combinationItem = combinationItemsMap.get(custType);
+						
+						FoodItemPricing pricingInfo = userRepository.getCombinationPrices(combinationItem.getFoodItemId());
+
+						ItemPatternPrice price = new ItemPatternPrice();
+						price.setPattern(custType);
+						price.setPrice(pricingInfo.getCombinationPrice());
+						
+						itemPatternPrices.add(price);
+					}
+				}
+				
+				option.setPrices(itemPatternPrices);
 			}
 			
 			options.add(option);
+			
+			order++;
 		}
 		
 		customizationResponse.setOptions(options);
 		
 		//Getting prices fro combinations.. START
-		
+		/*
 		Map<String, List<String>> combinationPatternsMap = new LinkedHashMap<String, List<String>>();
 		
-		String topKey = null;
-		List<String> topKeyList = new ArrayList<String>();
+		
 		int counter = 0;
 		
 		for(Map.Entry<String, List<String>> entry : customizeTypeWiseFoodItemsMap.entrySet()) {
@@ -335,7 +376,7 @@ public class CustomerService {
 		}
 		
 		customizationResponse.setCombinationsMap(combinationsMap);
-		
+		*/
 		//END
 		
 		return customizationResponse;

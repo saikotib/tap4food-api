@@ -99,6 +99,19 @@ public class MenuController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/get-food-items-for-offers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemsForOffers(@RequestParam("fs-id") Long fsId){
+		
+		List<FoodItemResponse> foodItems = foodItemService.getFoodItemsForOffers(fsId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/get-fooditems-pricing-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodItemPricingInfo(@RequestParam("fs-id") Long fsId){
 		

@@ -120,6 +120,18 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
+	public List<FoodItem> getFoodItemsForOffers(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId)
+				.andOperator(Criteria.where("foodItemId").exists(true)));
+		
+		query.fields().exclude("pic");
+		
+		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
+		
+		return foodItems;
+	}
+	
 	public List<FoodItem> getCombinationFoodItems(Long fsId, Long foodItemId){
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId)

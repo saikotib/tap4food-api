@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.bson.types.Binary;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 @Data
@@ -40,4 +42,9 @@ public class FoodItemResponse {
 	private long totalReviews;
 	
 	private Double price;
+	
+	private String combination;
+	
+	@JsonProperty("hasCustomizations")
+	private boolean hasCustomizations;
 }

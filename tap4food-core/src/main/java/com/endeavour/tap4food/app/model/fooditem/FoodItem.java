@@ -66,4 +66,6 @@ public class FoodItem {
 	private List<AddOns> addOns;
 	
 	private Double price;
+	
+	private boolean isDefaultCombination;
 }
