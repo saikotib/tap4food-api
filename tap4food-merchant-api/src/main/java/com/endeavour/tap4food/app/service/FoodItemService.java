@@ -215,7 +215,6 @@ public class FoodItemService {
 		FoodItemPricing itemPricingExistingDetails = foodItemRepository.getFoodItemPricingDetails(pricingId);
 		
 		Double foodItemExistingPrice = itemPricingExistingDetails.getPrice();
-//		Double combinationPrice = itemPricingExistingDetails.getCombinationPrice();
 		
 		FoodItem foodItem = foodItemRepository.getFoodItem(itemPricingExistingDetails.getFoodItemId());
 		
@@ -267,7 +266,14 @@ public class FoodItemService {
 					continue;
 				}
 				
-				foodItemCustomizationPricing.setPrice(newPrice);
+				if(existingPrice == 0) {
+					foodItemCustomizationPricing.setPrice(newPrice);
+				}else {
+					
+					existingPrice = existingPrice - foodItemExistingPrice;
+					Double revisedPrice = existingPrice + newPrice;
+					foodItemCustomizationPricing.setPrice(revisedPrice);
+				}
 				
 				foodItemRepository.updateFoodItemCustomizingPrice(fsId, foodItemCustomizationPricing.getId(), foodItemCustomizationPricing.getPrice());
 		}
