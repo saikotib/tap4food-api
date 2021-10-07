@@ -176,17 +176,13 @@ public class FoodItemRepository {
 		return foodItem;
 	}
 	
-	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double itemPrice, Double combinationPrice, boolean isCombination) {
+	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double itemPrice) {
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
 		
 		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
-		itemPricingObject.setPrice(itemPrice + combinationPrice);
+		itemPricingObject.setPrice(itemPrice);
 		
-		if(isCombination) {
-			itemPricingObject.setCombinationPrice(combinationPrice);
-		}
-		
-		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + (itemPrice + combinationPrice) : itemPricingObject.getNotes() + " ## " + "New Price updated :" + (itemPrice + combinationPrice);
+		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + itemPrice : itemPricingObject.getNotes() + " ## " + "New Price updated :" + itemPrice;
 		
 		itemPricingObject.setNotes(notes);
 		
@@ -199,7 +195,7 @@ public class FoodItemRepository {
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
 		
 		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
-		itemPricingObject.setPrice(itemPrice + itemPricingObject.getCombinationPrice());
+		itemPricingObject.setPrice(itemPrice + itemPricingObject.getPrice());
 		
 		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + itemPricingObject.getPrice() : itemPricingObject.getNotes() + " ## " + "New Price updated :" + itemPricingObject.getPrice();
 		
@@ -299,7 +295,7 @@ public class FoodItemRepository {
 		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
 		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
 		itemPricingInfo.setPrice(Double.valueOf(0));
-		itemPricingInfo.setCombinationPrice(Double.valueOf(0));
+//		itemPricingInfo.setCombinationPrice(Double.valueOf(0));
 		
 		if(StringUtils.hasText(foodItem.getCombination())) {
 			itemPricingInfo.setCombination(foodItem.getCombination());

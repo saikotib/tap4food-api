@@ -20,6 +20,7 @@ import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.offer.FoodItemsList;
 import com.endeavour.tap4food.app.model.offer.Offer;
+import com.endeavour.tap4food.app.model.offer.OfferFoodItem;
 import com.endeavour.tap4food.app.model.offer.SuggestionItem;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
 import com.endeavour.tap4food.app.repository.OfferRepository;
@@ -120,6 +121,32 @@ public class OfferService {
 		List<Offer> offers = offerRepository.getOffers(fsId);
 		
 		return offers;
+	}
+	
+	public List<OfferFoodItem> getOfferFoodItems(Long fsId) throws TFException{
+		List<OfferFoodItem> offerFoodItems = new ArrayList<OfferFoodItem>();
+		
+		List<Offer> offers = this.getOffers(fsId);
+		
+		for(Offer offer : offers) {
+			OfferFoodItem offerFoodItem = new OfferFoodItem();
+			
+			offerFoodItem.setOfferId(offer.getOfferId());
+			offerFoodItem.setFoodItemName(offer.getTitle());
+			
+			List<FoodItemsList> itemsLists = offerRepository.getOfferFoodItemLists(offer.getOfferId());
+			
+			for(FoodItemsList list : itemsLists) {
+				offerFoodItem.setActualPrice(list.getActualPrice());
+				offerFoodItem.setFoodItemName(list.getItemName());
+				offerFoodItem.setOfferPrice(list.getOfferPrice());
+				
+				offerFoodItems.add(offerFoodItem);
+			}
+			
+		}
+		
+		return offerFoodItems;
 	}
 	
 	public OfferResponse getOffer(Long fsId, Long offerId) throws TFException{

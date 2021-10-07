@@ -215,7 +215,7 @@ public class FoodItemService {
 		FoodItemPricing itemPricingExistingDetails = foodItemRepository.getFoodItemPricingDetails(pricingId);
 		
 		Double foodItemExistingPrice = itemPricingExistingDetails.getPrice();
-		Double combinationPrice = itemPricingExistingDetails.getCombinationPrice();
+//		Double combinationPrice = itemPricingExistingDetails.getCombinationPrice();
 		
 		FoodItem foodItem = foodItemRepository.getFoodItem(itemPricingExistingDetails.getFoodItemId());
 		
@@ -223,6 +223,7 @@ public class FoodItemService {
 		
 		foodItemRepository.updateFoodItem(foodItem);   // Just to update the latest price of food item
 		
+		/*
 		Long baseItem = foodItem.getBaseItem();
 		
 		boolean isCombinationItem = false;
@@ -234,7 +235,9 @@ public class FoodItemService {
 			baseItemPrice = foodItemRepository.getFoodItemPrice(baseItem);
 		}
 		
-		FoodItemPricing itemPricing = foodItemRepository.updateFoodItemPrice(fsId, pricingId, baseItemPrice, newPrice, isCombinationItem);
+		*/
+		
+		FoodItemPricing itemPricing = foodItemRepository.updateFoodItemPrice(fsId, pricingId, newPrice);
 		
 		System.out.println("FoodItem price is updated.");
 		
@@ -249,23 +252,7 @@ public class FoodItemService {
 			String combination = foodItemCustomizationPricing.getCustomiseType();
 			List<String> combinationTokens = Arrays.asList(combination.split("##"));
 			
-			if(Objects.isNull(foodItem.getBaseItem())) {
-				
-				System.out.println("It is normal food item");
-				
-				if(existingPrice.equals(0)) {
-					foodItemCustomizationPricing.setPrice(newPrice);
-				}else {
-					if(foodItemExistingPrice > newPrice) {
-						foodItemCustomizationPricing.setPrice(foodItemCustomizationPricing.getPrice() - (foodItemExistingPrice - newPrice));
-					}else {
-						foodItemCustomizationPricing.setPrice(foodItemCustomizationPricing.getPrice() + (newPrice - foodItemExistingPrice));
-					}
-				}
-				
-				foodItemRepository.updateFoodItemCustomizingPrice(fsId, foodItemCustomizationPricing.getId(), foodItemCustomizationPricing.getPrice());
-			}else {
-				
+			
 				String custNameTokens[] = foodItem.getCombination().split("##");
 				
 				boolean flag = true;
@@ -280,30 +267,9 @@ public class FoodItemService {
 					continue;
 				}
 				
-				if(existingPrice.equals(Double.valueOf(0))) {
-					foodItemCustomizationPricing.setPrice(newPrice);
-				}else {
-					if(combinationPrice > newPrice) {
-						foodItemCustomizationPricing.setPrice(foodItemCustomizationPricing.getPrice() - (combinationPrice - newPrice));
-					}else {
-						foodItemCustomizationPricing.setPrice(foodItemCustomizationPricing.getPrice() + (newPrice - combinationPrice));
-					}
-				}
+				foodItemCustomizationPricing.setPrice(newPrice);
 				
 				foodItemRepository.updateFoodItemCustomizingPrice(fsId, foodItemCustomizationPricing.getId(), foodItemCustomizationPricing.getPrice());
-			}
-		}
-		
-		if(Objects.nonNull(itemPricing)) {
-			foodItemRepository.updateFoodItemCustomizingPrice(itemPricing.getFoodItemId(), newPrice);
-		}
-		
-		if(!isCombinationItem) {
-			List<FoodItem> combinationFoodItems = foodItemRepository.getCombinationFoodItems(fsId, foodItemId);
-			
-			for(FoodItem combinationItem : combinationFoodItems) {
-				foodItemRepository.updateCombinationFoodItemPrice(combinationItem.getFoodItemId(), newPrice);
-			}
 		}
 		
 		return itemPricing;

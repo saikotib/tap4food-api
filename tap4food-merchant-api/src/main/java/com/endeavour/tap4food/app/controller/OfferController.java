@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.offer.Offer;
+import com.endeavour.tap4food.app.model.offer.OfferFoodItem;
 import com.endeavour.tap4food.app.request.dto.OfferFoodItemsListRequest;
 import com.endeavour.tap4food.app.request.dto.OfferSuggestionItemRequest;
 import com.endeavour.tap4food.app.response.dto.OfferResponse;
@@ -102,6 +103,20 @@ public class OfferController {
 				.status("success")
 				.timestamp(String.valueOf(LocalDateTime.now()))
 				.data(offers)
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@RequestMapping(value = "/get-offers-fooditems", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getOfferFoodItems(@RequestParam("fsId") Long fsId) throws TFException{
+		
+		List<OfferFoodItem> offerFoodItems = offerService.getOfferFoodItems(fsId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(offerFoodItems)
 				.build();
 		
 		return ResponseEntity.ok().body(response);

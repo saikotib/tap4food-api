@@ -26,7 +26,7 @@ public class FoodItemPricing {
 	
 	private String combination;
 	
-	private Double combinationPrice;
+//	private Double combinationPrice;
 	
 	private boolean isBaseItem;
 		
