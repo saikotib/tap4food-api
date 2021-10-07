@@ -293,7 +293,7 @@ public class CustomerService {
 
 						ItemPatternPrice price = new ItemPatternPrice();
 						price.setPattern(custType);
-						price.setPrice(pricingInfo.getCombinationPrice());
+						price.setPrice(pricingInfo.getPrice());
 						
 						itemPatternPrices.add(price);
 					}

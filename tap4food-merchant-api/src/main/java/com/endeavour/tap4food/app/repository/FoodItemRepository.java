@@ -82,6 +82,15 @@ public class FoodItemRepository {
 		return foodItem;
 	}
 	
+	public FoodItem getChileFoodItem(Long baseItem, String combination) throws TFException {
+		
+		Query query = new Query(Criteria.where("baseItem").is(baseItem).andOperator(Criteria.where("combination").is(combination)));
+		
+		FoodItem foodItem = mongoTemplate.findOne(query, FoodItem.class);
+		
+		return foodItem;
+	}
+	
 	public FoodItemCustomiseDetails getFoodItemCustomizeDetails(Long foodItemId) throws TFException {
 		
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
@@ -176,6 +185,15 @@ public class FoodItemRepository {
 		return foodItem;
 	}
 	
+	public FoodItemPricing getFoodItemPricingDetails(Long fsId, Long foodItemId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").is(foodItemId)));
+		
+		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
+		return foodItem;
+	}
+	
 	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double itemPrice) {
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
 		
@@ -229,7 +247,7 @@ public class FoodItemRepository {
 		
 		FoodItemCustomizationPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemCustomizationPricing.class);
 		
-		System.out.println(">>" + itemPricingObject);
+//		System.out.println(">>" + itemPricingObject);
 		itemPricingObject.setPrice(newPrice);
 		
 		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + newPrice : itemPricingObject.getNotes() + " ## " + "New Price updated :" + newPrice;

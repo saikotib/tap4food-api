@@ -142,6 +142,11 @@ public class FoodItemService {
 		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
 		
 		for(FoodItem item : foodItems) {
+			
+			if(item.isDefaultCombination()) {
+				continue;
+			}
+			
 			FoodItemResponse foodItem = new FoodItemResponse();
 			foodItem.setDbId(item.getId());
 			foodItem.setAddOn(item.isAddOn());
@@ -180,9 +185,9 @@ public class FoodItemService {
 			try {
 				item = foodItemRepository.getFoodItem(pricing.getFoodItemId());
 				
-				System.out.println("FoodItem : " + item.getFoodItemName() + " : comb : " + item.getCombination());
+				System.out.println("FoodItem : " + item.getFoodItemName() + " : comb : " + item.getCombination() + " : isDefaultCombination : " + item.isDefaultCombination());
 				
-				if(item.isPizza() && item.isDefaultCombination()) {
+				if(item.isDefaultCombination()) {
 					continue;
 				}
 				
@@ -220,25 +225,28 @@ public class FoodItemService {
 		
 		foodItem.setPrice(newPrice);
 		
-		foodItemRepository.updateFoodItem(foodItem);   // Just to update the latest price of food item
-		
-		/*
-		Long baseItem = foodItem.getBaseItem();
-		
-		boolean isCombinationItem = false;
-		
-		Double baseItemPrice = Double.valueOf(0);
-		
-		if(Objects.nonNull(baseItem)) {
-			isCombinationItem = true;
-			baseItemPrice = foodItemRepository.getFoodItemPrice(baseItem);
+		if(Objects.isNull(foodItem.getBaseItem())) {
+			FoodItem childFoodItem = foodItemRepository.getChileFoodItem(foodItem.getFoodItemId(), foodItem.getCombination());
+			
+			System.out.println("childFoodItem id : " + childFoodItem);
+			
+			if(Objects.nonNull(childFoodItem)) {
+				childFoodItem.setPrice(newPrice);
+				foodItemRepository.updateFoodItem(childFoodItem); 
+				
+				FoodItemPricing childItemPricingInfo = foodItemRepository.getFoodItemPricingDetails(fsId, childFoodItem.getFoodItemId());
+				
+				foodItemRepository.updateFoodItemPrice(fsId, childItemPricingInfo.getId(), newPrice);
+			}
 		}
 		
-		*/
+		foodItemRepository.updateFoodItem(foodItem);   // Just to update the latest price of food item
 		
 		FoodItemPricing itemPricing = foodItemRepository.updateFoodItemPrice(fsId, pricingId, newPrice);
 		
 		System.out.println("FoodItem price is updated.");
+		
+		System.out.println("CustType comb name : " + foodItem.getFoodItemId() + " : " + foodItem.getCombination());
 		
 		Long foodItemId = Objects.isNull(foodItem.getBaseItem()) ? foodItem.getFoodItemId() : foodItem.getBaseItem();
 		
@@ -250,7 +258,6 @@ public class FoodItemService {
 			
 			String combination = foodItemCustomizationPricing.getCustomiseType();
 			List<String> combinationTokens = Arrays.asList(combination.split("##"));
-			
 			
 				String custNameTokens[] = foodItem.getCombination().split("##");
 				
@@ -267,11 +274,17 @@ public class FoodItemService {
 				}
 				
 				if(existingPrice == 0) {
+					System.out.println("In true case");
 					foodItemCustomizationPricing.setPrice(newPrice);
 				}else {
-					
+					System.out.println("In false case");
+					System.out.println("In false case existingPrice : " + existingPrice);
+					System.out.println("In false case foodItemExistingPrice : " + foodItemExistingPrice);
 					existingPrice = existingPrice - foodItemExistingPrice;
 					Double revisedPrice = existingPrice + newPrice;
+					
+					System.out.println("In false case revisedPrice : " + revisedPrice);
+					
 					foodItemCustomizationPricing.setPrice(revisedPrice);
 				}
 				
@@ -419,6 +432,7 @@ public class FoodItemService {
 				isDefaultCombination = false;
 			}
 		}else {
+			boolean isDefaultCombination = true;
 			for(String combination : foodItemCustCombinations) {
 				FoodItem custSupportItem = new FoodItem();
 				
@@ -435,11 +449,18 @@ public class FoodItemService {
 				custSupportItem.setDescription("NA");
 				custSupportItem.setCuisine(foodItem.getCuisine());
 				custSupportItem.setPizza(foodItem.isPizza());
-				custSupportItem.setDefaultCombination(false);
+				custSupportItem.setDefaultCombination(isDefaultCombination);
 				
+				if(isDefaultCombination) {
+					foodItem.setCombination(combination);
+					foodItemRepository.updateFoodItem(foodItem);
+					System.out.println("Base Item updated with combination : " + foodItem.getCombination() + " : " + foodItem.getFoodItemName());
+				}
 				
 				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
 				this.addItemPricing(custSupportItem);
+				
+				isDefaultCombination = false;
 			}
 
 			/* for(List<String> list : customizeFoodItems.values()) {
