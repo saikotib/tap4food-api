@@ -217,6 +217,19 @@ public class CustomerService {
 		return customiseTypeDescriptionsMap;
 	}
 	
+	private Map<String, String> getCustomiseFoodItemsSelectButtons(List<String> rawSelectionOptions){
+		
+		Map<String, String> customiseFoodItemsSelectButtonsMap = new LinkedHashMap<String, String>();
+
+		for(String customizeTypeEntry : rawSelectionOptions) {
+			String customizeItemTokens[] = customizeTypeEntry.split("~");
+			
+			customiseFoodItemsSelectButtonsMap.put(customizeItemTokens[0], customizeItemTokens[1]);
+		}
+		
+		return customiseFoodItemsSelectButtonsMap;
+	}
+	
 	
 	private Map<String, List<String>> getCustomizeTypeWiseFoodItems(List<String> customiseFoodItems){
 		
@@ -250,13 +263,21 @@ public class CustomerService {
 		Map<String, String> descriptionsMap = this.getCustomiseTypeDescriptions(foodItemCustomiseDetails.getCustomiseFoodItemsDescriptions());
 		Map<String, List<String>> customizeTypeWiseFoodItemsMap = this.getCustomizeTypeWiseFoodItems(foodItemCustomiseDetails.getCustomiseFoodItems());
 		
+		Map<String, String> selectButtonsMap = this.getCustomiseFoodItemsSelectButtons(foodItemCustomiseDetails.getCustomiseFoodItemsSelectButtons());
+		
 		List<FoodItem> combinationItems = userRepository.getFoodItemCombinations(foodItemId);
 		
 		Map<String, FoodItem> combinationItemsMap = new HashMap<String, FoodItem>();
 		
+		boolean isPizza = false;
+		
 		for(FoodItem item : combinationItems) {
 			item.setCombination(item.getCombination().replaceAll("##", "~"));
 			combinationItemsMap.put(item.getCombination(), item);
+			
+			if(!isPizza && item.isPizza()) {
+				isPizza = true;
+			}
 		}
 		
 		String topKey = null;
@@ -271,8 +292,34 @@ public class CustomerService {
 			option.setLabel(entry.getValue());
 			option.setOptionItems(customizeTypeWiseFoodItemsMap.get(entry.getKey()));
 			
+			String buttonType = selectButtonsMap.get(entry.getKey());
+			
+			if(buttonType.equalsIgnoreCase("single")) {
+				option.setMulti(false);
+			}else {
+				option.setMulti(true);
+			}
+			
 			if(order == 1) {
-				option.setPrices(new ArrayList<ItemPatternPrice>());
+				
+				List<ItemPatternPrice> itemPatternPrices = new ArrayList<ItemPatternPrice>();
+				
+				if(!isPizza) {
+					for(String combination : customizeTypeWiseFoodItemsMap.get(entry.getKey())) {
+						
+						System.out.println("combinationItemsMap > " + combinationItemsMap.keySet());
+						System.out.println("combination > " + combination);
+						FoodItem combinationItem = combinationItemsMap.get(combination);
+						
+						ItemPatternPrice itemPatternPrice = new ItemPatternPrice();
+						itemPatternPrice.setPattern(combination);
+						itemPatternPrice.setPrice(combinationItem.getPrice());
+						
+						itemPatternPrices.add(itemPatternPrice);
+					}
+				}
+				
+				option.setPrices(itemPatternPrices);
 				
 				topKey = entry.getKey();
 				topKeyList = customizeTypeWiseFoodItemsMap.get(topKey);

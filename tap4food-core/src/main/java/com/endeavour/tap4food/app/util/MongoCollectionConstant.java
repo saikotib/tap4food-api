@@ -12,8 +12,6 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_USERROLES = "userRoles";
 	
-	public static final String COLLECTION_ORDERS = "orders";
-	
 	public static final String COLLECTION_MENU_CATEGORIES = "menuCategories";
 	
 	public static final String COLLECTION_MENU_SUB_CATEGORIES = "menuSubCategories";
@@ -39,6 +37,8 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_FOODITEM_SEQ = "foodItemSequences";
 	
 	public static final String COLLECTION_OFFER_SEQ = "offerSequences";
+	
+	public static final String COLLECTION_ORDER_SEQ = "orderSequences";
 	
 	public static final String COLLECTION_COUNTRY = "countries";
 	
@@ -69,4 +69,12 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_OFFERS_FOOD_ITEM_CUST_DETAILS = "offersFoodItemCustomizationDetails";
 	
 	public static final String COLLECTION_OFFERS_OFFER_SUGGESTION_ITEMS = "offersSuggestionFoodItems";
+	
+	public static final String COLLECTION_ORDERS = "orders";
+	
+	public static final String COLLECTION_CARTITEM = "cartItems";
+	
+	public static final String COLLECTION_CARTITEM_CUSTOMIZATION = "cartItemCustomizations";
+	
+	public static final String COLLECTION_ORDER_CUSTOMERS = "orderCustomers";
 }
