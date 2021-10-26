@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
+import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.repository.OrderRepository;
 import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
@@ -58,7 +59,7 @@ public class OrderService {
 		
 		order.setTotalItems(totalItems);
 		
-		orderRepository.placeOrder(order);
+		order = orderRepository.placeOrder(order);
 		log.info("Order Is placed. {}", order);
 		
 		for(PlaceOrderRequest.SelectedCartItem selectedCartItem : selectedCartItems) {
@@ -87,6 +88,15 @@ public class OrderService {
 				}
 			}
 		}
+		
+		Customer customer = new Customer();
+		customer.setEmail(orderRequest.getCustomer().getEmail());
+		customer.setFullName(orderRequest.getCustomer().getFullName());
+		customer.setOrderId(order.getOrderId());
+		customer.setPhoneNumber(orderRequest.getCustomer().getPhoneNumber());
+		customer.setId(newOrderSeq);
+		
+		orderRepository.saveCustomer(customer);
 		
 		return order;
 	}

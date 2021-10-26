@@ -31,8 +31,11 @@ import com.endeavour.tap4food.app.model.AdminDashboardData;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
+import com.endeavour.tap4food.app.model.Subscription;
+import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
@@ -46,13 +49,14 @@ public class AdminController {
 	@Autowired
 	AdminService adminService;
 
-	@RequestMapping(value = "/update-merchant-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateMerchantStatus(@RequestParam Long merchantUniqueId,
+	@RequestMapping(value = "/update-foodstall-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodstallStatus(@RequestParam Long merchantUniqueId,
+			@RequestParam Long foodStallId,
 			@RequestParam String status) throws TFException {
 
-		Merchant merchant = adminService.updateMerchantStatus(status, merchantUniqueId);
+		FoodStall foodstall = adminService.updateFoodstallStatus(status, foodStallId, merchantUniqueId);
 
-		ResponseHolder response = ResponseHolder.builder().data(merchant).status("success")
+		ResponseHolder response = ResponseHolder.builder().data(foodstall).status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).build();
 
 		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
@@ -112,6 +116,18 @@ public class AdminController {
 	public ResponseEntity<ResponseHolder> fetchMerchants() {
 
 		List<MerchantFoodStall> merchants = adminService.fetchMerchants();
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(merchants).build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+	}
+	
+	@RequestMapping(value = "/fetch-merchant-requests", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> fetchMerchantRequests() {
+
+		List<MerchantFoodStall> merchants = adminService.fetchMerchantRequests();
 
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(merchants).build();
@@ -521,5 +537,73 @@ public class AdminController {
 		return response;
 
 	}
+	
+	@RequestMapping(value = "/update-aboutus-content", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateAboutUsContent(@RequestBody AboutUs request) throws TFException {
 
+		AboutUs aboutUsData = adminService.saveAboutUsData(request);
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(aboutUsData).build());
+
+		return response;
+
+	}
+
+	@RequestMapping(value = "/get-aboutus-content", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAboutUsContent(@RequestBody AboutUs request) throws TFException {
+
+		List<AboutUs> aboutUsData = adminService.getAboutUsData();
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(aboutUsData).build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/get-merchant-requests", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getMerchantRequestsData(){
+		
+		List<MerchantFoodStall> stalls = adminService.fetchMerchantRequests();
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(stalls).build());
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/get-reviewed-merchants", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getReviewedMerchants(){
+		
+		List<MerchantFoodStall> stalls = adminService.fetchMerchants();
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(stalls).build());
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/add-subscription", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> addSubscription(@RequestBody Subscription subscription) throws TFException {
+
+		subscription = adminService.addSubscription(subscription);
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(subscription).build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/get-subscription", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getSubscription() throws TFException {
+
+		List<Subscription> subscriptions = adminService.getExistingSubscriptions();
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(subscriptions).build());
+
+		return response;
+
+	}
 }

@@ -64,7 +64,7 @@ public class LocationController {
 	}
 	
 	@RequestMapping(value = "/add-city", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> addState(@RequestParam("state-name") String stateName, @RequestBody City city) throws TFException{
+	public ResponseEntity<ResponseHolder> addCity(@RequestParam("state-name") String stateName, @RequestBody City city) throws TFException{
 		
 		if(!StringUtils.hasText(stateName)){
 			throw new TFException("Invalid state name");

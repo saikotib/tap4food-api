@@ -224,7 +224,7 @@ public class AuthController {
 		
 		if(userDetails.getStatus() == null) {
 			System.out.println("Status is NULL. Need to check why it went null.");
-			userDetails.setStatus(AccountStatusEnum.ACTIVE.name());
+			userDetails.setStatus(AccountStatusEnum.REQUEST_FOR_APPROVAL.name());
 		}
 		
 		System.out.println("Status : " + userDetails.getStatus());
@@ -356,8 +356,6 @@ public class AuthController {
 			
 			responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 		}
-		
-		
 
 		return responseEntity;
 	}

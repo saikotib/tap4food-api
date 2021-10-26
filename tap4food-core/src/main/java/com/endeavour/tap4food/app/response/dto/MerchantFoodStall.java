@@ -9,6 +9,8 @@ public class MerchantFoodStall {
 	
 	private String foodStallName;
 	
+	private Long foodStallId;
+	
 	private String owner;
 	
 	private String phoneNumber;
@@ -18,4 +20,6 @@ public class MerchantFoodStall {
 	private String date;
 	
 	private String status;
+	
+	private String address;
 }

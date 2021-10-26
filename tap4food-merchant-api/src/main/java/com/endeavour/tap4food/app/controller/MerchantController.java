@@ -1,6 +1,5 @@
 package com.endeavour.tap4food.app.controller;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -8,10 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.validation.Valid;
-import javax.websocket.server.PathParam;
 
-import org.bson.BsonBinarySubType;
-import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,10 +25,10 @@ import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
+import com.endeavour.tap4food.app.model.MerchantContactAdmin;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.response.dto.StallManager;
 import com.endeavour.tap4food.app.service.MerchantService;
-import com.endeavour.tap4food.app.util.AvatarImage;
 import com.endeavour.tap4food.app.util.ImageConstants;
 /*import org.apache.http.entity.ContentType;*/
 
@@ -130,7 +126,7 @@ public class MerchantController {
 
 		return response;
 	}
-
+	
 	@RequestMapping(value = "/{merchant-id}/upload-pic", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadPic(@Valid @PathVariable("merchant-id") Long id,
 			@RequestParam(value = "pic", required = true) MultipartFile pic,
@@ -311,5 +307,20 @@ public class MerchantController {
 		return responseEntity;
 	}
 
+	@RequestMapping(value = "/writeToAdmin", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> writeToAdmin(@RequestBody MerchantContactAdmin request){
+		
+		merchantService.saveMerchantMessageToAdmin(request);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data("Message is saved.")
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;
+	}
 
 }

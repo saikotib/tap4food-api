@@ -33,4 +33,6 @@ public class FoodItemPricing {
 	private Double price;
 	
 	private String notes;
+	
+	private String status;
 }

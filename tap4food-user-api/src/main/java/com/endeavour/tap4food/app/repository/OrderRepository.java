@@ -50,6 +50,11 @@ public class OrderRepository {
 		mongoTemplate.save(cartItemCustomization);
 	}
 	
+	public void saveOrderedCustomer(Customer customer) {
+
+		mongoTemplate.save(customer);
+	}
+	
 	public Long getNewOrderId() {
 
 		Long foodStallID = commonSequenceService

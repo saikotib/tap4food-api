@@ -15,20 +15,18 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.enums.AccountStatusEnum;
-import com.endeavour.tap4food.app.enums.UserStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
+import com.endeavour.tap4food.app.model.MerchantContactAdmin;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
@@ -301,6 +299,8 @@ public class MerchantService {
 
 	public Merchant createMerchant(Merchant merchant) {
 		
+		merchant.setStatus("Active");
+		
 		merchantRepository.createMerchant(merchant);
 
 		Optional<Merchant> merchantOptionalObject = merchantRepository
@@ -353,7 +353,7 @@ public class MerchantService {
 
 		return merchantRepository.updateMerchant(merchant, false);
 	}
-
+	
 	public Merchant updateMerchantStatus(Long merchantId, String status) throws TFException {
 
 		Merchant merchant = merchantRepository.updateMerchantStatus(merchantId, status);
@@ -571,8 +571,11 @@ public class MerchantService {
 	
 	public List<FoodCourt> getFoodcourts(Long buId ){
 		
-		
 		return merchantRepository.getFoodcourts(buId);
 	}
 
+	public void saveMerchantMessageToAdmin(MerchantContactAdmin merchantContactAdmin) {
+		
+		saveMerchantMessageToAdmin(merchantContactAdmin);
+	}
 }

@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallSubscription;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
@@ -65,6 +66,36 @@ public class FoodStallController {
 		foodStallService.updateFoodStall(foodStall);
 
 		ResponseHolder response = ResponseHolder.builder().data(foodStall).status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).build();
+
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/update-status", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodStallStatus(
+			@PathVariable("fs-id") Long fsId,
+			@RequestParam("status") String newStatus) throws TFException {
+
+		FoodStall foodstall = foodStallService.updateFoodstallStatus(fsId, newStatus);
+
+		ResponseHolder response = ResponseHolder.builder().data(foodstall).status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).build();
+
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/update-open-status", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodStallOpenStatus(
+			@PathVariable("fs-id") Long fsId,
+			@RequestParam("openStatus") boolean openStatus) throws TFException {
+
+		FoodStall foodstall = foodStallService.updateFoodstallOpenStatus(fsId, openStatus);
+
+		ResponseHolder response = ResponseHolder.builder().data(foodstall).status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).build();
 
 		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
@@ -508,4 +539,52 @@ public class FoodStallController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/{fs-id}/delete-pic", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deletePic(@Valid @PathVariable("fs-id") Long fsId,
+			@RequestParam(value = "picType", required = true) String picType,
+			@RequestParam(value = "picUrl", required = true) String picUrl) throws TFException {
+
+		ResponseEntity<ResponseHolder> response = null;
+
+		FoodStall foodStall = foodStallService.deletePic(fsId, picType, picUrl);
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("success")
+				.data(foodStall)
+				.build();
+		
+		response = ResponseEntity.ok().body(responseHolder);
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/save-foodstall-subscription-details", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateMerchantSubscriptionDetails(@Valid @RequestBody FoodStallSubscription foodstallSubscriptionDetails) throws TFException {
+
+		foodstallSubscriptionDetails = foodStallService.addMerchantSubscriptionDetails(foodstallSubscriptionDetails);
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("OK")
+				.data(foodstallSubscriptionDetails)
+				.build();
+		
+		ResponseEntity<ResponseHolder> response = new ResponseEntity<ResponseHolder>(responseHolder, HttpStatus.OK);
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/get-foodstall-subscription-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getMerchantSubscriptionDetails(@RequestParam("foodstallId") Long fsId) throws TFException {
+
+		FoodStallSubscription subscriptionDetails = foodStallService.getFoodStallSubscriptionDetails(fsId);
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("OK")
+				.data(subscriptionDetails)
+				.build();
+		
+		ResponseEntity<ResponseHolder> response = new ResponseEntity<ResponseHolder>(responseHolder, HttpStatus.OK);
+		
+		return response;
+	}
 }

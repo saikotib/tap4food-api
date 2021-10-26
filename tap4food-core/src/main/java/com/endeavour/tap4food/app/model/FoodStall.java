@@ -8,6 +8,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -64,6 +66,16 @@ public class FoodStall {
 	private Double rating;
 	
 	private String qrCode;
+	
+	private String status;
+	
+	private String createdDate;
+	
+	@JsonProperty("isOpened")
+	private boolean isOpened;
+	
+	@JsonProperty("isRestaurant")
+	private boolean isRestaurant;
 	
 	@DBRef
 	private MenuListings menuListing;

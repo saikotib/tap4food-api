@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.BusinessUnit;
@@ -28,6 +29,7 @@ import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
+import com.endeavour.tap4food.app.model.MerchantContactAdmin;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.response.dto.StallManager;
@@ -226,8 +228,8 @@ public class MerchantRepository {
 				Merchant existingMerchant = existingMerchantData.get();
 				existingMerchant.setPersonalIdNumber(merchant.getPersonalIdNumber());
 				existingMerchant.setUserName(Objects.isNull(merchant.getUserName()) ? existingMerchant.getUserName() : merchant.getUserName());
-				existingMerchant.setBlockedTimeMs(merchant.getBlockedTimeMs());
-				existingMerchant.setStatus(merchant.getStatus());
+				existingMerchant.setBlockedTimeMs(ObjectUtils.isEmpty(merchant.getBlockedTimeMs()) ? existingMerchant.getBlockedTimeMs() : merchant.getBlockedTimeMs());
+				existingMerchant.setStatus(ObjectUtils.isEmpty(merchant.getStatus()) ? existingMerchant.getStatus() : merchant.getStatus());
 				
 				if(changePasswordFlag) {
 					existingMerchant.setPassword(merchant.getPassword());
@@ -260,6 +262,10 @@ public class MerchantRepository {
 		mongoTemplate.save(merchant);
 	}
 	
+	public void saveMerchantMessageToAdmin(MerchantContactAdmin merchantContactAdmin) {
+		
+		mongoTemplate.save(merchantContactAdmin);
+	}
 
 	public Optional<Merchant> findMerchantById(String id) {
 		Query query = new Query();

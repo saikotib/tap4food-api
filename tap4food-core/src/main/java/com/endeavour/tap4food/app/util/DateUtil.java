@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,5 +26,12 @@ public class DateUtil {
 		
 		log.info("Current Date & Time : {}", time);
 		return time;
+	}
+	
+	public static String getToday() {
+		String pattern = "dd-MMM-yyyy";
+		String dateInString =new SimpleDateFormat(pattern).format(new Date());
+		
+		return dateInString;
 	}
 }

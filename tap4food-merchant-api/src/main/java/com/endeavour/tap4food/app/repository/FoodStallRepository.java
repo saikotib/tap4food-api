@@ -19,10 +19,15 @@ import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallSubscription;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.MenuListings;
 import com.endeavour.tap4food.app.model.Merchant;
+import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.WeekDay;
+import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustFoodItem;
@@ -61,6 +66,10 @@ public class FoodStallRepository {
 
 		if (!merchantData.isPresent()) {
 			throw new TFException("Merchant not found");
+		}
+		
+		if(isGSTNumberExists(foodStall.getGstNumber())) {
+			throw new TFException("GST Number is already used by another foodstall");
 		}
 
 		foodStall.setMerchantId(merchantId);
@@ -142,6 +151,30 @@ public class FoodStallRepository {
 		return foodStall;
 	}
 	
+	public FoodStall updateFoodstallStatus(Long foodstallId, String status) throws TFException {
+		FoodStall foodstall = this.getFoodStallById(foodstallId);
+		
+		if(Objects.nonNull(foodstall)) {
+			foodstall.setStatus(status);
+		}else {
+			throw new TFException("No foodstall found");
+		}
+		
+		return foodstall;
+	}
+	
+	public FoodStall updateFoodstallOpenStatus(Long foodstallId, boolean openStatus) throws TFException {
+		FoodStall foodstall = this.getFoodStallById(foodstallId);
+		
+		if(Objects.nonNull(foodstall)) {
+			foodstall.setOpened(openStatus);
+		}else {
+			throw new TFException("No foodstall found");
+		}
+		
+		return foodstall;
+	}
+	
 	public List<FoodStall> getFoodStalls(Long merchantId, boolean isManager) {
 		if(isManager) {
 			Query query = new Query(Criteria.where("managerId").is(merchantId));
@@ -155,8 +188,6 @@ public class FoodStallRepository {
 			
 			return foodStalls;
 		}
-		
-
 		
 	}
 	
@@ -932,4 +963,65 @@ public class FoodStallRepository {
 		}
 	}
 
+	public FoodStallSubscription addMerchantSubscriptionDetails(FoodStallSubscription merchantSubscription) {
+		
+		mongoTemplate.save(merchantSubscription);
+		
+		return merchantSubscription;
+	}
+	
+	public Subscription getSubscriptionDetails(String subscriptionName) {
+		Query query = new Query(Criteria.where("planName").is(subscriptionName));
+		Subscription subscriptionDetails = mongoTemplate.findOne(query, Subscription.class);
+		
+		return subscriptionDetails;
+	}
+	
+	public FoodStallSubscription getMerchantSubscriptionDetails(Long foodStallId) {
+		Query query = new Query(Criteria.where("stallId").is(foodStallId));
+		FoodStallSubscription subscriptionDetails = mongoTemplate.findOne(query, FoodStallSubscription.class);
+		
+		return subscriptionDetails;
+	}
+	
+	
+	public void deleteFoodItem(Long foodItemId) {
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId).orOperator(Criteria.where("baseItem").is(foodItemId)));
+		
+		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
+		
+		for(FoodItem foodItem : foodItems) {
+			foodItem.setStatus("DELETED");
+			mongoTemplate.save(foodItem);
+			
+			query = new Query(Criteria.where("foodItemId").is(foodItem.getFoodItemId()));
+			
+			FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
+			
+			itemPricingObject.setStatus("DELETED");
+			
+			mongoTemplate.save(itemPricingObject);
+			
+			if(foodItem.isAvailableCustomisation()) {
+				List<FoodItemCustomizationPricing> foodItemCustPricingDetails = mongoTemplate.find(query, FoodItemCustomizationPricing.class);
+				
+				for(FoodItemCustomizationPricing foodItemCustPricing : foodItemCustPricingDetails) {
+					foodItemCustPricing.setStatus("DELETED");
+					mongoTemplate.save(foodItemCustPricing);
+				}
+			}
+		}
+	}
+	
+	public boolean isGSTNumberExists(String gstNumber) {
+		Query query = new Query(Criteria.where("gstNumber").is(gstNumber));
+		
+		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
+		
+		if(ObjectUtils.isEmpty(foodStalls)) {
+			return false;
+		}else {
+			return true;
+		}
+	}
 }

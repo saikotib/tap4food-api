@@ -110,6 +110,9 @@ public class FoodItemService {
 		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
 		
 		for(FoodItem item : foodItems) {
+			if(Objects.nonNull(item.getStatus()) && item.getStatus().equalsIgnoreCase("DELETED")) {
+				continue;
+			}
 			FoodItemResponse foodItem = new FoodItemResponse();
 			foodItem.setDbId(item.getId());
 			foodItem.setAddOn(item.isAddOn());

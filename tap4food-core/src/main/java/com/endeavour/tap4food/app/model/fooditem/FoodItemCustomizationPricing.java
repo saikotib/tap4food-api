@@ -30,4 +30,5 @@ public class FoodItemCustomizationPricing {
 	
 	private String notes;
 	
+	private String status;
 }

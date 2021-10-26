@@ -6,13 +6,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
 @Data
-@Document(collection = "enquiries")
-public class ContactUs {
+@Document(collection = "MerchantContactAdmin")
+public class MerchantContactAdmin {
 
 	@Id
 	private String id;
 	
-	private String fullName;
+	private Long merchantId;
 	
 	private String email;
 	

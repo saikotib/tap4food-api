@@ -20,8 +20,10 @@ import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.enums.AccountStatusEnum;
@@ -41,10 +43,13 @@ import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
+import com.endeavour.tap4food.app.model.Subscription;
+import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.repository.AdminRepository;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
+import com.endeavour.tap4food.app.response.dto.MerchantResponseDto;
 import com.endeavour.tap4food.app.util.ActiveStatus;
 import com.endeavour.tap4food.app.util.ApiURL;
 import com.endeavour.tap4food.app.util.DateUtil;
@@ -110,7 +115,7 @@ public class AdminService {
 		}
 	}
 
-	public Merchant updateMerchantStatus(final String status, final Long merchantUniqueId) throws TFException {
+	public FoodStall updateMerchantStatus(final String status, final Long foodstallId, final Long merchantUniqueId) throws TFException {
 
 		/*
 		 * String merchantStatusUpdateApiUrl = merchantApiBaseUrl + "/update-status";
@@ -134,9 +139,16 @@ public class AdminService {
 		 * return responseEntity.getBody();
 		 */
 
-		Merchant merchant = adminRepository.updateMerchantStatus(merchantUniqueId, status);
+		FoodStall foodstall = adminRepository.updateMerchantStatus(merchantUniqueId, foodstallId, status);
 
-		return merchant;
+		return foodstall;
+	}
+	
+	public FoodStall updateFoodstallStatus(final String status, final Long foodstallId, final Long merchantUniqueId) throws TFException {
+
+		FoodStall foodstall = adminRepository.updateFoodstallStatus(merchantUniqueId, foodstallId, status);
+
+		return foodstall;
 	}
 
 	public MerchantFoodStall createMerchant(Merchant merchant) {
@@ -220,16 +232,101 @@ public class AdminService {
 			merchantFoodStallInfo.setFoodStallName("");
 			merchantFoodStallInfo.setOwner(merchant.getUserName());
 			merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
-			merchantFoodStallInfo.setStatus(merchant.getStatus());
+//			merchantFoodStallInfo.setStatus(merchant.getStatus());
 			
 			if(allFoodStalls.containsKey(merchant.getUniqueNumber())) {
 				for(FoodStall foodStall : allFoodStalls.get(merchant.getUniqueNumber())) {
 					merchantFoodStallInfo.setFoodStallName(foodStall.getFoodStallName());
+					merchantFoodStallInfo.setFoodStallId(foodStall.getFoodStallId());
+					
+					if(StringUtils.hasText(foodStall.getStatus())) {
+						if(foodStall.getStatus().equals(AccountStatusEnum.ACTIVE.name())) {
+							
+							merchantFoodStallInfo.setStatus("Active");
+						}else if(foodStall.getStatus().equals(AccountStatusEnum.INACTIVE.name())) {
+							
+							merchantFoodStallInfo.setStatus("Inactive");
+						}else {
+							
+							continue;
+						}
+					}else {
+						continue;
+					}
+					
+					String address = String.format("%s, %s, %s, %s", foodStall.getLocation(), foodStall.getCity(), foodStall.getState(), foodStall.getCountry());
+					merchantFoodStallInfo.setAddress(address);
 					
 					merchantFoodStallInfoList.add(merchantFoodStallInfo);
 				}
-			}else {
-				merchantFoodStallInfoList.add(merchantFoodStallInfo);
+			}
+		}
+
+		Comparator<MerchantFoodStall> compareByUniqueNumber = new Comparator<MerchantFoodStall>() {
+			@Override
+			public int compare(MerchantFoodStall merchant1, MerchantFoodStall merchant2) {
+				return merchant2.getMerchantId().compareTo(merchant1.getMerchantId());
+			}
+		};
+		
+		Collections.sort(merchantFoodStallInfoList, compareByUniqueNumber);
+		
+		return merchantFoodStallInfoList;
+	}
+	
+	
+	public List<MerchantFoodStall> fetchMerchantRequests() {
+
+		Map<Long, Merchant> allMerchants = adminRepository.fetchMerchants();
+		
+		Map<Long, List<FoodStall>> allFoodStalls = adminRepository.getFoodStalls();
+		
+		List<MerchantFoodStall> merchantFoodStallInfoList = new ArrayList<MerchantFoodStall>();
+		
+		for(Merchant merchant : allMerchants.values()) {
+			
+			MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
+			merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
+			
+			merchantFoodStallInfo.setOwner(merchant.getUserName());
+			merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
+			
+			if(allFoodStalls.containsKey(merchant.getUniqueNumber())) {
+				for(FoodStall foodStall : allFoodStalls.get(merchant.getUniqueNumber())) {
+					merchantFoodStallInfo.setFoodStallName(foodStall.getFoodStallName());
+					merchantFoodStallInfo.setDate(foodStall.getCreatedDate());
+					merchantFoodStallInfo.setFoodStallId(foodStall.getFoodStallId());
+					
+					String address = String.format("%s, %s, %s, %s", foodStall.getLocation(), foodStall.getCity(), foodStall.getState(), foodStall.getCountry());
+					merchantFoodStallInfo.setAddress(address);
+					
+					System.out.println("address > " + address);
+					
+					if(StringUtils.hasText(foodStall.getStatus())) {
+						if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.SENT_FOR_APPROVAL.name())) {
+							
+							merchantFoodStallInfo.setStatus("Open");
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.IN_PROGRESS.name())) {
+							
+							merchantFoodStallInfo.setStatus("In Review");
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.ACTIVE.name())) {
+							
+							merchantFoodStallInfo.setStatus("Active");
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.REJECTED.name())) {
+							
+							merchantFoodStallInfo.setStatus("Rejected");
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.INACTIVE.name())) {
+							
+							merchantFoodStallInfo.setStatus("Inactive");
+						}else {
+							merchantFoodStallInfo.setStatus("New");
+						}
+					}else {
+						merchantFoodStallInfo.setStatus("New");
+					}
+					
+					merchantFoodStallInfoList.add(merchantFoodStallInfo);
+				}
 			}
 		}
 
@@ -695,5 +792,38 @@ public class AdminService {
 
 		return roleConfiguration;
 	}
+	
+	public AboutUs saveAboutUsData(AboutUs aboutUsData) {
 
+		aboutUsData = adminRepository.saveAboutUsData(aboutUsData);
+		
+		return aboutUsData;
+	}
+
+	public List<AboutUs> getAboutUsData(){
+		List<AboutUs> data = adminRepository.getAboutUsData();
+		
+		return data;
+	}
+	
+	public Subscription addSubscription(Subscription subscription) throws TFException {
+
+		List<Subscription> existingSubscriptions = this.getExistingSubscriptions();
+		
+		for(Subscription existingSubscription : existingSubscriptions) {
+			if(existingSubscription.getPlanName().equalsIgnoreCase(subscription.getPlanName())) {
+				throw new TFException("The subscription is aleady exists.");
+			}
+		}
+		
+		subscription = adminRepository.addSubscription(subscription);
+		
+		return subscription;
+	}
+	
+	@Bean
+	public List<Subscription> getExistingSubscriptions(){
+		
+		return adminRepository.getExistingSubscriptions();
+	}
 }

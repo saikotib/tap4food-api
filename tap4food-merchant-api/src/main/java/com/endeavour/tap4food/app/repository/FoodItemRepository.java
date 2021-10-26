@@ -122,7 +122,9 @@ public class FoodItemRepository {
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId)
 				.andOperator(Criteria.where("foodItemId").exists(true),
-						Criteria.where("baseItem").exists(false)));
+						Criteria.where("baseItem").exists(false),
+						Criteria.where("status").ne("DELETED"))
+				);
 		
 		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
 		
@@ -169,7 +171,8 @@ public class FoodItemRepository {
 	
 	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true)));
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true),
+				Criteria.where("status").ne("DELETED")));
 		
 		List<FoodItemPricing> foodItems = mongoTemplate.find(query, FoodItemPricing.class);
 		

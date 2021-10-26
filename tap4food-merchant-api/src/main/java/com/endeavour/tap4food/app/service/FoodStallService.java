@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,17 +13,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.bson.BsonBinarySubType;
-import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallSubscription;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
+import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.menu.Category;
 import com.endeavour.tap4food.app.model.menu.Cuisine;
@@ -30,6 +32,7 @@ import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
 import com.endeavour.tap4food.app.repository.FoodStallRepository;
+import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.MediaConstants;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +54,12 @@ public class FoodStallService {
 
 		String qrCodeUrl = mediaServerUrl + "/QRCodes/"+ foodStall.getFoodCourtId() +".png";
 		
+		foodStall.setStatus(AccountStatusEnum.REQUEST_FOR_APPROVAL.name());
+		
 		foodStall.setRating(4.7); // Need to make it dynamic
 		foodStall.setQrCode(qrCodeUrl);
+		
+		foodStall.setCreatedDate(DateUtil.getToday());
 		
 		foodStallRepository.createNewFoodStall(merchantUniqNumber, foodStall);
 
@@ -65,6 +72,16 @@ public class FoodStallService {
 		foodStallRepository.updateFoodStall(foodStall);
 
 		return foodStall;
+	}
+	
+	public FoodStall updateFoodstallStatus(Long foodStallId, String status) throws TFException {
+		
+		return foodStallRepository.updateFoodstallStatus(foodStallId, status);
+	}
+	
+	public FoodStall updateFoodstallOpenStatus(Long foodStallId, boolean openStatus) throws TFException {
+		
+		return foodStallRepository.updateFoodstallOpenStatus(foodStallId, openStatus);
 	}
 
 	public void addCategory(Long fsId, Category category) throws TFException {
@@ -358,4 +375,45 @@ public class FoodStallService {
 		}
 	}
 	
+	public FoodStallSubscription getFoodStallSubscriptionDetails(Long foodStallId) {
+		FoodStallSubscription subscriptionDetails = foodStallRepository.getMerchantSubscriptionDetails(foodStallId);
+		
+		return subscriptionDetails;
+	}
+	
+	public Subscription getSubscriptionDetails(String name) {
+		
+		return foodStallRepository.getSubscriptionDetails(name);
+	}
+	
+	public FoodStallSubscription addMerchantSubscriptionDetails(FoodStallSubscription merchantSubscription) throws TFException {
+		
+		Subscription subscription = this.getSubscriptionDetails(merchantSubscription.getPlanName());
+		
+		if(Objects.isNull(subscription)) {
+			throw new TFException("Invalid subscription/plan");
+		}
+		
+		return foodStallRepository.addMerchantSubscriptionDetails(merchantSubscription);
+	}
+	
+	public FoodStall deletePic(Long foodStallId, String picType, String picUrl) throws TFException {
+		FoodStall foodstall = this.getFoodStallById(foodStallId);
+		
+		if(picType.equalsIgnoreCase("FOODSTALL_PIC")) {
+			Set<String> stallPics = foodstall.getFoodStallPics();
+			stallPics.remove(picUrl);
+			
+			foodstall.setFoodStallPics(stallPics);
+		}else if(picType.equalsIgnoreCase("MENU_PIC")) {
+			Set<String> menuPics = foodstall.getMenuPics();
+			menuPics.remove(picUrl);
+			
+			foodstall.setMenuPics(menuPics);
+		}
+		
+		foodStallRepository.updateFoodStallPic(foodstall);
+		
+		return foodstall;
+	}
 }

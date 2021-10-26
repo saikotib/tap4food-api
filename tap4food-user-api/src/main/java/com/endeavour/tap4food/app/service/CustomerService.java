@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -155,7 +156,14 @@ public class CustomerService {
 	
 	public List<FoodStall> getFoodStalls(Long foodCourtId){
 		
-		return userRepository.getFoodStalls(foodCourtId);
+		List<FoodStall> foodstalls = userRepository.getFoodStalls(foodCourtId);
+		
+		foodstalls = foodstalls
+				.stream()
+				.filter(stall -> stall.isOpened())
+				.collect(Collectors.toList());
+		
+		return foodstalls;
 	}
 	
 	public Map<String, List<FoodItem>> getFoodItems(Long fsId){

@@ -43,6 +43,7 @@ public class MenuController {
 		
 		foodItem.setRequestId(requestId);
 		foodItem.setTotalReviews(1);
+		foodItem.setStatus("PENDING_APPROVAL");
 		
 		foodItemService.addFoodItem(merchantId, fsId, foodItem);
 		

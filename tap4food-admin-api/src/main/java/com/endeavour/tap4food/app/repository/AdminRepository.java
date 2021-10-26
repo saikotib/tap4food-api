@@ -29,7 +29,9 @@ import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
+import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.UniqueNumber;
+import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodCourtCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodStallCollectionConstants;
@@ -102,6 +104,14 @@ public class AdminRepository {
 
 		return Optional.ofNullable(merchant);
 	}
+	
+	public FoodStall getFoodStall(Long foodstallId) {
+		Query query = new Query(Criteria.where("foodStallId").is(foodstallId));
+
+		FoodStall foodstall = mongoTemplate.findOne(query, FoodStall.class);
+
+		return foodstall;
+	}
 
 	public boolean createMerchant(Merchant merchant) {
 
@@ -164,7 +174,8 @@ public class AdminRepository {
 	public Map<Long, Merchant> fetchMerchants() {
 
 		Query query = new Query(new Criteria().andOperator(Criteria.where("uniqueNumber").exists(true),
-				Criteria.where("uniqueNumber").ne(""), Criteria.where("isPhoneNumberVerified").is(true)));
+				Criteria.where("uniqueNumber").ne(""),  
+				Criteria.where("isPhoneNumberVerified").is(true)));
 
 		query.fields().include("uniqueNumber", "userName", "phoneNumber", "email", "personalIdNumber", "createdBy", "status", "createdDate", "phoneNumberVerified");
 		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
@@ -182,7 +193,8 @@ public class AdminRepository {
 		Query query = new Query();
 		
 		query.fields().include("foodStallId", "foodStallName", "foodStallLicenseNumber", "merchantId", 
-				"location", "foodCourtName", "buType", "buName", "deliveryTime");
+				"location", "foodCourtName", "buType", "buName", "deliveryTime", "country", "state", "city", "createdDate");
+
 		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
 		
 		Map<Long, List<FoodStall>> foodStallMap = new HashMap<Long, List<FoodStall>>();
@@ -198,21 +210,36 @@ public class AdminRepository {
 		return foodStallMap;
 	}
 	
-	public Merchant updateMerchantStatus(Long uniqueNumber, String status) throws TFException {
+	public FoodStall updateMerchantStatus(Long uniqueNumber, Long foodstallId, String status) throws TFException {
 
-		Optional<Merchant> merchantData = this.findMerchantByUniqueNumber(uniqueNumber);
+		FoodStall foodstall = this.getFoodStall(foodstallId);
 
-		if (merchantData.isPresent()) {
+		if (Objects.nonNull(foodstall)) {
 
-			Merchant merchant = merchantData.get();
+			foodstall.setStatus(status);
 
-			merchant.setStatus(status);
+			mongoTemplate.save(foodstall);
 
-			mongoTemplate.save(merchant);
-
-			return merchant;
+			return foodstall;
 		} else {
-			throw new TFException("No merchant found with the unique number");
+			throw new TFException("No Foodstall found with the given foodstall number");
+		}
+
+	}
+	
+	public FoodStall updateFoodstallStatus(Long uniqueNumber, Long foodstallId, String status) throws TFException {
+
+		FoodStall foodstall = this.getFoodStall(foodstallId);
+
+		if (Objects.nonNull(foodstall)) {
+
+			foodstall.setStatus(status);
+
+			mongoTemplate.save(foodstall);
+
+			return foodstall;
+		} else {
+			throw new TFException("No Foodstall found with the given foodstall number");
 		}
 
 	}
@@ -479,5 +506,29 @@ public class AdminRepository {
 		query.addCriteria(Criteria.where("adminUserId").is(adminUserId));
 		Admin admin = mongoTemplate.findOne(query, Admin.class);
 		return admin;
+	}
+	
+	public AboutUs saveAboutUsData(AboutUs aboutUsData) {
+		mongoTemplate.save(aboutUsData);
+		
+		return aboutUsData;
+	}
+	
+	public List<AboutUs> getAboutUsData(){
+		List<AboutUs> data = mongoTemplate.findAll(AboutUs.class);
+		
+		return data;
+	}
+	
+	public Subscription addSubscription(Subscription subscription) {
+		mongoTemplate.save(subscription);
+		
+		return subscription;
+	}
+	
+	public List<Subscription> getExistingSubscriptions(){
+		List<Subscription> subscriptions = mongoTemplate.findAll(Subscription.class);
+		
+		return subscriptions;
 	}
 }

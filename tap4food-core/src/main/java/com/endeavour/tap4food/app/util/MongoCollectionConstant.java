@@ -77,4 +77,10 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_CARTITEM_CUSTOMIZATION = "cartItemCustomizations";
 	
 	public static final String COLLECTION_ORDER_CUSTOMERS = "orderCustomers";
+	
+	public static final String COLLECTION_ABOUTUS = "adminAboutUs";
+	
+	public static final String COLLECTION_SUBSCRIPTIONS = "subscriptions";
+	
+	public static final String COLLECTION_FOODSTALL_SUBSCRIPTIONS = "foodstallSubscriptions";
 }
