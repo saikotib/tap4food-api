@@ -17,8 +17,11 @@ import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.offer.Offer;
+import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.app.service.CartService;
 import com.endeavour.tap4food.app.service.CustomerService;
 
 import io.swagger.annotations.Api;
@@ -30,6 +33,9 @@ public class CustomerController {
 	
 	@Autowired
 	private CustomerService customerService;
+	
+	@Autowired
+	private CartService cartService;
 
 	@RequestMapping(value = "/view-otp", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> login(@RequestParam("phone-number") String phoneNumber) {
@@ -123,5 +129,18 @@ public class CustomerController {
 				.build();
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-fooditem-associated-offer", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemAssociatedOffer(@RequestParam("foodItemId") Long foodItemId){
+		
+		Offer offer = cartService.getFoodItemAssociatedOffer(foodItemId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("OK")
+				.data(offer)
+				.build();
+		
+		return ResponseEntity.ok().body(response);
 	}
 }

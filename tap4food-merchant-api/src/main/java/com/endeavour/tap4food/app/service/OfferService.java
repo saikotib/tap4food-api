@@ -166,11 +166,11 @@ public class OfferService {
 		Map<String, List<FoodItemsList>> listsMap = new TreeMap<String, List<FoodItemsList>>();
 		
 		for(FoodItemsList list : itemsLists) {
-			if(!listsMap.containsKey(list.getListName())) {
-				listsMap.put(list.getListName(), new ArrayList<FoodItemsList>());
+			if(!listsMap.containsKey(list.getDescription())) {
+				listsMap.put(list.getDescription(), new ArrayList<FoodItemsList>());
 			}
 			
-			listsMap.get(list.getListName()).add(list);
+			listsMap.get(list.getDescription()).add(list);
 		}
 		
 		offerResponse.setCategory(offer.getCategory());

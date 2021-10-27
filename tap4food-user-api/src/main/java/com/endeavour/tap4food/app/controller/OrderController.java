@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.model.order.Order;
@@ -32,4 +33,5 @@ public class OrderController {
 		
 		return ResponseEntity.ok().body(response);
 	}
+	
 }
