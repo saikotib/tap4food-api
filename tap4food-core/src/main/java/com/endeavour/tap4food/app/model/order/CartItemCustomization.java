@@ -12,7 +12,7 @@ import lombok.Data;
 public class CartItemCustomization {
 	
 	@Id
-	private Long id;
+	private String id;
 
 	private Long foodItemId;
 
