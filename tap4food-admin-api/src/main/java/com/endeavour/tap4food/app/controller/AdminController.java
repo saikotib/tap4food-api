@@ -551,7 +551,7 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/get-aboutus-content", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getAboutUsContent(@RequestBody AboutUs request) throws TFException {
+	public ResponseEntity<ResponseHolder> getAboutUsContent() throws TFException {
 
 		List<AboutUs> aboutUsData = adminService.getAboutUsData();
 
