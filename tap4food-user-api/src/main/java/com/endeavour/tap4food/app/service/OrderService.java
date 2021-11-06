@@ -71,6 +71,7 @@ public class OrderService {
 			cartItem.setOrderId(order.getOrderId());
 			cartItem.setPizza(selectedCartItem.isPizza());
 			cartItem.setQuantity(selectedCartItem.getQuantity());
+			cartItem.setFinalPrice(selectedCartItem.getFinalPrice());
 			
 			orderRepository.saveCartItem(cartItem);
 			

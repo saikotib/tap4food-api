@@ -10,6 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DateUtil {
+	
+	public static void main(String[] args) {
+		Long val = null;
+		
+		if(val > 0) {
+			System.out.println("hello");
+		}
+	}
 
 	public static String getDateFromMillisec(Long milliSeconds) {
 		
