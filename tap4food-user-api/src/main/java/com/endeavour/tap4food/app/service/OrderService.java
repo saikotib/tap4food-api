@@ -64,8 +64,11 @@ public class OrderService {
 		
 		for(PlaceOrderRequest.SelectedCartItem selectedCartItem : selectedCartItems) {
 			
+			Long newOrderItemSeq = orderRepository.getNewOrderItemSeq();
+			
 			CartItem cartItem = new CartItem();
-			cartItem.setCartItemId(selectedCartItem.getFoodItemId());
+			cartItem.setCartItemId(newOrderItemSeq);
+			cartItem.setFoodItemId(selectedCartItem.getFoodItemId());
 			cartItem.setCustomizationFlag(selectedCartItem.isCustomizationFlag());
 			cartItem.setItemName(selectedCartItem.getItemName());
 			cartItem.setOrderId(order.getOrderId());
@@ -80,7 +83,7 @@ public class OrderService {
 				
 				for(PlaceOrderRequest.CartItemCustomization selectedItemCustomization : customizations) {
 					CartItemCustomization custumization = new CartItemCustomization();
-					custumization.setCartItemId(selectedCartItem.getFoodItemId());
+					custumization.setCartItemId(newOrderItemSeq);
 					custumization.setCustomizationItem(selectedItemCustomization.getCustomizationItem());
 					custumization.setCustomizationName(selectedItemCustomization.getCustomizationName());
 					custumization.setPrice(selectedItemCustomization.getPrice());

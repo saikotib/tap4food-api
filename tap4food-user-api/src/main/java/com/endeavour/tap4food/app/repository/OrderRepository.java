@@ -55,9 +55,17 @@ public class OrderRepository {
 	
 	public Long getNewOrderId() {
 
-		Long foodStallID = commonSequenceService
-				.getFoodStallNextSequence(MongoCollectionConstant.COLLECTION_ORDER_SEQ);
+		Long orderId = commonSequenceService
+				.getNextSequence(MongoCollectionConstant.COLLECTION_ORDER_SEQ);
 
-		return foodStallID;
+		return orderId;
+	}
+	
+	public Long getNewOrderItemSeq() {
+
+		Long orderItemSeq = commonSequenceService
+				.getNextSequence(MongoCollectionConstant.COLLECTION_ORDER_ITEM_SEQ);
+
+		return orderItemSeq;
 	}
 }

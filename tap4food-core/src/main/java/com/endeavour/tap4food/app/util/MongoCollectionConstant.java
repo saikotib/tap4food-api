@@ -40,6 +40,8 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_ORDER_SEQ = "orderSequences";
 	
+	public static final String COLLECTION_ORDER_ITEM_SEQ = "orderItemSequences";
+	
 	public static final String COLLECTION_COUNTRY = "countries";
 	
 	public static final String COLLECTION_STATE = "states";
