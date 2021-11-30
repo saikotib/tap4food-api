@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,8 +20,10 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.offer.Offer;
 import com.endeavour.tap4food.app.model.order.Order;
+import com.endeavour.tap4food.app.payload.request.ProfileUpdateRequest;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.app.security.model.User;
 import com.endeavour.tap4food.app.service.CartService;
 import com.endeavour.tap4food.app.service.CustomerService;
 
@@ -71,6 +74,21 @@ public class CustomerController {
 					.build();
 		}
 		
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/update-profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateUserProfile(@RequestParam("phone-number") String phoneNumber,
+			@RequestBody ProfileUpdateRequest request) throws TFException {
+
+		User user = customerService.updateProfile(request, phoneNumber);
+		
+		ResponseHolder response = ResponseHolder.builder()
+					.status("success")
+					.timestamp(String.valueOf(LocalDateTime.now()))
+					.data(user)
+					.build();
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}

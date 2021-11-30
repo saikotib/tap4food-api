@@ -20,6 +20,7 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.payload.request.ProfileUpdateRequest;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.repository.UserRepository;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
@@ -462,8 +463,24 @@ public class CustomerService {
 			
 			
 		}
+	}
+	
+	public User updateProfile(ProfileUpdateRequest request, String phoneNumber) throws TFException {
 		
+		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
 		
+		if(userData.isPresent()) {
+			User user = userData.get();
+			
+			user.setEmail(request.getEmail());
+			user.setFullName(request.getFullName());
+			
+			userRepository.save(user);
+			
+			return user;
+		}else {
+			throw new TFException("No user found with the given phone number");
+		}	
 		
 	}
 }
