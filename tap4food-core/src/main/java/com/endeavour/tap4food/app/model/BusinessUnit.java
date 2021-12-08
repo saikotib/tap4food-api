@@ -30,9 +30,9 @@ public class BusinessUnit {
 	
 	private String name;
 	
-	private Binary logo;
+	private String logo;
 	
-	private BusinessUnitEnum type;
+	private String type;
 	
 	private String address;
 	
@@ -44,9 +44,9 @@ public class BusinessUnit {
 	
 	private String country;
 	
-	private BusinessUnitTypeEnum status;   // ACTIVE, INACTIVE, DELETED
+	private String status;   // ACTIVE, INACTIVE, DELETED
 
-	//If teh Business Unit is Restaurant then no foodcourts 
+	//If the Business Unit is Restaurant then no foodcourts 
 	
 	@DBRef
 	private List<FoodCourt> foodCourts;

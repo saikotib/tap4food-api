@@ -9,7 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -261,6 +260,16 @@ public class CommonService {
 		dirsMap.put(MediaConstants.GET_KEY_MENU_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOODSTALL_MENU_PICS);
 		dirsMap.put(MediaConstants.GET_KEY_FOODITEM_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.FOOD_ITEM_PIC);
 		dirsMap.put(MediaConstants.GET_KEY_OFFER_PIC_DIR, mediaBaseLocation + File.separator + MediaConstants.IDENTIFIER_MERCHANTID + File.separator + "Stalls" + File.separator + MediaConstants.IDENTIFIER_FSID + File.separator + MediaConstants.OFFERS);
+	
+		System.out.println(dirsMap);
+		return dirsMap;
+	}
+	
+	@Bean
+	public Map<String, String> getAdminMediaDirs() {
+		Map<String, String> dirsMap = new HashMap<String, String>();
+		dirsMap.put(MediaConstants.GET_KEY_BUSINESS_UNITS_DIR_ADMIN, mediaBaseLocation + File.separator + MediaConstants.ADMIN_BUSINESS_UNITS + File.separator + MediaConstants.IDENTIFIER_BUID);
+		dirsMap.put(MediaConstants.GET_KEY_FOODCOURTS_DIR_ADMIN, mediaBaseLocation + File.separator + MediaConstants.ADMIN_FOODCOURTS + File.separator + MediaConstants.IDENTIFIER_FCID);
 	
 		System.out.println(dirsMap);
 		return dirsMap;

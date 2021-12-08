@@ -29,7 +29,7 @@ public class FoodCourt {
 	
 	private String name;
 	
-	private Binary logo;
+	private String logo;
 	
 	private String qrCodeUrl;
 	

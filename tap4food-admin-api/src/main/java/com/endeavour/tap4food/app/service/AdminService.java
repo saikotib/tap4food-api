@@ -1,6 +1,10 @@
 package com.endeavour.tap4food.app.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -54,8 +58,12 @@ import com.endeavour.tap4food.app.util.ActiveStatus;
 import com.endeavour.tap4food.app.util.ApiURL;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.EmailTemplateConstants;
+import com.endeavour.tap4food.app.util.MediaConstants;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class AdminService {
 
@@ -76,6 +84,9 @@ public class AdminService {
 
 	@Value("${tap4food.merchant.api.url}")
 	private String merchantApiBaseUrl;
+	
+	@Value("${images.server}")
+	private String mediaServerUrl;
 
 	public boolean isMerchantFoundByEmail(final String merchantEmail) {
 		Optional<Merchant> merchant = adminRepository.findMerchantByEmail(merchantEmail);
@@ -410,16 +421,48 @@ public class AdminService {
 		return Optional.ofNullable(adminRepository.findBusinessUnitsByFilter(filterMap));
 	}
 
-	public Optional<BusinessUnit> uploadLogo(final Long buId, MultipartFile logo) {
+	public Optional<BusinessUnit> uploadLogo(final Long buId, MultipartFile image) {
 		Optional<BusinessUnit> businessUnit = adminRepository.findBusinessUnit(buId);
+		
+		Map<String, String> mediaMap = commonService.getAdminMediaDirs();
+		
+		String uploadPath = mediaMap.get(MediaConstants.GET_KEY_BUSINESS_UNITS_DIR_ADMIN);
+		
+		uploadPath = uploadPath.replaceAll(MediaConstants.IDENTIFIER_BUID, String.valueOf(buId));
+		
+		new File(uploadPath).mkdirs();
 
 		if (businessUnit.isPresent()) {
+			
+			BusinessUnit bu = businessUnit.get();
+			
 			try {
-				businessUnit.get().setLogo(new Binary(BsonBinarySubType.BINARY, logo.getBytes()));
+				
+				Path path = Paths.get(uploadPath);
+				File existingFile = new File(uploadPath + File.separator + image.getOriginalFilename());
+				
+				if(existingFile.exists()) {
+					if(existingFile.delete()) {
+						log.info("Deleted the existing file");
+					}
+				}
+				
+				Files.copy(image.getInputStream(), path.resolve(image.getOriginalFilename()));
+				
+				String profilePicLink = uploadPath.replaceAll(commonService.getMediaBaseLocation(), "").replaceAll("\\\\", "/");
+				
+				profilePicLink = mediaServerUrl + profilePicLink + "/" + image.getOriginalFilename();
+				
+				log.info("profilePicLink :" + profilePicLink);
+				
+				bu.setLogo(profilePicLink);
+				
+				adminRepository.saveBusinessUnit(bu);
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			adminRepository.saveBusinessUnit(businessUnit.get());
+			
 		}
 
 		return businessUnit;
@@ -475,25 +518,53 @@ public class AdminService {
 		return Optional.ofNullable(foodCourtObject);
 	}
 
-	public Optional<FoodCourt> uploadFoodCourtLogo(final Long foodCourtId, MultipartFile logo) {
+	public Optional<FoodCourt> uploadFoodCourtLogo(final Long foodCourtId, MultipartFile image) {
 		Optional<FoodCourt> foodCourt = adminRepository.findFoodCourt(foodCourtId);
+		
+		String uploadPath = commonService.getAdminMediaDirs().get(MediaConstants.GET_KEY_FOODCOURTS_DIR_ADMIN).replaceAll(MediaConstants.IDENTIFIER_FCID, String.valueOf(foodCourtId));
+		
+		new File(uploadPath).mkdirs();
 
 		if (foodCourt.isPresent()) {
+			
+			FoodCourt fc = foodCourt.get();
+			
 			try {
-				foodCourt.get().setLogo(new Binary(BsonBinarySubType.BINARY, logo.getBytes()));
+				
+				Path path = Paths.get(uploadPath);
+				File existingFile = new File(uploadPath + File.separator + image.getOriginalFilename());
+				
+				if(existingFile.exists()) {
+					if(existingFile.delete()) {
+						log.info("Deleted the existing file");
+					}
+				}
+				
+				Files.copy(image.getInputStream(), path.resolve(image.getOriginalFilename()));
+				
+				String profilePicLink = uploadPath.replaceAll(commonService.getMediaBaseLocation(), "").replaceAll("\\\\", "/");
+				
+				profilePicLink = mediaServerUrl + profilePicLink + "/" + image.getOriginalFilename();
+				
+				log.info("profilePicLink :" + profilePicLink);
+				
+				fc.setLogo(profilePicLink);
+				
+				adminRepository.saveFoodCourt(fc);
+				
+				Optional<BusinessUnit> businessUnit = adminRepository
+						.findBusinessUnit(fc.getBusinessUnitId());
+				
+				List<FoodCourt> foodCourts = adminRepository
+						.findFoodCourtsByBusinessTypeId(fc.getBusinessUnitId());
+
+				businessUnit.get().setFoodCourts(foodCourts);
+				adminRepository.saveBusinessUnit(businessUnit.get());
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			adminRepository.saveFoodCourt(foodCourt.get());
-
-			Optional<BusinessUnit> businessUnit = adminRepository
-					.findBusinessUnit(foodCourt.get().getBusinessUnitId());
-
-			List<FoodCourt> foodCourts = adminRepository
-					.findFoodCourtsByBusinessTypeId(foodCourt.get().getBusinessUnitId());
-
-			businessUnit.get().setFoodCourts(foodCourts);
-			adminRepository.saveBusinessUnit(businessUnit.get());
+			
 		}
 
 		return foodCourt;

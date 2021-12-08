@@ -29,4 +29,18 @@ public class MediaConstants {
 	public static final String GET_KEY_FOODITEM_PIC_DIR = "FOODITEM_PIC_DIR";
 	
 	public static final String GET_KEY_OFFER_PIC_DIR = "OFFER_PIC_DIR";
+	
+	
+	public static final String GET_KEY_BUSINESS_UNITS_DIR_ADMIN = "BUSINESS_UNITS_DIR";
+	
+	public static final String ADMIN_BUSINESS_UNITS = "businessUnits";
+	
+	public static final String IDENTIFIER_BUID = "#BU_ID#";
+	
+	public static final String GET_KEY_FOODCOURTS_DIR_ADMIN = "FOODCOURTS_DIR";
+	
+	public static final String ADMIN_FOODCOURTS = "foodCourts";
+	
+	public static final String IDENTIFIER_FCID = "#FCID#";
+	
 }
