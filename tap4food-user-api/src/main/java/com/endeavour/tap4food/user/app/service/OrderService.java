@@ -13,6 +13,7 @@ import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.user.app.repository.OrderRepository;
+import com.endeavour.tap4food.user.app.response.dto.OrderResponseDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,5 +104,21 @@ public class OrderService {
 		orderRepository.saveCustomer(customer);
 		
 		return order;
+	}
+	
+	public List<Order> getOrders(String phoneNumber){
+//		List<OrderResponseDto> orders = new ArrayList<OrderResponseDto>();
+		
+		List<Customer> customers = orderRepository.getCustomerOrders(phoneNumber);
+		
+		List<Long> orderIdList = new ArrayList<Long>();
+		
+		for(Customer customer : customers) {
+			orderIdList.add(customer.getOrderId());
+		}
+		
+		List<Order> existingOrders = orderRepository.getCustomerOrders(orderIdList);
+		
+		return existingOrders;
 	}
 }

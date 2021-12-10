@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.user.app.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +39,11 @@ public class OrderController {
 	@RequestMapping(value = "/getOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> placeOrder(@RequestParam("phoneNumber") String phoneNunber){
 		
+		List<Order> orders = orderService.getOrders(phoneNunber);
+		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("OK")
-				.data("")
+				.data(orders)
 				.build();
 		
 		return ResponseEntity.ok().body(response);

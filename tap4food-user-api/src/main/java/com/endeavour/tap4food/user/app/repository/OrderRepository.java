@@ -1,7 +1,11 @@
 package com.endeavour.tap4food.user.app.repository;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.endeavour.tap4food.app.model.order.CartItem;
@@ -67,5 +71,22 @@ public class OrderRepository {
 				.getNextSequence(MongoCollectionConstant.COLLECTION_ORDER_ITEM_SEQ);
 
 		return orderItemSeq;
+	}
+	
+	public List<Customer> getCustomerOrders(String phoneNumber){
+		Query query = new Query(Criteria.where("phoneNumber").is(phoneNumber));
+		
+		List<Customer> customerOrders = mongoTemplate.find(query, Customer.class);
+		
+		return customerOrders;
+	}
+	
+	public List<Order> getCustomerOrders(List<Long> orderIdList){
+		
+		Query query = new Query(Criteria.where("orderId").in(orderIdList));
+		
+		List<Order> orders = mongoTemplate.find(query, Order.class);
+		
+		return orders;
 	}
 }
