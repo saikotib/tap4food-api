@@ -8,13 +8,21 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +35,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
+import com.endeavour.tap4food.app.model.Mail;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.util.CommonUtil;
@@ -49,8 +58,8 @@ public class CommonService {
 	@Value("${spring.mail.host}")
 	private String mailHost;
 	
-	@Value("${spring.mail.port}")
-	private int port;
+//	@Value("${spring.mail.port}")
+//	private int port;
 	
 	@Value("${spring.mail.username}")
 	private String userName;
@@ -173,13 +182,87 @@ public class CommonService {
 		return otp;		
 	}
 	
+//	@Bean
+	public Session getSession() {
+		
+		String host = "mail.tap4food.com";
+		final String user = "info@tap4food.com";// change accordingly
+		final String password = "@HGrCgRTCw&y";// change accordingly
+		
+		// Get the session object
+		Properties props = new Properties();
+		props.put("mail.smtp.host", host);
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.port", "587"); 
+		
+		Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(user, password);
+			}
+		});
+		
+		return session;
+	}
+	
+	public List<Mail> getMails(){
+		
+		return commonRepository.getActiveMails();
+	}
+	
+	public void updateMailStatus(String id) {
+		
+		Mail mail = commonRepository.getMail(id);
+		mail.setStatus("SENT");
+		
+		commonRepository.saveMail(mail);
+	}
+	
 	public void sendEmail(final String reciepentMail, final String messageBody, final String subject) {
+
+		Mail mail = new Mail();
+		mail.setBody(messageBody);
+		mail.setFrom("info@tap4food.com");
+		mail.setMailDate(String.valueOf(LocalDateTime.now()));
+		mail.setSubject(subject);
+		mail.setTo(reciepentMail);
+		mail.setStatus("ACTIVE");
+		
+		commonRepository.saveMail(mail);
+		
+		log.info("Mail is saved in DB. {}", mail);
+		/*
+		Session session = this.getSession();
+		
+		System.out.println("Sending mail..." + session);
+		
+		try {
+			MimeMessage message = new MimeMessage(session);
+			message.setFrom(new InternetAddress("info@tap4food.com"));
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(reciepentMail));
+			message.setSubject(subject);
+//			message.setText(messageBody);
+			message.setContent(messageBody, "text/html; charset=utf-8");
+
+			// send the message
+			Transport.send(message);
+
+			System.out.println("message sent successfully..." + reciepentMail);
+
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+		*/
+	}
+	
+	public void sendEmailV2(final String reciepentMail, final String messageBody, final String subject) {
 		
 		MimeMessage message = javaMailSender.createMimeMessage();
 		
 		MimeMessageHelper helper = new MimeMessageHelper(message);
 
 		try {
+			helper.setFrom("info@tap4food.com");
 			helper.setTo(reciepentMail);
 			helper.setSubject(subject);
 			helper.setText(messageBody, true);
@@ -187,7 +270,9 @@ public class CommonService {
 			e.printStackTrace();
 		}
 
+		System.out.println("Sending mail..");
 		javaMailSender.send(message);
+		System.out.println("Sent Mail..");
 			 
         
         log.info("Mail is delivered to : {}", reciepentMail);

@@ -16,8 +16,11 @@ import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
 import com.endeavour.tap4food.user.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.user.app.service.OrderService;
 
+import io.swagger.annotations.Api;
+
 @RestController
 @RequestMapping("/api/customer")
+@Api(tags = "OrderController", description = "OrderController")
 public class OrderController {
 	
 	@Autowired

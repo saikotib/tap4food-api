@@ -208,5 +208,18 @@ public class MenuController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/delete-food-item", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteFoodItem(@RequestParam("foodItemId") Long foodItemId) throws TFException{
+		
+		System.out.println("Deleting Food Item : " + foodItemId);
+		foodItemService.deleteFoodItem(foodItemId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data("Food Item is deleted.")
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
 	
 }

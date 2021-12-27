@@ -61,6 +61,7 @@ public class FoodStallService {
 		foodStall.setQrCode(qrCodeUrl);
 		
 		foodStall.setCreatedDate(DateUtil.getToday());
+		foodStall.setOpened(true);
 		
 		foodStallRepository.createNewFoodStall(merchantUniqNumber, foodStall);
 

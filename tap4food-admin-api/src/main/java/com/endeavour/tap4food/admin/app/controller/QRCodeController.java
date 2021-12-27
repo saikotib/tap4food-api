@@ -15,8 +15,11 @@ import com.endeavour.tap4food.admin.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.admin.app.service.QRCodeService;
 import com.google.zxing.WriterException;
 
+import io.swagger.annotations.Api;
+
 @RestController
 @RequestMapping("/api/admin/qrcode")
+@Api(tags = "QRCodeController", description = "QRCodeController")
 public class QRCodeController {
 	
 	@Autowired

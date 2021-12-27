@@ -17,6 +17,8 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.model.offer.FoodItemsList;
+import com.endeavour.tap4food.app.model.offer.Offer;
 import com.endeavour.tap4food.user.app.security.model.User;
 
 @Repository
@@ -142,5 +144,29 @@ public class UserRepository {
 		FoodItemPricing pricingInfo = mongoTemplate.findOne(query, FoodItemPricing.class);
 		
 		return pricingInfo;
+	}
+	
+	public List<Offer> getOffers(Long fsId) {
+		Query query = new Query(Criteria.where("fsId").is(fsId));
+		
+		List<Offer> offers = mongoTemplate.find(query, Offer.class);
+		
+		return offers;
+	}
+	
+	public Offer getOffer(Long offerId) {
+		Query query = new Query(Criteria.where("offerId").is(offerId));
+		
+		Offer offer = mongoTemplate.findOne(query, Offer.class);
+		
+		return offer;
+	}
+	
+	public List<FoodItemsList> getFoodItemsOfOffer(Long offerId) {
+		Query query = new Query(Criteria.where("offerId").is(offerId));
+		
+		List<FoodItemsList> foodItemLists = mongoTemplate.find(query, FoodItemsList.class);
+		
+		return foodItemLists;
 	}
 }

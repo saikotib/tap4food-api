@@ -21,6 +21,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.model.menu.CustFoodItem;
+import com.endeavour.tap4food.app.model.offer.FoodItemCustomizationDetails;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
@@ -347,5 +348,22 @@ public class FoodItemRepository {
 		for(FoodItemCustomizationPricing pricingData : pricingDataList) {
 			mongoTemplate.save(pricingData);
 		}
+	}
+	
+	public void deleteFoodItem(Long foodItemId) {
+		
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItem foodItem = mongoTemplate.findOne(query, FoodItem.class);
+		
+		foodItem.setStatus("DELETED");
+		
+		mongoTemplate.save(foodItem);
+		
+		FoodItemPricing foodItemPricing = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
+		foodItemPricing.setStatus("DELETED");
+		
+		mongoTemplate.save(foodItemPricing);
 	}
 }

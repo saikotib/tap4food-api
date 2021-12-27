@@ -82,6 +82,8 @@ public class MongoCollectionConstant {
 	
 	public static final String COLLECTION_ABOUTUS = "adminAboutUs";
 	
+	public static final String COLLECTION_TERMS_N_CONDITIONS = "termsAndCondtions";
+	
 	public static final String COLLECTION_SUBSCRIPTIONS = "subscriptions";
 	
 	public static final String COLLECTION_FOODSTALL_SUBSCRIPTIONS = "foodstallSubscriptions";

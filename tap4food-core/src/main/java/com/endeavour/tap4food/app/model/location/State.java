@@ -16,7 +16,7 @@ public class State {
 	private String id;
 
 	private String name;
+	
+	private String countryCode;
 
-	@DBRef
-	private List<City> cities;
 }

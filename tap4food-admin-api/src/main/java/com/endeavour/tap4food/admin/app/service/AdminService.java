@@ -52,6 +52,7 @@ import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
+import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.service.CommonService;
@@ -214,13 +215,22 @@ public class AdminService {
 
 				String subject = "Tap4Food registration successfull";
 
-				commonService.sendEmail(merchantEmail, message, subject);
+//				commonService.sendEmail(merchantEmail, message, subject);
+				
+				ExecutorService emailExecutor = Executors.newSingleThreadExecutor();
+				emailExecutor.execute(new Runnable() {
+					@Override
+					public void run() {
+						commonService.sendEmail(merchantEmail, message, subject);
+					}
+				});
+				emailExecutor.shutdown();
 			}
 		}
 
 		return merchantFoodStall;
 	}
-
+	
 	private Long getUniqueNumber() {
 
 		Long uniqNumber = adminRepository.getRecentUniqueNumber();
@@ -238,24 +248,25 @@ public class AdminService {
 		
 		for(Merchant merchant : allMerchants.values()) {
 			
-			MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
-			merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
-			merchantFoodStallInfo.setDate(merchant.getCreatedDate());
-			merchantFoodStallInfo.setFoodStallName("");
-			merchantFoodStallInfo.setOwner(merchant.getUserName());
-			merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
 //			merchantFoodStallInfo.setStatus(merchant.getStatus());
 			
 			if(allFoodStalls.containsKey(merchant.getUniqueNumber())) {
 				for(FoodStall foodStall : allFoodStalls.get(merchant.getUniqueNumber())) {
+					
+					MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
+					merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
+					merchantFoodStallInfo.setDate(merchant.getCreatedDate());
+					merchantFoodStallInfo.setFoodStallName("");
+					merchantFoodStallInfo.setOwner(merchant.getUserName());
+					merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
 					merchantFoodStallInfo.setFoodStallName(foodStall.getFoodStallName());
 					merchantFoodStallInfo.setFoodStallId(foodStall.getFoodStallId());
 					
 					if(StringUtils.hasText(foodStall.getStatus())) {
-						if(foodStall.getStatus().equals(AccountStatusEnum.ACTIVE.name())) {
+						if(foodStall.getStatus().equals(AccountStatusEnum.ACTIVE.getName())) {
 							
 							merchantFoodStallInfo.setStatus("Active");
-						}else if(foodStall.getStatus().equals(AccountStatusEnum.INACTIVE.name())) {
+						}else if(foodStall.getStatus().equals(AccountStatusEnum.INACTIVE.getName())) {
 							
 							merchantFoodStallInfo.setStatus("Inactive");
 						}else {
@@ -297,14 +308,15 @@ public class AdminService {
 		
 		for(Merchant merchant : allMerchants.values()) {
 			
-			MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
-			merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
-			
-			merchantFoodStallInfo.setOwner(merchant.getUserName());
-			merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
-			
 			if(allFoodStalls.containsKey(merchant.getUniqueNumber())) {
 				for(FoodStall foodStall : allFoodStalls.get(merchant.getUniqueNumber())) {
+					
+					MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
+					merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
+					
+					merchantFoodStallInfo.setOwner(merchant.getUserName());
+					merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
+					
 					merchantFoodStallInfo.setFoodStallName(foodStall.getFoodStallName());
 					merchantFoodStallInfo.setDate(foodStall.getCreatedDate());
 					merchantFoodStallInfo.setFoodStallId(foodStall.getFoodStallId());
@@ -312,32 +324,53 @@ public class AdminService {
 					String address = String.format("%s, %s, %s, %s", foodStall.getLocation(), foodStall.getCity(), foodStall.getState(), foodStall.getCountry());
 					merchantFoodStallInfo.setAddress(address);
 					
-					System.out.println("address > " + address);
+					merchantFoodStallInfo.setCountry(foodStall.getCountry());
+					merchantFoodStallInfo.setState(foodStall.getState());
+					merchantFoodStallInfo.setCity(foodStall.getCity());
+					merchantFoodStallInfo.setLocation(foodStall.getLocation());
+					merchantFoodStallInfo.setLicenceNumber(foodStall.getFoodStallLicenseNumber());
+					merchantFoodStallInfo.setGstNumber(foodStall.getGstNumber());
+					merchantFoodStallInfo.setFcName(foodStall.getFoodCourtName());
+					merchantFoodStallInfo.setBuType(foodStall.getBuType());
+					merchantFoodStallInfo.setBuName(foodStall.getBuName());
+					merchantFoodStallInfo.setDeliveryTime(foodStall.getDeliveryTime());
+					merchantFoodStallInfo.setFcQRCode(foodStall.getQrCode());
+					merchantFoodStallInfo.setMenuPics(foodStall.getMenuPics());
+					merchantFoodStallInfo.setStallPics(foodStall.getFoodStallPics());
+					merchantFoodStallInfo.setEmail(merchant.getEmail());
+					merchantFoodStallInfo.setUserName(merchant.getUserName());
+					merchantFoodStallInfo.setPersonalIDNumber(merchant.getPersonalIdNumber());
+					merchantFoodStallInfo.setPersonalIDUrl(merchant.getPersonalIdCard());
+					merchantFoodStallInfo.setProfilePic(merchant.getProfilePic());
+					
+					System.out.println("merchant.getProfilePic() > " + merchant.getProfilePic());
 					
 					if(StringUtils.hasText(foodStall.getStatus())) {
-						if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.SENT_FOR_APPROVAL.name())) {
+						if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.SENT_FOR_APPROVAL.getName())) {
 							
 							merchantFoodStallInfo.setStatus("Open");
-						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.IN_PROGRESS.name())) {
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.IN_PROGRESS.getName())) {
 							
 							merchantFoodStallInfo.setStatus("In Review");
-						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.ACTIVE.name())) {
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.ACTIVE.getName())) {
 							
 							merchantFoodStallInfo.setStatus("Active");
-						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.REJECTED.name())) {
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.REJECTED.getName())) {
 							
 							merchantFoodStallInfo.setStatus("Rejected");
-						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.INACTIVE.name())) {
+						}else if(foodStall.getStatus().equalsIgnoreCase(AccountStatusEnum.INACTIVE.getName())) {
 							
 							merchantFoodStallInfo.setStatus("Inactive");
 						}else {
-							merchantFoodStallInfo.setStatus("New");
+							merchantFoodStallInfo.setStatus("Open");
 						}
 					}else {
-						merchantFoodStallInfo.setStatus("New");
+						merchantFoodStallInfo.setStatus("Open");
 					}
 					
-					merchantFoodStallInfoList.add(merchantFoodStallInfo);
+					if(!merchantFoodStallInfo.getStatus().equalsIgnoreCase("Active") && !merchantFoodStallInfo.getStatus().equalsIgnoreCase("Inactive")) {
+						merchantFoodStallInfoList.add(merchantFoodStallInfo);
+					}
 				}
 			}
 		}
@@ -475,16 +508,10 @@ public class AdminService {
 		if (businessUnit.isPresent()) {
 			if (!businessUnit.get().getType().equals(BusinessUnitEnum.RESTAURANT)) {
 				
-				BusinessUnit bu = businessUnit.get();
-				
 				foodCourt.setBusinessUnitId(buId);
 				foodCourt.setFoodCourtId(adminNextSequenceService.getNextSequence(FoodCourt.SEQ_NAME));
 				foodCourt = adminRepository.saveFoodCourt(foodCourt);
 
-				List<FoodCourt> foodCourts = adminRepository.findFoodCourtsByBusinessTypeId(buId);
-				foodCourts.add(foodCourt);
-				bu.setFoodCourts(foodCourts);
-				adminRepository.saveBusinessUnit(bu);
 			}
 
 		}else {
@@ -505,15 +532,6 @@ public class AdminService {
 			foodCourtObject.setId(foodCourtRes.get().getId());
 			foodCourtObject = foodCourt;
 			adminRepository.saveFoodCourt(foodCourtObject);
-
-			Optional<BusinessUnit> businessUnit = adminRepository
-					.findBusinessUnit(foodCourtRes.get().getBusinessUnitId());
-
-			List<FoodCourt> foodCourts = adminRepository
-					.findFoodCourtsByBusinessTypeId(foodCourtRes.get().getBusinessUnitId());
-
-			businessUnit.get().setFoodCourts(foodCourts);
-			adminRepository.saveBusinessUnit(businessUnit.get());
 		}
 
 		return Optional.ofNullable(foodCourtObject);
@@ -552,16 +570,7 @@ public class AdminService {
 				fc.setLogo(profilePicLink);
 				
 				adminRepository.saveFoodCourt(fc);
-				
-				Optional<BusinessUnit> businessUnit = adminRepository
-						.findBusinessUnit(fc.getBusinessUnitId());
-				
-				List<FoodCourt> foodCourts = adminRepository
-						.findFoodCourtsByBusinessTypeId(fc.getBusinessUnitId());
 
-				businessUnit.get().setFoodCourts(foodCourts);
-				adminRepository.saveBusinessUnit(businessUnit.get());
-				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -583,11 +592,6 @@ public class AdminService {
 
 			adminRepository.deleteFoodCourtById(foodCourtId);
 
-			List<FoodCourt> foodCourts = adminRepository
-					.findFoodCourtsByBusinessTypeId(foodCourt.get().getBusinessUnitId());
-
-			bu.setFoodCourts(foodCourts);
-			adminRepository.saveBusinessUnit(bu);
 			flag = true;
 		}
 
@@ -596,6 +600,13 @@ public class AdminService {
 
 	public Optional<FoodCourt> getFoodCourtById(Long foodCourtId) {
 		return adminRepository.findFoodCourt(foodCourtId);
+	}
+	
+	public List<FoodCourt> getFoodCourts(Long buId) {
+		
+		List<FoodCourt> foodCourts = adminRepository.getFoodCourts(buId);
+		
+		return foodCourts;
 	}
 	
 	public List<FoodCourtResponse> getFoodCourts() {
@@ -607,18 +618,19 @@ public class AdminService {
 		List<FoodCourtResponse> foodCourtsResponseList = new ArrayList<FoodCourtResponse>();
 		
 		for(BusinessUnit bu : buList) {
-			FoodCourtResponse foodCourtResponse = new FoodCourtResponse();
 			
-			foodCourtResponse.setBuName(bu.getName());
-			foodCourtResponse.setCity(bu.getCity());
-			foodCourtResponse.setCountry(bu.getCountry());
-			foodCourtResponse.setState(bu.getState());
-			
-			List<FoodCourt> foodCourts = bu.getFoodCourts();
+			List<FoodCourt> foodCourts = adminRepository.getFoodCourts(bu.getBusinessUnitId());
 			
 			if(Objects.nonNull(foodCourts)) {
 
 				for(FoodCourt fc : foodCourts) {
+					FoodCourtResponse foodCourtResponse = new FoodCourtResponse();
+					
+					foodCourtResponse.setBuName(bu.getName());
+					foodCourtResponse.setCity(bu.getCity());
+					foodCourtResponse.setCountry(bu.getCountry());
+					foodCourtResponse.setState(bu.getState());
+					
 					foodCourtResponse.setFoodCourtName(fc.getName());
 					foodCourtResponse.setQRCodeGenerated(fc.isQRCodeGenerated());
 					foodCourtResponse.setQrCodeUrl(fc.getQrCodeUrl());
@@ -867,13 +879,14 @@ public class AdminService {
 	
 	public AboutUs saveAboutUsData(AboutUs aboutUsData) {
 
-		aboutUsData = adminRepository.saveAboutUsData(aboutUsData);
+		aboutUsData = adminRepository.saveAboutUsData(aboutUsData.getDescription());
 		
 		return aboutUsData;
 	}
 
-	public List<AboutUs> getAboutUsData(){
-		List<AboutUs> data = adminRepository.getAboutUsData();
+	public AboutUs getAboutUsData(){
+		
+		AboutUs data = adminRepository.getAboutUsData();
 		
 		return data;
 	}
@@ -897,5 +910,23 @@ public class AdminService {
 	public List<Subscription> getExistingSubscriptions(){
 		
 		return adminRepository.getExistingSubscriptions();
+	}
+	
+	public TermsNConditions saveTermsAndConditions(String termsAndConditions) {
+		
+		TermsNConditions content = adminRepository.saveTermsAndConditions(termsAndConditions);
+		
+		return content;
+	}
+	
+	public TermsNConditions getTermsAndConditions() {
+		
+		TermsNConditions content = adminRepository.getTermsAndConditions();
+		
+		if(Objects.isNull(content)) {
+			content = new TermsNConditions();
+		}
+		
+		return content;
 	}
 }

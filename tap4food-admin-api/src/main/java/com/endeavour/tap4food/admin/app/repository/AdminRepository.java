@@ -16,6 +16,7 @@ import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
+import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodCourtCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodStallCollectionConstants;
@@ -177,7 +179,7 @@ public class AdminRepository {
 				Criteria.where("uniqueNumber").ne(""),  
 				Criteria.where("isPhoneNumberVerified").is(true)));
 
-		query.fields().include("uniqueNumber", "userName", "phoneNumber", "email", "personalIdNumber", "createdBy", "status", "createdDate", "phoneNumberVerified");
+//		query.fields().include("uniqueNumber", "userName", "phoneNumber", "email", "personalIdNumber", "createdBy", "status", "createdDate", "phoneNumberVerified", "profilePic");
 		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
 		
 		Map<Long, Merchant> merchantMap = new HashMap<Long, Merchant>();
@@ -192,8 +194,8 @@ public class AdminRepository {
 	public Map<Long, List<FoodStall>> getFoodStalls(){
 		Query query = new Query();
 		
-		query.fields().include("foodStallId", "foodStallName", "foodStallLicenseNumber", "merchantId", 
-				"location", "foodCourtName", "buType", "buName", "deliveryTime", "country", "state", "city", "createdDate");
+//		query.fields().include("foodStallId", "foodStallName", "foodStallLicenseNumber", "merchantId", 
+//				"location", "foodCourtName", "buType", "buName", "deliveryTime", "country", "state", "city", "createdDate");
 
 		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
 		
@@ -277,37 +279,39 @@ public class AdminRepository {
 		final Query query = new Query();
 		List<BusinessUnit> res = null;
 		final List<Criteria> criteria = new ArrayList<>();
+		
+		System.out.println("filterMap : " + filterMap);
 
 		if (filterMap.containsKey(BusinessUnitCollectionConstants.NAME)) {
 			System.out.println(BusinessUnitCollectionConstants.NAME);
 			criteria.add(Criteria.where(BusinessUnitCollectionConstants.NAME)
 					.is(filterMap.get(BusinessUnitCollectionConstants.NAME)));
 		}
-		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.TYPE)))) {
+		if (filterMap.containsKey(BusinessUnitCollectionConstants.TYPE)) {
 			System.out.println(BusinessUnitCollectionConstants.TYPE);
 			criteria.add(Criteria.where(BusinessUnitCollectionConstants.TYPE)
 					.is(filterMap.get(BusinessUnitCollectionConstants.TYPE)));
 		}
 
-		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.CITY)))) {
+		if (filterMap.containsKey(BusinessUnitCollectionConstants.CITY)) {
 			System.out.println(BusinessUnitCollectionConstants.CITY);
 			criteria.add(Criteria.where(BusinessUnitCollectionConstants.CITY)
 					.is(filterMap.get(BusinessUnitCollectionConstants.CITY)));
 		}
 
-		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.STATUS)))) {
+		if (filterMap.containsKey(BusinessUnitCollectionConstants.STATUS)) {
 			System.out.println(BusinessUnitCollectionConstants.STATUS);
 			criteria.add(Criteria.where(BusinessUnitCollectionConstants.STATUS)
 					.is(filterMap.get(BusinessUnitCollectionConstants.STATUS)));
 		}
 
-		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.STATE)))) {
+		if (filterMap.containsKey(BusinessUnitCollectionConstants.STATE)) {
 			System.out.println(BusinessUnitCollectionConstants.STATE);
 			criteria.add(Criteria.where(BusinessUnitCollectionConstants.STATE)
 					.is(filterMap.get(BusinessUnitCollectionConstants.STATE)));
 		}
 
-		if (StringUtils.hasText(String.valueOf(filterMap.get(BusinessUnitCollectionConstants.COUNTRY)))) {
+		if (filterMap.containsKey(BusinessUnitCollectionConstants.COUNTRY)) {
 			System.out.println(BusinessUnitCollectionConstants.COUNTRY);
 			criteria.add(Criteria.where(BusinessUnitCollectionConstants.COUNTRY)
 					.is(filterMap.get(BusinessUnitCollectionConstants.COUNTRY)));
@@ -320,6 +324,8 @@ public class AdminRepository {
 		}
 
 		System.out.println(query);
+		
+		System.out.println(res);
 		return res;
 	}
 
@@ -336,6 +342,19 @@ public class AdminRepository {
 		List<BusinessUnit> businessUnits = mongoTemplate.findAll(BusinessUnit.class);
 
 		return businessUnits;
+	}
+	
+	public List<FoodCourt> getFoodCourts(Long buId) {
+		
+		System.out.println(buId);
+		
+		Query query = new Query(Criteria.where("businessUnitId").is(buId));
+
+		List<FoodCourt> foodCourts = mongoTemplate.find(query, FoodCourt.class);
+		
+		System.out.println(foodCourts);
+
+		return foodCourts;
 	}
 
 	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
@@ -410,18 +429,6 @@ public class AdminRepository {
 		foodStall.setFoodCourtName(foodCourt.getName());
 
 		mongoTemplate.save(foodStall);
-
-		List<FoodStall> foodStalls = foodCourt.getFoodStalls();
-
-		if (Objects.isNull(foodStalls)) {
-			foodStalls = new ArrayList<FoodStall>();
-		}
-
-		foodStalls.add(foodStall);
-
-		foodCourt.setFoodStalls(foodStalls);
-
-		mongoTemplate.save(foodCourt);
 	}
 
 	public AdminRole saveAdminRole(AdminRole adminRole) {
@@ -508,14 +515,27 @@ public class AdminRepository {
 		return admin;
 	}
 	
-	public AboutUs saveAboutUsData(AboutUs aboutUsData) {
+	public AboutUs saveAboutUsData(String data) {
+		
+		AboutUs aboutUsData = this.getAboutUsData();
+		
+		if(Objects.isNull(aboutUsData)) {
+			aboutUsData = new AboutUs();
+			aboutUsData.setActiveId(1L);
+		}
+		
+		aboutUsData.setDescription(data);
+		
 		mongoTemplate.save(aboutUsData);
 		
 		return aboutUsData;
 	}
 	
-	public List<AboutUs> getAboutUsData(){
-		List<AboutUs> data = mongoTemplate.findAll(AboutUs.class);
+	public AboutUs getAboutUsData(){
+		
+		Query query = new Query(Criteria.where("activeId").is(1));
+		
+		AboutUs data = mongoTemplate.findOne(query, AboutUs.class);
 		
 		return data;
 	}
@@ -530,5 +550,29 @@ public class AdminRepository {
 		List<Subscription> subscriptions = mongoTemplate.findAll(Subscription.class);
 		
 		return subscriptions;
+	}
+	
+	public TermsNConditions saveTermsAndConditions(String content) {
+		
+		TermsNConditions existingContent = this.getTermsAndConditions();
+		
+		if(Objects.isNull(existingContent)) {
+			existingContent = new TermsNConditions();
+			existingContent.setActiveId(1L);
+		}
+		
+		existingContent.setDescription(content);
+		
+		mongoTemplate.save(existingContent);
+		
+		return existingContent;
+	}
+	
+	public TermsNConditions getTermsAndConditions() {
+		Query query = new Query(Criteria.where("activeId").is(1));	
+		
+		TermsNConditions content = mongoTemplate.findOne(query, TermsNConditions.class);
+		
+		return content;
 	}
 }

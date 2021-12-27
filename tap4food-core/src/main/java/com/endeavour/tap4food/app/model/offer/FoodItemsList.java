@@ -31,4 +31,6 @@ public class FoodItemsList {
 	private boolean customizationFlag;
 	
 	private Long fsId;
+	
+	private String selectType;
 }

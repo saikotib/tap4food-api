@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.app.repository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.endeavour.tap4food.app.model.Mail;
 import com.endeavour.tap4food.app.model.Otp;
 
 @Repository
@@ -57,4 +60,27 @@ public class CommonRepository {
 		
 	}
 	
+	
+	public void saveMail(Mail mail) {
+		
+		mongoTemplate.save(mail);
+	}
+	
+	public List<Mail> getActiveMails(){
+		
+		Query query = new Query(Criteria.where("status").is("ACTIVE"));
+		
+		List<Mail> mails = mongoTemplate.find(query, Mail.class);
+		
+		return mails;
+	}
+	
+	public Mail getMail(String id){
+		
+		Query query = new Query(Criteria.where("_id").is(id));
+		
+		Mail mail = mongoTemplate.findOne(query, Mail.class);
+		
+		return mail;
+	}
 }

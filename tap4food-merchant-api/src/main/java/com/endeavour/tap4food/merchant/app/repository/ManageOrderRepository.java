@@ -1,5 +1,6 @@
 package com.endeavour.tap4food.merchant.app.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -10,10 +11,11 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
+import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
-import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest.CartItemCustomization;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,4 +89,26 @@ public class ManageOrderRepository {
 		log.info("Order status is updated : {}", status);
 		return order;
 	} 
+	
+	public List<MessageNotification> getNotifications(Long foodStallId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("notificationStatus").is("ACTIVE")));
+		
+		List<MessageNotification> notifications = mongoTemplate.find(query, MessageNotification.class);
+		
+		return notifications;
+	}
+	
+	public MessageNotification inactivateNotification(Long foodStallId, Long orderId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("orderId").is(orderId)));
+		
+		MessageNotification notification = mongoTemplate.findOne(query, MessageNotification.class);
+		
+		notification.setNotificationStatus("INACTIVE");
+		
+		mongoTemplate.save(notification);
+		
+		return notification;
+	}
 }

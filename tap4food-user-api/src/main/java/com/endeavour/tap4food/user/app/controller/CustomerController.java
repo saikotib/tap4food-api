@@ -163,6 +163,20 @@ public class CustomerController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/get-suggestion-items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemSuggestions(@RequestParam("fooditem-id") Long foodItemId){
+				
+		List<FoodItem> foodItems = customerService.getFoodItemSuggesions(foodItemId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/get-fooditem-combination-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodItemCombinationDetails(@RequestParam("fooditem-id") Long foodItemId){
 				

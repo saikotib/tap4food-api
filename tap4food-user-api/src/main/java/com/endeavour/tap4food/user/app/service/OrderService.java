@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.endeavour.tap4food.app.model.fooditem.FoodItem;
+import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
@@ -85,9 +87,8 @@ public class OrderService {
 				for(PlaceOrderRequest.CartItemCustomization selectedItemCustomization : customizations) {
 					CartItemCustomization custumization = new CartItemCustomization();
 					custumization.setCartItemId(newOrderItemSeq);
-					custumization.setCustomizationItem(selectedItemCustomization.getCustomizationItem());
-					custumization.setCustomizationName(selectedItemCustomization.getCustomizationName());
-					custumization.setPrice(selectedItemCustomization.getPrice());
+					custumization.setCustomizationItem(selectedItemCustomization.getItem());
+					custumization.setCustomizationName(selectedItemCustomization.getKey());
 					
 					orderRepository.saveCartItemCustomizations(custumization);
 				}
@@ -103,7 +104,20 @@ public class OrderService {
 		
 		orderRepository.saveCustomer(customer);
 		
+		this.addToNotifications(orderRequest.getCustomer().getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
+		
 		return order;
+	}
+	
+	private void addToNotifications(String phoneNumber, Long foodStallId, String message, Long orderId, String orderStatus) {
+		MessageNotification notification = new MessageNotification();
+		
+		notification.setCustomerPhoneNumber(phoneNumber);
+		notification.setFoodStallId(foodStallId);
+		notification.setMessage(message);
+		notification.setNotificationStatus("ACTIVE");
+		notification.setOrderId(orderId);
+		notification.setOrderStatus(orderStatus);
 	}
 	
 	public List<Order> getOrders(String phoneNumber){
@@ -121,4 +135,5 @@ public class OrderService {
 		
 		return existingOrders;
 	}
+	
 }

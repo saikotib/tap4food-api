@@ -19,6 +19,4 @@ public class Country {
 	
 	private String countryCode;
 	
-	@DBRef
-	private List<State> states;
 }

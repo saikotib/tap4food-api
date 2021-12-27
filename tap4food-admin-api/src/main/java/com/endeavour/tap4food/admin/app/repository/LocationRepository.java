@@ -85,20 +85,11 @@ public class LocationRepository {
 		if (isStateExists(state.getName())) {
 			throw new TFException("State already exist");
 		}
+		
+		state.setCountryCode(countryCode);
 
 		mongoTemplate.save(state);
 		
-		List<State> statets = country.getStates();
-		
-		if(Objects.isNull(statets)) {
-			statets = new ArrayList<State>();
-		}
-		
-		statets.add(state);		
-		
-		country.setStates(statets);
-		
-		mongoTemplate.save(country);
 	}
 	
 	public void addCity(String stateName, City city) throws TFException {
@@ -113,20 +104,11 @@ public class LocationRepository {
 		if(Objects.isNull(state)) {
 			throw new TFException("invalid state. hence city can't be added");
 		}
+		
+		city.setState(stateName);
 
 		mongoTemplate.save(city);
 		
-		List<City> cities = state.getCities();
-		
-		if(Objects.isNull(cities)) {
-			cities = new ArrayList<City>();
-		}
-		
-		cities.add(city);		
-		
-		state.setCities(cities);
-		
-		mongoTemplate.save(state);
 	}
 	
 	public Country getCountryByCode(String countryCode) throws TFException {
@@ -140,5 +122,29 @@ public class LocationRepository {
 		}
 		
 		return country;
+	}
+	
+	public List<Country> getCountries() throws TFException {
+		
+		List<Country> countries = mongoTemplate.findAll(Country.class);
+		return countries;
+	}
+	
+	public List<State> getStates(String countryCode) throws TFException {
+		
+		Query query = new Query(Criteria.where("countryCode").is(countryCode));
+		
+		List<State> states = mongoTemplate.find(query, State.class);
+		
+		return states;
+	}
+	
+	public List<City> getCities(String state) throws TFException {
+		
+		Query query = new Query(Criteria.where("state").is(state));
+		
+		List<City> cities = mongoTemplate.find(query, City.class);
+		
+		return cities;
 	}
 }

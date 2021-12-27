@@ -8,14 +8,13 @@ import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import lombok.Data;
 
 @Data
-@Document(collection = MongoCollectionConstant.COLLECTION_ABOUTUS)
-public class AboutUs {
+@Document(collection = MongoCollectionConstant.COLLECTION_TERMS_N_CONDITIONS)
+public class TermsNConditions {
 
 	@Id
 	private String id;
-	
-	private Long activeId;
-	
+			
 	private String description;
 	
+	private Long activeId;
 }

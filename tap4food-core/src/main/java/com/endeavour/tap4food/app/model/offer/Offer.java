@@ -37,6 +37,8 @@ public class Offer {
 	
 	private Long fsId;
 	
+	private String offerDescription;
+	
 	@JsonIgnore
 	private String requestId;
 }

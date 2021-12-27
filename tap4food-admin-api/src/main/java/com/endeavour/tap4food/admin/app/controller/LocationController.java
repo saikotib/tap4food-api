@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.admin.app.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,8 +20,11 @@ import com.endeavour.tap4food.app.model.location.City;
 import com.endeavour.tap4food.app.model.location.Country;
 import com.endeavour.tap4food.app.model.location.State;
 
+import io.swagger.annotations.Api;
+
 @RestController
 @RequestMapping("/api/admin/location")
+@Api(tags = "LocationController", description = "LocationController")
 public class LocationController {
 
 	@Autowired
@@ -96,6 +101,45 @@ public class LocationController {
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
 				.data(country)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-countries", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getCountries() throws TFException{
+		
+		List<Country> countries = locationService.getCountries();
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(countries)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-states", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getStates(@RequestParam("country-code") String countryCode) throws TFException{
+		
+		List<State> states = locationService.getStates(countryCode);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(states)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-cities", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getCities(@RequestParam("state") String state) throws TFException{
+		
+		List<City> cities = locationService.getCities(state);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(cities)
 				.build();
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);

@@ -46,11 +46,6 @@ public class BusinessUnit {
 	
 	private String status;   // ACTIVE, INACTIVE, DELETED
 
-	//If the Business Unit is Restaurant then no foodcourts 
-	
-	@DBRef
-	private List<FoodCourt> foodCourts;
-	
 	@Transient
 	public static final String SEQUENCE = "businessUnit_Seq";
 }

@@ -2,9 +2,13 @@ package com.endeavour.tap4food.app.request.dto;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PlaceOrderRequest {
 
 	private Double subTotalAmount;
@@ -47,16 +51,17 @@ public class PlaceOrderRequest {
 		private boolean customizationFlag;
 		
 		private List<CartItemCustomization> customizations;
+		
 	}
 	
 	@Data
 	public static class CartItemCustomization {
 		
-		private String customizationName;
+		private String key;
 
-		private String customizationItem;
+		private String item;
 
-		private Double price;
+		private int order;
 	}
 	
 	@Data

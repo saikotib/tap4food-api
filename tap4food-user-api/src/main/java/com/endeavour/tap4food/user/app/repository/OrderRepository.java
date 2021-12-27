@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
+import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
@@ -88,5 +89,9 @@ public class OrderRepository {
 		List<Order> orders = mongoTemplate.find(query, Order.class);
 		
 		return orders;
+	}
+	
+	public void saveNotification(MessageNotification notification) {
+		mongoTemplate.save(notification);
 	}
 }

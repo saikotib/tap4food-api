@@ -215,6 +215,7 @@ public class OfferService {
 				listItem.setListName("LIST-" + i);
 				listItem.setOfferId(offerId);
 				listItem.setOfferPrice(item.getOfferPrice());
+				listItem.setSelectType(singleList.getButtonType());
 			
 				offerRepository.createOfferFoodItemsList(listItem);
 			}

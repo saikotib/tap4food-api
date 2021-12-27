@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -160,9 +161,9 @@ public class MerchantService {
 
 		Long timeDiff = commonService.getTimeDiff(Long.valueOf(otp.getOtpSentTimeInMs()));
 		
-		if(timeDiff > OTP_EXPIRY_TIME_IN_MS) {
-			throw new TFException("OTP is expired");
-		}
+//		if(timeDiff > OTP_EXPIRY_TIME_IN_MS) {
+//			throw new TFException("OTP is expired");
+//		}
 		
 		if (inputOTP.equalsIgnoreCase(otp.getOtp())) {
 			otpMatch = true;
@@ -523,13 +524,41 @@ public class MerchantService {
 	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) throws TFException {
 		Merchant merchant = merchantRepository.getMerchant(uniqueNumber);
 		
+		List<FoodStall> foodStallsList = new ArrayList<FoodStall>();
+		
 		if(merchant.isManager()) {
 			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, true);
-			merchant.setFoodStalls(foodStalls);
+			for(FoodStall stall : foodStalls) {
+				
+				Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
+				
+				if(buData.isPresent()) {
+					BusinessUnit bu = buData.get();
+					
+					stall.setBuName(bu.getName());
+					
+					foodStallsList.add(stall);
+				}
+			}
+			
 		}else {
 			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, false);
-			merchant.setFoodStalls(foodStalls);
+			
+			for(FoodStall stall : foodStalls) {
+				
+				Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
+				
+				if(buData.isPresent()) {
+					BusinessUnit bu = buData.get();
+					
+					stall.setBuName(bu.getName());
+					
+					foodStallsList.add(stall);
+				}
+			}
 		}
+		
+		merchant.setFoodStalls(foodStallsList);
 
 		return Optional.ofNullable(merchant);
 	}	

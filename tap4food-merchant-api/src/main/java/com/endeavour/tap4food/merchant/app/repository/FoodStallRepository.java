@@ -18,6 +18,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallSubscription;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
@@ -1023,5 +1024,13 @@ public class FoodStallRepository {
 		}else {
 			return true;
 		}
+	}
+	
+	public Optional<BusinessUnit> findBusinessUnit(Long buId) {
+		Query query = new Query(Criteria.where("businessUnitId").is(buId));
+
+		BusinessUnit businessUnit = mongoTemplate.findOne(query, BusinessUnit.class);
+
+		return Optional.ofNullable(businessUnit);
 	}
 }

@@ -2,7 +2,6 @@ package com.endeavour.tap4food.app.model;
 
 import java.util.List;
 
-import org.bson.types.Binary;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -32,9 +31,6 @@ public class FoodCourt {
 	private String logo;
 	
 	private String qrCodeUrl;
-	
-	@DBRef
-	private List<FoodStall> foodStalls;
 	
 	private boolean isQRCodeGenerated;
 	

@@ -599,4 +599,9 @@ public class FoodItemService {
 		
 		return dataMap;
 	}
+	
+	public void deleteFoodItem(Long foodItemId) {
+		
+		foodItemRepository.deleteFoodItem(foodItemId);		
+	}
 }

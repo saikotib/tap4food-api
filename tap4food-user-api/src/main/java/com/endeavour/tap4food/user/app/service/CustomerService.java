@@ -25,6 +25,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
 import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
+import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.app.response.dto.ItemPatternPrice;
 import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.user.app.payload.request.ProfileUpdateRequest;
@@ -517,5 +518,24 @@ public class CustomerService {
 		} else {
 			throw new TFException("No user found with the given phone number");
 		}
+	}
+	
+	public List<FoodItem> getFoodItemSuggesions(Long foodItemId){
+		
+		FoodItemCustomiseDetails customiseDetails = userRepository.getFoodItemCustomDetails(foodItemId);
+
+		List<String> suggestionItemIds = customiseDetails.getAddOnItemsIds();
+		
+//		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
+		
+		List<FoodItem> foodItems = new ArrayList<FoodItem>();
+		
+		for(String itemId : suggestionItemIds) {
+			FoodItem item = userRepository.getFoodItem(Long.valueOf(itemId));
+			
+			foodItems.add(item);
+		}
+		
+		return foodItems;
 	}
 }

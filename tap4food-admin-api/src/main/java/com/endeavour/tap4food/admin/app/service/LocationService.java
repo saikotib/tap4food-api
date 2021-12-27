@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.admin.app.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,5 +31,17 @@ public class LocationService {
 	
 	public Country getCountryInfo(String countryCode) throws TFException {
 		return locationRepository.getCountryByCode(countryCode);
+	}
+	
+	public List<Country> getCountries() throws TFException {
+		return locationRepository.getCountries();
+	}
+	
+	public List<State> getStates(String countryCode) throws TFException {
+		return locationRepository.getStates(countryCode);
+	}
+	
+	public List<City> getCities(String state) throws TFException {
+		return locationRepository.getCities(state);
 	}
 }

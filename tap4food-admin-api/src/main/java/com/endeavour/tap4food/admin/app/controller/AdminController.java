@@ -35,19 +35,28 @@ import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.Mail;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
+import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
+import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.app.util.AvatarImage;
+
+import io.swagger.annotations.Api;
 
 @RestController
 @RequestMapping("/api/admin")
+@Api(tags = "AdminController", description = "AdminController")
 public class AdminController {
 
 	@Autowired
 	AdminService adminService;
+	
+	@Autowired
+	private CommonService commonService;
 
 	@RequestMapping(value = "/update-foodstall-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodstallStatus(@RequestParam Long merchantUniqueId,
@@ -325,6 +334,18 @@ public class AdminController {
 		return response;
 
 	}
+	
+	@RequestMapping(value = "/get-bu-food-courts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodCourtsByBU(@RequestParam("buId") Long buId) {
+
+		List<FoodCourt> foodCourts = adminService.getFoodCourts(buId);
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("Food Court detailes retreived successfully")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(foodCourts).build());
+		
+		return response;
+
+	}
 
 	@RequestMapping(value = "/food-court/{fc-id}/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodCourt(@Valid @PathVariable("fc-id") Long foodCourtId) {
@@ -553,7 +574,7 @@ public class AdminController {
 	@RequestMapping(value = "/get-aboutus-content", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getAboutUsContent() throws TFException {
 
-		List<AboutUs> aboutUsData = adminService.getAboutUsData();
+		AboutUs aboutUsData = adminService.getAboutUsData();
 
 		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(aboutUsData).build());
@@ -595,13 +616,63 @@ public class AdminController {
 
 	}
 	
-	@RequestMapping(value = "/get-subscription", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/get-subscription", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getSubscription() throws TFException {
 
 		List<Subscription> subscriptions = adminService.getExistingSubscriptions();
 
 		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
 					.timestamp(String.valueOf(LocalDateTime.now())).data(subscriptions).build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/saveTnC", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveTermsAndConditions(@RequestBody TermsNConditions content) throws TFException {
+
+		TermsNConditions termsNConditions = adminService.saveTermsAndConditions(content.getDescription());
+		
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(termsNConditions).build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/getTnC", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getTermsAndConditions() throws TFException {
+
+		TermsNConditions termsNConditions = adminService.getTermsAndConditions();
+		
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(termsNConditions).build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/getMails", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getMails() throws TFException {
+		
+		System.out.println("In getMails");
+
+		List<Mail> mails = commonService.getMails();
+		
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data(mails).build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/mailStatusUpdate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> mailStatusUpdate(@RequestParam("id") String id) throws TFException {
+
+		commonService.updateMailStatus(id);
+		
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("Mail is sent").build());
 
 		return response;
 

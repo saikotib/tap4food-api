@@ -16,7 +16,7 @@ public class OfferFoodItemsListRequest {
 	private String buttonType;
 	
 	@Data
-	public static class Item{
+	public static class Item {
 		
 		private String itemName;
 		
@@ -28,6 +28,7 @@ public class OfferFoodItemsListRequest {
 		
 		private boolean customizationFlag;
 		
+		private long quantity;
 	}
 	
 }
