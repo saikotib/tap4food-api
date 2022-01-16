@@ -58,6 +58,26 @@ public class MenuController {
 		return responseEntity;
 	}
 	
+	@RequestMapping(value = "/update-food-item", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodItem(@RequestParam("merchant-id") Long merchantId,
+			@RequestParam("fs-id") Long fsId,
+			@RequestBody FoodItem foodItem) throws TFException{
+		
+		foodItem.setTotalReviews(1);
+		foodItem.setStatus("PENDING_APPROVAL");
+		
+		foodItemService.addFoodItem(merchantId, fsId, foodItem);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data("Food item is created succesfully")
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;
+	}
+	
 	@RequestMapping(value = "/upload-food-item-pics", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadFoodItemPics(@RequestParam("fs-id") Long fsId,
 			@RequestParam("request-id") String requestId, 
