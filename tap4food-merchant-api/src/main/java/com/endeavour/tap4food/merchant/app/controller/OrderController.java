@@ -40,6 +40,19 @@ public class OrderController {
 		return ResponseEntity.ok().body(response);		
 	}
 	
+	@RequestMapping(value = "/get-order-history", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getOrderHistory(@RequestParam("fsId") Long foodStallId){
+		
+		List<OrderDto> orders = manageOrderService.getOrderHistory(foodStallId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(orders)
+				.build();
+		
+		return ResponseEntity.ok().body(response);		
+	}
+	
 	@RequestMapping(value = "/update-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateStatus(@RequestParam("orderId") Long orderId, @RequestParam("status") String status) throws TFException{
 		

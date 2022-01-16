@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
+import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
@@ -93,5 +94,28 @@ public class OrderRepository {
 	
 	public void saveNotification(MessageNotification notification) {
 		mongoTemplate.save(notification);
+	}
+	
+	public FoodStall getFoodStall(Long fsId) {
+		
+		Query query = new Query(Criteria.where("foodStallId").in(fsId));
+		
+		return mongoTemplate.findOne(query, FoodStall.class);
+	}
+	
+	public List<CartItem> getOrderCartItems(Long orderId) {
+		Query query = new Query(Criteria.where("orderId").is(orderId));
+		
+		List<CartItem> cartItems = mongoTemplate.find(query, CartItem.class);
+		
+		return cartItems;
+	}
+	
+	public List<CartItemCustomization> getOrderItemCustomizations(Long cartItemId) {
+		Query query = new Query(Criteria.where("cartItemId").is(cartItemId));
+		
+		List<CartItemCustomization> cartItemCustomizations = mongoTemplate.find(query, CartItemCustomization.class);
+		
+		return cartItemCustomizations;
 	}
 }

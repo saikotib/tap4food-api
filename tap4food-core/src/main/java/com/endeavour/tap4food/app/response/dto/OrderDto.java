@@ -33,6 +33,8 @@ public class OrderDto {
 	
 	private String tableNumber;
 	
+	private String orderedTime;
+	
 	private List<OrderedItem> orderedItems;
 	
 	@Data

@@ -26,6 +26,6 @@ public class OfferListDetailsResponseDto {
 	@JsonProperty("descriptions")
 	private Map<String, String> descriptionsMap;
 	
-	@JsonProperty("descriptions")
+	@JsonProperty("buttonTypes")
 	private Map<String, String> buttonTypesMap;
 }

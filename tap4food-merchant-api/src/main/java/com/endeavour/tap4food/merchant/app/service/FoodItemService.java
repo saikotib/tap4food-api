@@ -24,6 +24,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemDirectOffer;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.response.dto.FoodItemDataToEdit;
 import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.merchant.app.repository.FoodItemRepository;
 import com.endeavour.tap4food.merchant.app.repository.FoodStallRepository;
@@ -603,5 +604,100 @@ public class FoodItemService {
 	public void deleteFoodItem(Long foodItemId) {
 		
 		foodItemRepository.deleteFoodItem(foodItemId);		
+	}
+	
+	public FoodItemDataToEdit getFoodItemDataForEdit(Long foodItemId) throws TFException {
+		
+		FoodItemDataToEdit foodItemDataToEdit = new FoodItemDataToEdit();
+		
+		FoodItem foodItem = foodItemRepository.getFoodItem(foodItemId);
+		
+		FoodItemCustomiseDetails customizationDetails = foodItemRepository.getFoodItemCustomizeDetails(foodItemId);
+		
+		if(Objects.nonNull(customizationDetails)) {
+			foodItemDataToEdit.setCustomizationFlag(true);
+			
+			foodItemDataToEdit.setCustomiseTypes(customizationDetails.getCustomiseTypes());
+			
+			List<String> customizations = customizationDetails.getCustomiseFoodItems();
+			
+			Map<String, List<String>> customizationsMap = new HashMap<String, List<String>>();
+			
+			for(String custVal : customizations) {
+				String custTokens[] = custVal.split("~");
+				
+				String keyToken = custTokens[0];
+				String valToken = custTokens[1];
+				
+				if(!customizationsMap.containsKey(keyToken)) {
+					customizationsMap.put(keyToken, new ArrayList<String>());
+				}
+				
+				customizationsMap.get(keyToken).add(valToken);				
+			}
+			
+			List<FoodItemDataToEdit.CustomizationEntry> customizationEntries = new ArrayList<FoodItemDataToEdit.CustomizationEntry>();
+			
+			for(Map.Entry<String, List<String>> entry : customizationsMap.entrySet()) {
+				
+				FoodItemDataToEdit.CustomizationEntry custEntry = new FoodItemDataToEdit.CustomizationEntry();
+				
+				custEntry.setKey(entry.getKey());
+				custEntry.setValues(entry.getValue());
+				
+				customizationEntries.add(custEntry);
+			}
+			
+			foodItemDataToEdit.setCustomizationEntries(customizationEntries);
+			
+			List<String> buttons = customizationDetails.getCustomiseFoodItemsSelectButtons();
+			
+			Map<String, String> customizationButtonsMap = new HashMap<String, String>();
+			
+			for(String btn : buttons) {
+				String btnTokens[] = btn.split("~");
+				
+				String keyToken = btnTokens[0];
+				String valToken = btnTokens[1];
+				
+				customizationButtonsMap.put(keyToken, valToken);				
+			}
+			
+			foodItemDataToEdit.setButtons(customizationButtonsMap);
+			
+			List<String> descriptions = customizationDetails.getCustomiseFoodItemsDescriptions();
+			
+			Map<String, String> customizationDescriptionsMap = new HashMap<String, String>();
+			
+			for(String desc : descriptions) {
+				String descTokens[] = desc.split("~");
+				
+				String keyToken = descTokens[0];
+				String valToken = descTokens[1];
+				
+				customizationDescriptionsMap.put(keyToken, valToken);				
+			}
+			
+			foodItemDataToEdit.setDescriptions(customizationDescriptionsMap);
+			
+			List<String> customerSpecifications = customizationDetails.getCustomiseFoodItemsCustomerSpecifications();
+			
+			Map<String, String> customerSpecificationsMap = new HashMap<String, String>();
+			
+			for(String spec : customerSpecifications) {
+				String specTokens[] = spec.split("~");
+				
+				String keyToken = specTokens[0];
+				String valToken = specTokens[1];
+				
+				customerSpecificationsMap.put(keyToken, valToken);				
+			}
+			
+			foodItemDataToEdit.setCustomerSpecifications(customerSpecificationsMap);
+		}
+		
+		foodItemDataToEdit.setFoodItemDetails(foodItem);
+
+		return foodItemDataToEdit;
 	}
 }

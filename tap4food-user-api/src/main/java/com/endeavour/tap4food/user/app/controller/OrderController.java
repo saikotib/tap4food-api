@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
+import com.endeavour.tap4food.app.response.dto.OrderDto;
 import com.endeavour.tap4food.user.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.user.app.service.OrderService;
 
@@ -40,9 +41,9 @@ public class OrderController {
 	}
 	
 	@RequestMapping(value = "/getOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> placeOrder(@RequestParam("phoneNumber") String phoneNunber){
+	public ResponseEntity<ResponseHolder> placeOrder(@RequestParam("phoneNumber") String phoneNunber, @RequestParam("fsId") Long fsId){
 		
-		List<Order> orders = orderService.getOrders(phoneNunber);
+		List<OrderDto> orders = orderService.getOrders(phoneNunber, fsId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("OK")

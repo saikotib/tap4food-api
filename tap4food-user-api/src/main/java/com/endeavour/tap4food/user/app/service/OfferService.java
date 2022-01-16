@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,6 +89,19 @@ public class OfferService {
 				listDescriptionsMap.put(listName, description);
 			}
 			
+			String buttonType = list.getSelectType();
+			
+			if(!buttonTypesMap.containsKey(listName)) {
+				buttonTypesMap.put(listName, buttonType);
+			}
+			
+			if(buttonTypesMap.containsKey(listName)) {
+				String existingButtonType = buttonTypesMap.get(listName);
+				if(Objects.isNull(existingButtonType)) {
+					buttonTypesMap.put(listName, "single");
+				}	
+			}
+			
 			if(!listItemsMap.containsKey(listName)) {
 				listItemsMap.put(listName, new ArrayList<OfferFoodItem>());
 			}
@@ -105,6 +119,7 @@ public class OfferService {
 		
 		offerListDetails.setOfferListsMap(listItemsMap);
 		offerListDetails.setDescriptionsMap(listDescriptionsMap);
+		offerListDetails.setButtonTypesMap(buttonTypesMap);
 		
 		return offerListDetails;
 	}

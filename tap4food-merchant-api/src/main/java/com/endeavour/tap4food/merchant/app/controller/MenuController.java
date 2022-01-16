@@ -20,6 +20,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.response.dto.FoodItemDataToEdit;
 import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -222,4 +223,16 @@ public class MenuController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/get-food-item-for-edit", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemForEdit(@RequestParam("foodItemId") Long foodItemId) throws TFException{
+		
+		FoodItemDataToEdit foodItemData = foodItemService.getFoodItemDataForEdit(foodItemId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItemData)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
 }
