@@ -14,6 +14,7 @@ import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
+import com.endeavour.tap4food.app.model.order.OrderedOfferItems;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
@@ -52,6 +53,11 @@ public class OrderRepository {
 	public void saveCartItemCustomizations(CartItemCustomization cartItemCustomization) {
 
 		mongoTemplate.save(cartItemCustomization);
+	}
+	
+	public void saveOrderedOfferItem(OrderedOfferItems orderedOfferItem) {
+
+		mongoTemplate.save(orderedOfferItem);
 	}
 	
 	public void saveOrderedCustomer(Customer customer) {
@@ -109,6 +115,20 @@ public class OrderRepository {
 		List<CartItem> cartItems = mongoTemplate.find(query, CartItem.class);
 		
 		return cartItems;
+	}
+	
+	public Order getOrder(Long orderId) {
+		Query query = new Query(Criteria.where("orderId").is(orderId));
+		
+		Order order = mongoTemplate.findOne(query, Order.class);
+		
+		return order;
+	}
+	
+	public Order updateOrder(Order order) {
+		
+		mongoTemplate.save(order);
+		return order;
 	}
 	
 	public List<CartItemCustomization> getOrderItemCustomizations(Long cartItemId) {

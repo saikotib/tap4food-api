@@ -33,4 +33,6 @@ public class FoodItemsList {
 	private Long fsId;
 	
 	private String selectType;
+	
+	private long quantity;
 }

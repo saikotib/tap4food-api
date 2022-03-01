@@ -1,6 +1,8 @@
 package com.endeavour.tap4food.merchant.app.filters;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -8,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,7 +28,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
 	@Autowired
 	private UserDetailsServiceImpl userDetailsService;
-
+	
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
@@ -45,7 +48,20 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 			logger.error("Cannot set user authentication: {}", e);
 		}
 		// Below is for CORS filter.
-		response.addHeader("Access-Control-Allow-Origin", "*");
+		
+//		Enumeration<String> headers = request.getHeaderNames();
+		
+//		Iterator<String> headerItr = headers.asIterator();
+		
+		String origin = request.getHeader("origin");
+//		while(headers.hasMoreElements()) {
+//			String header = headers.nextElement();
+//			System.out.println(header + " :: " + request.getHeader(header));
+//		}
+		
+//		System.out.println("ORIGIN : " + origin);
+		
+		response.addHeader("Access-Control-Allow-Origin", origin);
         response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH, HEAD");
         response.addHeader("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
         response.addHeader("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Credentials");

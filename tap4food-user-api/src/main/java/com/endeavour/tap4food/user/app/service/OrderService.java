@@ -11,17 +11,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.app.model.FoodStall;
-import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
+import com.endeavour.tap4food.app.model.order.OrderedOfferItems;
+import com.endeavour.tap4food.app.model.order.RazorPayOrder;
+import com.endeavour.tap4food.app.model.order.UpdatePaymentDetailsRequest;
 import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
 import com.endeavour.tap4food.app.response.dto.OrderDto;
+import com.endeavour.tap4food.app.service.NotificationService;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.user.app.repository.OrderRepository;
-import com.endeavour.tap4food.user.app.response.dto.OrderResponseDto;
+import com.razorpay.RazorpayException;
+import com.razorpay.Transfer;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +35,13 @@ public class OrderService {
 	
 	@Autowired
 	private OrderRepository orderRepository;
-
+	
+	@Autowired
+	private PaymentService paymentService;
+	
+	@Autowired
+	private NotificationService notificationService;
+	
 	public Order placeOrder(PlaceOrderRequest orderRequest) {
 		
 		log.info("Input order request : {}", orderRequest);
@@ -57,13 +67,23 @@ public class OrderService {
 			order.setSeatNumber(orderRequest.getSeatNumber());
 		
 		order.setStatus("NEW");
+		order.setPaymentStatus("InProgress");
 		order.setSubTotalAmount(orderRequest.getSubTotalAmount());
 		order.setTaxAmount(orderRequest.getTaxAmount());
 		
 		List<PlaceOrderRequest.SelectedCartItem> selectedCartItems = orderRequest.getCartItems();
+		
 		int totalItems = 0;
 		for(PlaceOrderRequest.SelectedCartItem cartItem : selectedCartItems) {
-			totalItems += cartItem.getQuantity();
+			System.out.println("CART_ITEM : " + cartItem);
+			if(cartItem.isOffer()) {
+				for(PlaceOrderRequest.SelectedOfferItem orderedOfferItem: cartItem.getOfferItems()) {
+					totalItems += orderedOfferItem.getQuantity();
+				}
+			}else {
+				totalItems += cartItem.getQuantity();
+			}
+			
 		}
 		
 		order.setTotalItems(totalItems);
@@ -85,20 +105,43 @@ public class OrderService {
 			cartItem.setQuantity(selectedCartItem.getQuantity());
 			cartItem.setFinalPrice(selectedCartItem.getFinalPrice());
 			
+			boolean isOffer = selectedCartItem.isOffer();
+			
+			cartItem.setOffer(isOffer);
+			
 			orderRepository.saveCartItem(cartItem);
 			
-			if(selectedCartItem.isCustomizationFlag()) {
-				List<PlaceOrderRequest.CartItemCustomization> customizations = selectedCartItem.getCustomizations();
+			if(isOffer) {
+				List<PlaceOrderRequest.SelectedOfferItem> orderedOfferItems = selectedCartItem.getOfferItems();
 				
-				for(PlaceOrderRequest.CartItemCustomization selectedItemCustomization : customizations) {
-					CartItemCustomization custumization = new CartItemCustomization();
-					custumization.setCartItemId(newOrderItemSeq);
-					custumization.setCustomizationItem(selectedItemCustomization.getItem());
-					custumization.setCustomizationName(selectedItemCustomization.getKey());
+				for(PlaceOrderRequest.SelectedOfferItem orderedOfferItem: orderedOfferItems) {
+					OrderedOfferItems offerItem = new OrderedOfferItems();
+					offerItem.setActualPrice(orderedOfferItem.getActualPrice());
+					offerItem.setCartItemId(newOrderItemSeq);
+					offerItem.setCustomizationName("Customization");
+					offerItem.setCustomizationItem(orderedOfferItem.getCombination());
+					offerItem.setFoodItemId(orderedOfferItem.getItemId());
+					offerItem.setFoodItemName(orderedOfferItem.getItemName());
+					offerItem.setOfferPrice(orderedOfferItem.getOfferPrice());
+					offerItem.setQuantity(orderedOfferItem.getQuantity());
 					
-					orderRepository.saveCartItemCustomizations(custumization);
+					orderRepository.saveOrderedOfferItem(offerItem);
 				}
-			}
+			}else {
+				if(selectedCartItem.isCustomizationFlag()) {
+					List<PlaceOrderRequest.CartItemCustomization> customizations = selectedCartItem.getCustomizations();
+					
+					for(PlaceOrderRequest.CartItemCustomization selectedItemCustomization : customizations) {
+						CartItemCustomization custumization = new CartItemCustomization();
+						custumization.setCartItemId(newOrderItemSeq);
+						custumization.setCustomizationItem(selectedItemCustomization.getItem());
+						custumization.setCustomizationName(selectedItemCustomization.getKey());
+						
+						orderRepository.saveCartItemCustomizations(custumization);
+					}
+				}
+			}	
+			
 		}
 		
 		Customer customer = new Customer();
@@ -112,6 +155,18 @@ public class OrderService {
 		
 		this.addToNotifications(orderRequest.getCustomer().getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
 		
+		try {
+			RazorPayOrder rzpOrder = paymentService.createRPOrder(customer.getPhoneNumber(), order.getGrandTotal());
+			
+			order.setRazorPayOrderDetails(rzpOrder);
+			
+		} catch (RazorpayException e) {
+
+			e.printStackTrace();
+		}
+		
+		System.out.println("Order is placed : " + order);
+		
 		return order;
 	}
 	
@@ -122,8 +177,10 @@ public class OrderService {
 		notification.setFoodStallId(foodStallId);
 		notification.setMessage(message);
 		notification.setNotificationStatus("ACTIVE");
-		notification.setOrderId(orderId);
-		notification.setOrderStatus(orderStatus);
+		notification.setNotificationType("NEW_ORDER");
+		notification.setNotificationObjectId(orderId);
+		
+		notificationService.addNotification(notification);
 	}
 	
 	public List<OrderDto> getOrders(String phoneNumber, Long fsId){
@@ -261,5 +318,33 @@ public class OrderService {
 		
 		return cartItems;
 	}
+	
+	public Order updateOrderPaymentStatus(UpdatePaymentDetailsRequest request) {
+		
+		Order order = orderRepository.getOrder(request.getOrderId());
+		order.setPaymentStatus(request.getPaymentStatus());
+		order.setPaymentId(request.getPaymentId());
+		order.setPaymentSignature(request.getPaymentSignature());
+		order.setRzpOrderId(request.getRzpOrderId());
+		
+		orderRepository.updateOrder(order);
+		
+		this.directTransferToMerchant(order.getOrderId(), order.getGrandTotal());
+		
+		return order;
+	}
+	
+	public void directTransferToMerchant(long orderId, Double amount) {
+		
+		String account = "acc_Iiof4RJnl5vwRy";
+		
+		try {
+			Transfer tx = paymentService.directTransfer(account, amount);
+			System.out.println(tx);
+		} catch (RazorpayException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 }

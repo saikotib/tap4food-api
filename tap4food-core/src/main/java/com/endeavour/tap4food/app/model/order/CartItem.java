@@ -34,4 +34,6 @@ public class CartItem {
 	
 	private Long orderId;
 	
+	private boolean isOffer;
+	
 }

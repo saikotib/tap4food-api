@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallSubscription;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
@@ -106,6 +107,8 @@ public class FoodStallRepository {
 	}
 	
 	public FoodStall updateFoodStall(FoodStall foodStall) throws TFException {
+		
+		System.out.println("Latest foodStall Data : " + foodStall);
 
 		FoodStall existingStall = getFoodStallById(foodStall.getFoodStallId());
 		
@@ -1032,5 +1035,19 @@ public class FoodStallRepository {
 		BusinessUnit businessUnit = mongoTemplate.findOne(query, BusinessUnit.class);
 
 		return Optional.ofNullable(businessUnit);
+	}
+	
+	public BusinessUnit saveBusinessUnit(BusinessUnit businessUnit) {
+		return mongoTemplate.save(businessUnit);
+	}
+	
+	public FoodCourt saveFoodCourt(FoodCourt foodCourt) {
+
+		Long nextFoodCourtSeq = commonSequenceService
+				.getFoodCourtNextSequence(MongoCollectionConstant.COLLECTION_FOODCOURT_SEQ);
+
+		foodCourt.setFoodCourtId(nextFoodCourtSeq);
+
+		return mongoTemplate.save(foodCourt);
 	}
 }

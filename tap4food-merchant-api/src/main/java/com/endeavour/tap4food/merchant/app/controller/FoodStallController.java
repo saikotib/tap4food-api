@@ -73,7 +73,7 @@ public class FoodStallController {
 		return responseEntity;
 	}
 	
-	@RequestMapping(value = "/{fs-id}/update-status", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/{fs-id}/update-status", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodStallStatus(
 			@PathVariable("fs-id") Long fsId,
 			@RequestParam("status") String newStatus) throws TFException {
@@ -88,7 +88,7 @@ public class FoodStallController {
 		return responseEntity;
 	}
 	
-	@RequestMapping(value = "/{fs-id}/update-open-status", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/{fs-id}/update-open-status", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodStallOpenStatus(
 			@PathVariable("fs-id") Long fsId,
 			@RequestParam("openStatus") boolean openStatus) throws TFException {

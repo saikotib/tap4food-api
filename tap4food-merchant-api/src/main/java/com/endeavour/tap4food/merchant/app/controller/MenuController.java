@@ -2,6 +2,7 @@ package com.endeavour.tap4food.merchant.app.controller;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.request.dto.FoodItemEditRequest;
 import com.endeavour.tap4food.app.response.dto.FoodItemDataToEdit;
 import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
@@ -46,7 +48,11 @@ public class MenuController {
 		foodItem.setTotalReviews(1);
 		foodItem.setStatus("PENDING_APPROVAL");
 		
-		foodItemService.addFoodItem(merchantId, fsId, foodItem);
+		if(Objects.isNull(foodItem.getFoodItemId())) {
+			foodItemService.addFoodItem(merchantId, fsId, foodItem);
+		}else {
+			foodItemService.updateFoodItem(foodItem);
+		}		
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -61,16 +67,15 @@ public class MenuController {
 	@RequestMapping(value = "/update-food-item", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodItem(@RequestParam("merchant-id") Long merchantId,
 			@RequestParam("fs-id") Long fsId,
-			@RequestBody FoodItem foodItem) throws TFException{
+			@RequestBody FoodItemEditRequest foodItem) throws TFException{
 		
-		foodItem.setTotalReviews(1);
-		foodItem.setStatus("PENDING_APPROVAL");
-		
-		foodItemService.addFoodItem(merchantId, fsId, foodItem);
+		System.out.println(foodItem);
+
+		foodItemService.updateFoodItem(foodItem);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
-				.data("Food item is created succesfully")
+				.data("Food item is updated succesfully")
 				.build();
 		
 		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
@@ -97,6 +102,36 @@ public class MenuController {
 		}
 			
 		FoodItem foodItem = foodItemService.uploadFoodItemPics(fsId, requestId, foodItemPics);
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("success")
+				.data(foodItem)
+				.build();
+		
+		response = ResponseEntity.ok().body(responseHolder);
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/update-food-item-pics", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateFoodItemPics(@RequestParam("fs-id") Long fsId,
+			@RequestParam("foodItemId") Long foodItemId, 
+			@RequestParam(value = "pic", required = true) List<MultipartFile> foodItemPics) throws TFException {
+
+		ResponseEntity<ResponseHolder> response = null;
+
+		for(MultipartFile pic : foodItemPics) {
+			System.out.println(pic.getSize());
+			String picType = pic.getOriginalFilename().split("\\.")[1].toLowerCase();
+			System.out.println(picType);
+			if (!Arrays.asList(ImageConstants.IMAGE_JPEG, ImageConstants.IMAGE_PNG, ImageConstants.IMAGE_JPG)
+					.contains(picType)) {
+
+				throw new TFException("File must be an Image");
+			}
+		}
+			
+		FoodItem foodItem = foodItemService.uploadFoodItemPics(fsId, foodItemId, foodItemPics);
 		
 		ResponseHolder responseHolder = ResponseHolder.builder()
 				.status("success")

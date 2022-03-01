@@ -19,13 +19,16 @@ public class OfferListDetailsResponseDto {
 	private Double actualPrice;
 	
 	private Double offerPrice;
+	
+	private String offerType;
 
 	@JsonProperty("offerLists")
-	private Map<String, List<OfferFoodItem>> offerListsMap;
+	private Map<String, Map<String, List<OfferFoodItem>>> offerListsMap;
 	
 	@JsonProperty("descriptions")
 	private Map<String, String> descriptionsMap;
 	
 	@JsonProperty("buttonTypes")
 	private Map<String, String> buttonTypesMap;
+	
 }

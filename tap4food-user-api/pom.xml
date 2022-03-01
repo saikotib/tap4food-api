@@ -18,6 +18,7 @@
 			<artifactId>tap4food-core</artifactId>
 			<version>1.0</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

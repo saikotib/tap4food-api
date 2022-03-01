@@ -2,6 +2,8 @@ package com.endeavour.tap4food.app.response.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 @Data
@@ -36,6 +38,9 @@ public class OrderDto {
 	private String orderedTime;
 	
 	private List<OrderedItem> orderedItems;
+	
+	@JsonProperty("isOtpVerified")
+	private boolean isOtpVerified;
 	
 	@Data
 	public static class OrderedItem{

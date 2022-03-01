@@ -366,4 +366,17 @@ public class FoodItemRepository {
 		
 		mongoTemplate.save(foodItemPricing);
 	}
+	
+	public void deleteFoodItemExistingDataBeforeEdit(Long foodItemId) {
+		
+		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		mongoTemplate.remove(query, FoodItemCustomizationPricing.class);
+		
+		mongoTemplate.remove(query, FoodItemCustomiseDetails.class);
+		
+		query = new Query(Criteria.where("baseItem").is(foodItemId));
+		
+		mongoTemplate.remove(query, FoodItem.class);
+	}
 }

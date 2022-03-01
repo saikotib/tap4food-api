@@ -16,4 +16,6 @@ public class OfferFoodItem {
 	private Double offerPrice;
 	
 	private boolean customizationFlag;
+	
+	private long quantity;
 }

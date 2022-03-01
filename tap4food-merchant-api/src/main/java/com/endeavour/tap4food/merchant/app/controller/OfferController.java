@@ -46,6 +46,37 @@ public class OfferController {
 		return ResponseEntity.ok().body(response);
 	}
 	
+	@RequestMapping(value = "/update-offer", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateOffer(@RequestParam("fsId") Long fsId, 
+			@RequestParam("offerId") Long offerId,
+			@RequestBody Offer offer) throws TFException{
+		
+		offerService.updateOffer(fsId, offerId, offer);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(offer)
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@RequestMapping(value = "/delete-offer", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteOffer(@RequestParam("fsId") Long fsId,
+			@RequestParam("offerId") Long offerId) throws TFException{
+		
+		offerService.deleteOffer(fsId, offerId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data("Offer is deleted")
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
 	@RequestMapping(value = "/upload-offer-image", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadOfferImage(@RequestParam("fsId") Long fsId, 
 			@RequestParam("offerId") Long offerId,

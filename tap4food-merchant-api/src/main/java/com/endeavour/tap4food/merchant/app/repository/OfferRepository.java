@@ -23,9 +23,18 @@ public class OfferRepository {
 	
 	public Offer createOffer(Offer offer) {
 		
+		offer.setStatus("ACTIVE");
 		mongoTemplate.save(offer);
 		
 		log.info("Offer is created succesfully.");
+		return offer;
+	}
+	
+	public Offer updateOffer(Offer offer) {
+		
+		mongoTemplate.save(offer);
+		
+		log.info("Offer is updated succesfully.");
 		return offer;
 	}
 	
@@ -43,7 +52,7 @@ public class OfferRepository {
 	
 	public List<Offer> getOffers(Long fsId){
 		
-		Query query = new Query(Criteria.where("fsId").is(fsId));
+		Query query = new Query(Criteria.where("fsId").is(fsId).andOperator(Criteria.where("status").is("ACTIVE")));
 		
 		List<Offer> offers = mongoTemplate.find(query, Offer.class);
 	
@@ -80,5 +89,15 @@ public class OfferRepository {
 		mongoTemplate.save(suggestItem);
 		
 		log.info("Offer is created succesfully.");
+	}
+	
+	public void deleteOffer(Long fsId, Long offerId) {
+		
+		Offer offer = this.getOffer(fsId, offerId);
+		
+		offer.setStatus("DELETED");
+		
+		mongoTemplate.save(offer);
+		
 	}
 }

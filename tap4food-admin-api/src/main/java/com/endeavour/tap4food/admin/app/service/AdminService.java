@@ -334,7 +334,16 @@ public class AdminService {
 					merchantFoodStallInfo.setBuType(foodStall.getBuType());
 					merchantFoodStallInfo.setBuName(foodStall.getBuName());
 					merchantFoodStallInfo.setDeliveryTime(foodStall.getDeliveryTime());
-					merchantFoodStallInfo.setFcQRCode(foodStall.getQrCode());
+					
+					if(Objects.isNull(foodStall.getQrCode())) {
+						String qrCode = mediaServerUrl + "/QRCodes/" + foodStall.getFoodCourtId() + ".png";
+						merchantFoodStallInfo.setFcQRCode(qrCode);
+					}else {
+						merchantFoodStallInfo.setFcQRCode(foodStall.getQrCode());
+					}
+					
+					System.out.println("QR Code : " + merchantFoodStallInfo.getFcQRCode());
+					
 					merchantFoodStallInfo.setMenuPics(foodStall.getMenuPics());
 					merchantFoodStallInfo.setStallPics(foodStall.getFoodStallPics());
 					merchantFoodStallInfo.setEmail(merchant.getEmail());
@@ -667,7 +676,7 @@ public class AdminService {
 		monthlyReportData.put("JAN", reportData);
 		reportData.setCustomers(489L);
 		reportData.setFoodStalls(61L);
-		reportData.setRestaurants(77L);
+		reportData.setRestaurants(778L);
 		monthlyReportData.put("FEB", reportData);
 		reportData.setCustomers(139L);
 		reportData.setFoodStalls(8L);

@@ -72,6 +72,23 @@ public class OfferService {
 		return offer;
 	}
 	
+	public void updateOffer(Long fsId, Long offerId, Offer offer) {
+		
+		Offer existingOffer = offerRepository.getOffer(fsId, offerId);
+		
+		existingOffer.setCategory(offer.getCategory());
+		existingOffer.setCuisine(offer.getCuisine());
+		existingOffer.setOfferType(offer.getOfferType());
+		existingOffer.setSubCategory(offer.getSubCategory());
+		existingOffer.setTitle(offer.getTitle());
+		
+		offerRepository.updateOffer(existingOffer);
+	}
+	
+	public void deleteOffer(Long fsId, Long offerId) {
+		offerRepository.deleteOffer(fsId, offerId);
+	}
+	
 	public String uploadOfferImage(Long fsId, Long offerId, MultipartFile inputImage) throws TFException, IOException {
 		
 		FoodStall foodStall = foodStallRepository.getFoodStallById(fsId);
@@ -215,7 +232,9 @@ public class OfferService {
 				listItem.setListName("LIST-" + i);
 				listItem.setOfferId(offerId);
 				listItem.setOfferPrice(item.getOfferPrice());
-				listItem.setSelectType(singleList.getButtonType());
+//				listItem.setSelectType(singleList.getButtonType());
+				listItem.setSelectType("Single");
+				listItem.setQuantity(item.getQuantity());
 			
 				offerRepository.createOfferFoodItemsList(listItem);
 			}

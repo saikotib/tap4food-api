@@ -5,22 +5,31 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallSubscription;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
@@ -31,6 +40,7 @@ import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
+import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.app.util.MediaConstants;
@@ -50,23 +60,98 @@ public class FoodStallService {
 	
 	@Value("${images.server}")
 	private String mediaServerUrl;
-
+	
+	@Value("${api.base.url}")
+	private String apiBaseUrl;
+	
+	@Autowired
+	private CommonSequenceService commonSequenceService;
+	
 	public FoodStall createFoodStall(Long merchantUniqNumber, FoodStall foodStall) throws TFException {
 
-		String qrCodeUrl = mediaServerUrl + "/QRCodes/"+ foodStall.getFoodCourtId() +".png";
-		
 		foodStall.setStatus(AccountStatusEnum.REQUEST_FOR_APPROVAL.name());
 		
 		foodStall.setRating(4.7); // Need to make it dynamic
-		foodStall.setQrCode(qrCodeUrl);
 		
 		foodStall.setCreatedDate(DateUtil.getToday());
 		foodStall.setOpened(true);
 		
+		if(foodStall.getBuType().equalsIgnoreCase("Restaurant")) {
+			foodStall.setRestaurant(true);
+			
+			BusinessUnit bu = new BusinessUnit();
+			bu.setCity(foodStall.getCity());
+			bu.setCountry(foodStall.getCountry());
+			bu.setName(foodStall.getFoodStallName());
+			bu.setState(foodStall.getState());
+			bu.setStatus("Active");
+			bu.setType("RESTAURANT");
+			
+			bu.setBusinessUnitId(commonSequenceService.getNextSequence(BusinessUnit.SEQUENCE));
+			
+			foodStallRepository.saveBusinessUnit(bu);
+			
+			foodStall.setBuId(bu.getBusinessUnitId());
+			foodStall.setBuName(foodStall.getFoodStallName());
+			
+			FoodCourt foodCourt = new FoodCourt();
+			
+			foodCourt.setName(foodStall.getFoodStallName());
+			foodCourt.setBusinessUnitId(bu.getBusinessUnitId());
+			foodCourt.setFoodCourtId(commonSequenceService.getNextSequence(FoodCourt.SEQ_NAME));
+			foodCourt = foodStallRepository.saveFoodCourt(foodCourt);
+			
+			foodStall.setFoodCourtId(foodCourt.getFoodCourtId());
+			foodStall.setFoodCourtName(foodStall.getFoodStallName());
+		}
+		
 		foodStallRepository.createNewFoodStall(merchantUniqNumber, foodStall);
 
 		commonService.createMediaFolderStructure(merchantUniqNumber, foodStall.getFoodStallId());
+		
+		String qrCodeUrl = this.getQRCodeUrl(foodStall);
+		foodStall.setQrCode(qrCodeUrl);
+		
+		this.updateFoodStall(foodStall);
+		
 		return foodStall;
+	}
+	
+	private String getQRCodeUrl(FoodStall foodStall) {
+		String qrCodeUrl = null;
+		
+		if(foodStall.getBuType().equalsIgnoreCase("Restaurant")) {
+			qrCodeUrl = mediaServerUrl + "/QRCodes/"+ foodStall.getFoodCourtId() +".png";
+			
+			this.generateQRCodeForRestaurant(foodStall);
+		}else {
+			qrCodeUrl = mediaServerUrl + "/QRCodes/"+ foodStall.getFoodCourtId() +".png";
+		}
+		
+		return qrCodeUrl;
+	}
+	
+	private void generateQRCodeForRestaurant(FoodStall foodStall) {
+		ExecutorService qrCodeGenExecutor = Executors.newSingleThreadExecutor();
+		qrCodeGenExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				
+				String qrCodeGenerateUrl = apiBaseUrl + "/api/admin/qrcode/generate?foodcourtid="
+						+ foodStall.getFoodStallId() + "&buType=" + foodStall.getBuType();
+				
+				RestTemplate restTemplate = new RestTemplate();
+				
+				HttpHeaders headers = new HttpHeaders();
+			      headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+			      HttpEntity <String> entity = new HttpEntity<String>(headers);
+				
+			      String response = restTemplate.exchange(qrCodeGenerateUrl, HttpMethod.POST, entity, String.class).getBody();
+			 
+			      System.out.println("QR Code Gen Response : " + response);
+			}
+		});
+		qrCodeGenExecutor.shutdown();
 	}
 	
 	public FoodStall updateFoodStall(FoodStall foodStall) throws TFException {
@@ -271,6 +356,11 @@ public class FoodStallService {
 		foodStallTimings.setDays(weekDays);
 		
 		foodStallTimings = foodStallRepository.savefoodStallTimings(fsId, foodStallTimings, true);
+		
+		FoodStall stall = this.getFoodStallById(fsId);
+		stall.setFoodStallTimings(foodStallTimings);
+		
+		this.updateFoodStall(stall);
 
 		return foodStallTimings;
 	}

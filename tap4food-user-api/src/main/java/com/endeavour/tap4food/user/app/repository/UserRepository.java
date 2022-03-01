@@ -112,6 +112,15 @@ public class UserRepository {
 		return foodStalls;
 	}
 	
+	public FoodStall getFoodStall(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		FoodStall foodStall = mongoTemplate.findOne(query, FoodStall.class);
+		
+		return foodStall;
+	}
+	
 	public FoodCourt getFoodCourt(Long fcId){
 		
 		Query query = new Query(Criteria.where("foodCourtId").is(fcId));
@@ -147,7 +156,7 @@ public class UserRepository {
 	}
 	
 	public List<Offer> getOffers(Long fsId) {
-		Query query = new Query(Criteria.where("fsId").is(fsId));
+		Query query = new Query(Criteria.where("fsId").is(fsId).andOperator(Criteria.where("status").is("ACTIVE")));
 		
 		List<Offer> offers = mongoTemplate.find(query, Offer.class);
 		

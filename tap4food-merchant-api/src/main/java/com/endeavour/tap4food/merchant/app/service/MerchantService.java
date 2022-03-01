@@ -25,6 +25,7 @@ import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.BusinessUnit;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.MerchantContactAdmin;
@@ -530,15 +531,29 @@ public class MerchantService {
 			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, true);
 			for(FoodStall stall : foodStalls) {
 				
-				Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
+				FoodStallTimings timings = foodStallRepository.getFoodStallTimings(stall.getFoodStallId());
 				
-				if(buData.isPresent()) {
-					BusinessUnit bu = buData.get();
-					
-					stall.setBuName(bu.getName());
-					
-					foodStallsList.add(stall);
+				stall.setFoodStallTimings(timings);
+				
+				if(Objects.isNull(stall.getQrCode())) {
+					String qrCode = mediaServerUrl + "/QRCodes/" + stall.getFoodCourtId() + ".png";
+					stall.setQrCode(qrCode);
 				}
+				
+				if(stall.isRestaurant()) {
+					foodStallsList.add(stall);
+				}else {
+					Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
+					
+					if(buData.isPresent()) {
+						BusinessUnit bu = buData.get();
+						
+						stall.setBuName(bu.getName());
+						
+						foodStallsList.add(stall);
+					}
+				}
+				
 			}
 			
 		}else {
@@ -546,15 +561,29 @@ public class MerchantService {
 			
 			for(FoodStall stall : foodStalls) {
 				
-				Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
+				FoodStallTimings timings = foodStallRepository.getFoodStallTimings(stall.getFoodStallId());
 				
-				if(buData.isPresent()) {
-					BusinessUnit bu = buData.get();
-					
-					stall.setBuName(bu.getName());
-					
-					foodStallsList.add(stall);
+				stall.setFoodStallTimings(timings);
+				
+				if(Objects.isNull(stall.getQrCode())) {
+					String qrCode = mediaServerUrl + "/QRCodes/" + stall.getFoodCourtId() + ".png";
+					stall.setQrCode(qrCode);
 				}
+				
+				if(stall.isRestaurant()) {
+					foodStallsList.add(stall);
+				}else {
+					Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
+					
+					if(buData.isPresent()) {
+						BusinessUnit bu = buData.get();
+						
+						stall.setBuName(bu.getName());
+						
+						foodStallsList.add(stall);
+					}
+				}			
+				
 			}
 		}
 		

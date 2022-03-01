@@ -2,6 +2,8 @@ package com.endeavour.tap4food.app.request.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,14 +46,30 @@ public class PlaceOrderRequest {
 		
 		private boolean isPizza;
 		
-		private String appliedOfferName;
-		
-		private Long appliedOfferId;
+		@JsonProperty("isOffer")
+		private boolean isOffer;
 		
 		private boolean customizationFlag;
 		
 		private List<CartItemCustomization> customizations;
 		
+		private List<SelectedOfferItem> offerItems;
+	}
+	
+	@Data
+	public static class SelectedOfferItem {
+		
+		private Long itemId;
+		
+		private String itemName;
+		
+		private String combination;
+		
+		private Double actualPrice;
+		
+		private Double offerPrice;
+		
+		private long quantity;
 	}
 	
 	@Data

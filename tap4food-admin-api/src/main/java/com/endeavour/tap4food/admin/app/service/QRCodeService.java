@@ -56,7 +56,7 @@ public class QRCodeService {
 	@Autowired
 	private AdminRepository adminRepository;
 
-	public String generateQRCodeImage(Long foodCourtId)
+	public String generateQRCodeImage(Long foodCourtId, boolean isRestaurant)
 			throws WriterException, IOException {
 		
 		String qrCodePath = imagesPath + File.separator + "QRCodes";
@@ -66,8 +66,16 @@ public class QRCodeService {
 		File qrCodeDirPath = new File(qrCodePath);
 		
 		qrCodeDirPath.mkdirs();
+		
+		String embedUrl = foodCourtUrl + foodCourtId;
+		
+		if(isRestaurant) {
+			embedUrl = embedUrl + "&restaurant=true";
+		}else {
+			embedUrl = embedUrl + "&restaurant=false";
+		}
 
-		generateColoredQRCode(foodCourtUrl + foodCourtId, qrCodePath + File.separator + foodCourtId + ".png");
+		generateColoredQRCode(embedUrl, qrCodePath + File.separator + foodCourtId + ".png");
 		
 		adminRepository.updateFoodCourt(foodCourtId, imagesServerPath, true);
 		

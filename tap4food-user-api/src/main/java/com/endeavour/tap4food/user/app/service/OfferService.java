@@ -2,6 +2,7 @@ package com.endeavour.tap4food.user.app.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,8 +63,9 @@ public class OfferService {
 		offerListDetails.setActualPrice(offer.getTotalPrice());
 		offerListDetails.setOfferPrice(offer.getOfferPrice());
 		offerListDetails.setTitle(offer.getTitle());
+		offerListDetails.setOfferType(offer.getOfferType());
 		
-		Map<String, List<OfferFoodItem>> listItemsMap = new HashMap<String, List<OfferFoodItem>>();
+		Map<String, Map<String, List<OfferFoodItem>>> listItemsMap = new HashMap<String, Map<String, List<OfferFoodItem>>>();
 		
 		Map<String, String> listDescriptionsMap = new HashMap<String, String>();
 		
@@ -98,12 +100,23 @@ public class OfferService {
 			if(buttonTypesMap.containsKey(listName)) {
 				String existingButtonType = buttonTypesMap.get(listName);
 				if(Objects.isNull(existingButtonType)) {
-					buttonTypesMap.put(listName, "single");
+					buttonTypesMap.put(listName, "Single");
 				}	
 			}
 			
 			if(!listItemsMap.containsKey(listName)) {
-				listItemsMap.put(listName, new ArrayList<OfferFoodItem>());
+				
+				Map<String, List<OfferFoodItem>> itemMap = new LinkedHashMap<String, List<OfferFoodItem>>();
+				
+				itemMap.put(itemName, new ArrayList<OfferFoodItem>());
+				
+				listItemsMap.put(listName, itemMap);
+			}else {
+				Map<String, List<OfferFoodItem>> itemMap = listItemsMap.get(listName);
+				
+				if(!itemMap.containsKey(itemName)) {
+					itemMap.put(itemName, new ArrayList<OfferFoodItem>());
+				}
 			}
 			
 			OfferFoodItem offerFoodItem = new OfferFoodItem();
@@ -113,8 +126,9 @@ public class OfferService {
 			offerFoodItem.setFoodItemId(list.getFoodItemId());
 			offerFoodItem.setOfferPrice(list.getOfferPrice());
 			offerFoodItem.setCustomizationFlag(customizationFlag);
+			offerFoodItem.setQuantity(list.getQuantity());
 			
-			listItemsMap.get(listName).add(offerFoodItem);
+			listItemsMap.get(listName).get(itemName).add(offerFoodItem);
 		}
 		
 		offerListDetails.setOfferListsMap(listItemsMap);

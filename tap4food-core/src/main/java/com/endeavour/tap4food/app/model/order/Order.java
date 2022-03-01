@@ -1,11 +1,10 @@
 package com.endeavour.tap4food.app.model.order;
 
-import java.util.List;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 
@@ -39,4 +38,17 @@ public class Order {
 	private String orderedTime;
 	
 	private Integer totalItems;
+	
+	private String paymentStatus;
+	
+	private String paymentId;
+	
+	private String rzpOrderId;
+	
+	private String paymentSignature;
+	
+	private RazorPayOrder razorPayOrderDetails;
+	
+	@JsonProperty("isOtpVerified")
+	private boolean isOtpVerified;
 }

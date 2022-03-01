@@ -6,13 +6,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
 @Data
-@Document(collection = "pendingNotofications")
-public class MessageNotification {
+@Document(collection = "pendingCustomerNotofications")
+public class CustomerNotification {
 
 	@Id
 	private String notificationId;
 	
 	private Long foodStallId;
+	
+	private String stallName;
 	
 	private String customerPhoneNumber;
 	

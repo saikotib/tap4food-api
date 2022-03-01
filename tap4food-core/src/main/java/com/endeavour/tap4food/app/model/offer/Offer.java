@@ -41,4 +41,6 @@ public class Offer {
 	
 	@JsonIgnore
 	private String requestId;
+	
+	private String status;
 }

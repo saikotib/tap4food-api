@@ -16,6 +16,7 @@ import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
+import com.endeavour.tap4food.app.model.order.OrderedOfferItems;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,6 +76,14 @@ public class ManageOrderRepository {
 		return cartItemCustomizations;
 	}
 	
+	public List<OrderedOfferItems> getOrderOfferItems(Long cartItemId) {
+		Query query = new Query(Criteria.where("cartItemId").is(cartItemId));
+		
+		List<OrderedOfferItems> orderedOfferItems = mongoTemplate.find(query, OrderedOfferItems.class);
+		
+		return orderedOfferItems;
+	}
+	
 	public Order updateOrderStatus(Long orderId, String status) throws TFException {
 		Order order = this.getOrder(orderId);
 		
@@ -82,7 +91,11 @@ public class ManageOrderRepository {
 			throw new TFException("Invalid order Id");
 		}
 		
-		order.setStatus(status);
+		if(status.equalsIgnoreCase("OTP_VERIFIED")){
+			order.setOtpVerified(true);
+		}else {
+			order.setStatus(status);
+		}	
 		
 		mongoTemplate.save(order);
 		

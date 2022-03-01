@@ -13,6 +13,7 @@ import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemDirectOffer;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.request.dto.FoodItemEditRequest;
 import com.endeavour.tap4food.app.response.dto.FoodItemDataToEdit;
 import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.merchant.app.repository.FoodItemRepository;
@@ -41,6 +43,10 @@ public class FoodItemService {
 	public void addFoodItem(Long merchantId, Long fsId, FoodItem foodItem) throws TFException {
 		
 		foodItem.setFoodStallId(fsId);
+		
+//		if(!foodItem.isEgg()) {
+//			foodItem.setVeg(true);		
+//		}
 		
 		FoodStall foodStall = foodStallRepository.getFoodStallById(fsId);
 		
@@ -66,6 +72,71 @@ public class FoodItemService {
 		}
 	}
 	
+	public FoodItem updateFoodItem(FoodItem item) throws TFException {
+		
+		FoodItem existingFoodItem = foodItemRepository.getFoodItem(item.getFoodItemId());
+		
+		existingFoodItem.setCategory(item.getCategory());
+		existingFoodItem.setAddOn(item.isAddOn());
+		existingFoodItem.setCuisine(item.getCuisine());
+		existingFoodItem.setDescription(item.getDescription());
+		existingFoodItem.setEgg(item.isEgg());
+		existingFoodItem.setFoodItemName(item.getFoodItemName());
+		existingFoodItem.setSubCategory(item.getSubCategory());
+		existingFoodItem.setReccommended(item.isReccommended());
+		existingFoodItem.setVeg(item.isVeg());
+
+		foodItemRepository.updateFoodItem(existingFoodItem);
+		
+		return existingFoodItem;
+	}
+	
+	public FoodItem updateFoodItem(FoodItemEditRequest foodItemRequest) throws TFException {
+		
+		FoodItem existingFoodItem = foodItemRepository.getFoodItem(foodItemRequest.getFoodItemId());
+		
+		existingFoodItem.setAddOn(foodItemRequest.isAddOnFlag());
+		existingFoodItem.setCuisine(foodItemRequest.getCuisine());
+		existingFoodItem.setDescription(foodItemRequest.getDescription());
+		existingFoodItem.setEgg(foodItemRequest.isEggFlag());
+		existingFoodItem.setFoodItemName(foodItemRequest.getFoodItemName());
+		existingFoodItem.setSubCategory(foodItemRequest.getSubCategory());
+		existingFoodItem.setReccommended(foodItemRequest.isRecomendedFlag());
+		existingFoodItem.setVeg(foodItemRequest.isVegFlag());
+		existingFoodItem.setAvailableCustomisation(foodItemRequest.isCustomizationFlag());
+
+		foodItemRepository.updateFoodItem(existingFoodItem);
+		foodItemRepository.deleteFoodItemExistingDataBeforeEdit(foodItemRequest.getFoodItemId());
+		
+		if(existingFoodItem.isAvailableCustomisation()) {
+			
+			FoodItemCustomiseDetails custDetails = new FoodItemCustomiseDetails();
+			custDetails.setAddOnDescription(foodItemRequest.getAddOnDescription());
+			custDetails.setAddOnItemsIds(foodItemRequest.getAddOnItemsIds());
+			custDetails.setAddOnSelectButton(foodItemRequest.getAddOnSelectButton());
+			custDetails.setCustomiseFoodItems(foodItemRequest.getCustomiseFoodItems());
+			custDetails.setCustomiseTypes(foodItemRequest.getCustomizationTypes());
+			custDetails.setCustomiseFoodItemsDescriptions(foodItemRequest.getCustomiseFoodItemsDescriptions());
+			custDetails.setCustomiseFoodItemsSelectButtons(foodItemRequest.getCustomiseFoodItemsSelectButtons());
+			custDetails.setFoodItemDescription(foodItemRequest.getDescription());
+			custDetails.setFoodItemId(foodItemRequest.getFoodItemId());
+			custDetails.setFoodItemName(foodItemRequest.getFoodItemName());
+			custDetails.setFoodStallId(foodItemRequest.getFoodStallId());
+			custDetails.setCustomiseFoodItemsCustomerSpecifications(new ArrayList<String>());
+			custDetails.setAddOnCustomerSpecification("Optional");
+			
+			foodItemRepository.addFoodItemCustomiseDetails(foodItemRequest.getFoodItemId(), custDetails);
+			
+			if(Objects.nonNull(custDetails.getId())) {
+				System.out.println("Food item customisation details are saved successfully");
+			}
+			
+			this.addItemCustomizationPricing(existingFoodItem, custDetails);
+		}
+		
+		return existingFoodItem;
+	}
+	
 	public void addItemPricing(FoodItem foodItem) {
 		foodItemRepository.addItemPricing(foodItem);
 	}
@@ -79,6 +150,40 @@ public class FoodItemService {
 		}else {
 			
 			FoodItem foodItem = foodItemRepository.getFoodItemByReqId(requestId);
+			
+			List<Binary> existingPics = foodItem.getPic();
+			
+			if(Objects.isNull(existingPics)) {
+				existingPics = new ArrayList<Binary>();
+			}
+			
+			for(MultipartFile inputImage : images) {
+				try {
+					existingPics.add(new Binary(BsonBinarySubType.BINARY, inputImage.getBytes()));
+				} catch (IOException e) {
+					throw new TFException(e.getMessage());
+				}
+			}
+			
+			foodItem.setPic(existingPics);
+			
+			foodItemRepository.updateFoodItem(foodItem);
+			
+			System.out.println(">>>" + foodItem);
+			
+			return foodItem;
+		}
+	}
+	
+	public FoodItem uploadFoodItemPics(final Long fsId, final Long foodItemId, List<MultipartFile> images) throws TFException {
+
+		FoodStall foodStall = foodStallRepository.getFoodStallById(fsId);
+		
+		if(Objects.isNull(foodStall)) {
+			throw new TFException("Food stall is not found for the given food stall ID");
+		}else {
+			
+			FoodItem foodItem = foodItemRepository.getFoodItem(foodItemId);
 			
 			List<Binary> existingPics = foodItem.getPic();
 			
@@ -694,6 +799,30 @@ public class FoodItemService {
 			}
 			
 			foodItemDataToEdit.setCustomerSpecifications(customerSpecificationsMap);
+			
+			List<String> adOnItemIds = customizationDetails.getAddOnItemsIds();
+			
+			List<FoodItem> addOnItems = new ArrayList<FoodItem>();
+			
+			System.out.println("Addon ItemIds : " + adOnItemIds);
+			
+			if(!ObjectUtils.isEmpty(addOnItems)) {
+				for(String addOnItemId : adOnItemIds) {
+					addOnItems.add(foodItemRepository.getFoodItem(Long.parseLong(addOnItemId)));
+				}
+			}			
+			
+			foodItemDataToEdit.setAddOnItems(addOnItems);
+			foodItemDataToEdit.setAddOnDescription(customizationDetails.getAddOnDescription());
+		}else {
+			foodItemDataToEdit.setCustomiseTypes(new ArrayList<String>());	
+			foodItemDataToEdit.setAddOnItems(new ArrayList<FoodItem>());	
+			foodItemDataToEdit.setCustomizationEntries(new ArrayList<FoodItemDataToEdit.CustomizationEntry>());	
+			foodItemDataToEdit.setDescriptions(new HashMap<String, String>());	
+			foodItemDataToEdit.setButtons(new HashMap<String, String>());	
+			foodItemDataToEdit.setAddOnDescription("");		
+			foodItemDataToEdit.setCustomerSpecifications(new HashMap<String, String>());
+			
 		}
 		
 		foodItemDataToEdit.setFoodItemDetails(foodItem);

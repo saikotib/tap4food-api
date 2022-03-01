@@ -26,11 +26,21 @@ public class FoodItemDataToEdit {
 	
 	private List<FoodItem> addOnItems;
 	
+	private String addOnDescription;
+	
 	@Data
 	public static class CustomizationEntry{
 		
 		private String key;
 		
 		private List<String> values;
+	}
+	
+	@Data
+	public static class CustKeyVal {
+		
+		private String label;
+		
+		private String value;
 	}
 }
