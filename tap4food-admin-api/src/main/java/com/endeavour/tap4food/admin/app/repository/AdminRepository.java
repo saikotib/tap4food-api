@@ -245,6 +245,23 @@ public class AdminRepository {
 		}
 
 	}
+	
+	public FoodStall updateSelfQRCode(Long foodstallId, String selfQRCodeUrl) throws TFException {
+
+		FoodStall foodstall = this.getFoodStall(foodstallId);
+
+		if (Objects.nonNull(foodstall)) {
+
+			foodstall.setSelfQrCode(selfQRCodeUrl);
+
+			mongoTemplate.save(foodstall);
+
+			return foodstall;
+		} else {
+			throw new TFException("No Foodstall found with the given foodstall number");
+		}
+
+	}
 
 	public boolean createAdminPassword(final String userName, final String password) {
 

@@ -1,6 +1,5 @@
 package com.endeavour.tap4food.merchant.app.repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,7 +36,7 @@ public class ManageOrderRepository {
 	
 	public List<Order> getOrders(Long foodStallId) {
 		
-		Query query = new Query(Criteria.where("foodStallId").is(foodStallId));
+		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("paymentStatus").is("Completed")));
 		
 		List<Order> orders = mongoTemplate.find(query, Order.class);
 		

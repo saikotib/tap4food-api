@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.admin.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.admin.app.service.QRCodeService;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.google.zxing.WriterException;
 
 import io.swagger.annotations.Api;
@@ -27,11 +28,12 @@ public class QRCodeController {
 
 	@RequestMapping(value = "/generate", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> createQRCode(@RequestParam("foodcourtid") Long foodCourtId,
-			@RequestParam(value = "buType", required = false) String buType) throws WriterException, IOException{
+			@RequestParam(value = "buType", required = false) String buType,
+			@RequestParam(value = "stallId", required = false) Long stallId) throws WriterException, IOException, TFException{
 		
 		boolean isRestaurant = "Restaurant".equalsIgnoreCase(buType) ? true : false;
 		
-		String qrImage =  qrCodeService.generateQRCodeImage(foodCourtId, isRestaurant);
+		String qrImage =  qrCodeService.generateQRCodeImage(foodCourtId, isRestaurant, stallId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")

@@ -178,11 +178,11 @@ public class MerchantService {
 				otp.setNumberOfTries(otp.getNumberOfTries() + 1);
 			}
 			
-			commonRepository.saveOtp(otp);
-			
-			if(otp.getNumberOfTries() >= 3) {
-				throw new TFException("This phone number is temporarily blocked.");
-			}
+//			commonRepository.saveOtp(otp);
+//			
+//			if(otp.getNumberOfTries() >= 3) {
+//				throw new TFException("This phone number is temporarily blocked.");
+//			}
 			
 			otpMatch = false;
 		}
@@ -193,7 +193,7 @@ public class MerchantService {
 		
 		if (merchantOptionalObject.isPresent() && !otpMatch) {
 			merchant = merchantOptionalObject.get();
-			merchant.setStatus(AccountStatusEnum.LOCKED.name());
+//			merchant.setStatus(AccountStatusEnum.LOCKED.name());
 			merchant.setBlockedTimeMs(System.currentTimeMillis());
 			
 			merchant.setPhoneNumberVerified(true);

@@ -85,6 +85,7 @@ public class FoodItemService {
 		existingFoodItem.setSubCategory(item.getSubCategory());
 		existingFoodItem.setReccommended(item.isReccommended());
 		existingFoodItem.setVeg(item.isVeg());
+		existingFoodItem.setPrice(Double.valueOf(0));
 
 		foodItemRepository.updateFoodItem(existingFoodItem);
 		
@@ -106,7 +107,7 @@ public class FoodItemService {
 		existingFoodItem.setAvailableCustomisation(foodItemRequest.isCustomizationFlag());
 
 		foodItemRepository.updateFoodItem(existingFoodItem);
-		foodItemRepository.deleteFoodItemExistingDataBeforeEdit(foodItemRequest.getFoodItemId());
+		foodItemRepository.deleteFoodItemExistingDataBeforeEdit(foodItemRequest);
 		
 		if(existingFoodItem.isAvailableCustomisation()) {
 			
@@ -288,11 +289,15 @@ public class FoodItemService {
 		
 		for(FoodItemPricing pricing : pricingDetails) {
 			
-			System.out.println("Pricing : " + pricing.getFoodItemName());
+			System.out.println("Pricing : " + pricing);
 			
 			FoodItem item = null;
 			try {
 				item = foodItemRepository.getFoodItem(pricing.getFoodItemId());
+				
+				if(Objects.isNull(item)) {
+					continue;
+				}
 				
 				System.out.println("FoodItem : " + item.getFoodItemName() + " : comb : " + item.getCombination() + " : isDefaultCombination : " + item.isDefaultCombination());
 				

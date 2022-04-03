@@ -85,6 +85,15 @@ public class OfferService {
 		offerRepository.updateOffer(existingOffer);
 	}
 	
+	public void updateOfferImage(Long fsId, Long offerId, String url) {
+		
+		Offer existingOffer = offerRepository.getOffer(fsId, offerId);
+		
+		existingOffer.setOfferImage(url);
+		
+		offerRepository.updateOffer(existingOffer);
+	}
+	
 	public void deleteOffer(Long fsId, Long offerId) {
 		offerRepository.deleteOffer(fsId, offerId);
 	}
@@ -125,7 +134,9 @@ public class OfferService {
 		picLink = mediaServerUrl + picLink + "/" + fileName;
 		
 		log.info("OfferImage CDN Link :" + picLink);
-		
+				
+		this.updateOfferImage(fsId, offerId, picLink);
+				
 		return picLink;
 	}
 	

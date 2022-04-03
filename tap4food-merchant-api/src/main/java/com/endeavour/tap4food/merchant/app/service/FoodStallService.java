@@ -126,6 +126,7 @@ public class FoodStallService {
 			this.generateQRCodeForRestaurant(foodStall);
 		}else {
 			qrCodeUrl = mediaServerUrl + "/QRCodes/"+ foodStall.getFoodCourtId() +".png";
+			this.generateSelfQRCode(foodStall);
 		}
 		
 		return qrCodeUrl;
@@ -138,7 +139,30 @@ public class FoodStallService {
 			public void run() {
 				
 				String qrCodeGenerateUrl = apiBaseUrl + "/api/admin/qrcode/generate?foodcourtid="
-						+ foodStall.getFoodStallId() + "&buType=" + foodStall.getBuType();
+						+ foodStall.getFoodCourtId() + "&buType=" + foodStall.getBuType();
+				
+				RestTemplate restTemplate = new RestTemplate();
+				
+				HttpHeaders headers = new HttpHeaders();
+			      headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+			      HttpEntity <String> entity = new HttpEntity<String>(headers);
+				
+			      String response = restTemplate.exchange(qrCodeGenerateUrl, HttpMethod.POST, entity, String.class).getBody();
+			 
+			      System.out.println("QR Code Gen Response : " + response);
+			}
+		});
+		qrCodeGenExecutor.shutdown();
+	}
+	
+	private void generateSelfQRCode(FoodStall foodStall) {
+		ExecutorService qrCodeGenExecutor = Executors.newSingleThreadExecutor();
+		qrCodeGenExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				
+				String qrCodeGenerateUrl = apiBaseUrl + "/api/admin/qrcode/generate?foodcourtid="
+						+ foodStall.getFoodCourtId() + "&buType=" + foodStall.getBuType() + "&stallId=" + foodStall.getFoodStallId();
 				
 				RestTemplate restTemplate = new RestTemplate();
 				

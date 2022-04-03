@@ -32,7 +32,7 @@ public class NotificationRepository {
 	
 	public List<MessageNotification> getPendingNotifications(Long foodStallId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("notificationStatus").is("ACTIVE")));
+		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("notificationStatus").ne("READ")));
 		
 		List<MessageNotification> notifications = mongoTemplate.find(query, MessageNotification.class);
 		
@@ -41,7 +41,7 @@ public class NotificationRepository {
 	
 	public List<CustomerNotification> getPendingCustomerNotifications(String customerPhoneNumber){
 		
-		Query query = new Query(Criteria.where("customerPhoneNumber").is(customerPhoneNumber).andOperator(Criteria.where("notificationStatus").is("ACTIVE")));
+		Query query = new Query(Criteria.where("customerPhoneNumber").is(customerPhoneNumber).andOperator(Criteria.where("notificationStatus").ne("READ")));
 		
 		List<CustomerNotification> notifications = mongoTemplate.find(query, CustomerNotification.class);
 		
@@ -62,6 +62,20 @@ public class NotificationRepository {
 		mongoTemplate.save(notification);
 	}
 	
+	public void markNotificationAsFetched(String notificationId) {
+		Query query = new Query(Criteria.where("_id").is(notificationId));
+		
+		System.out.println("In Repository...");
+		
+		MessageNotification notification = mongoTemplate.findOne(query, MessageNotification.class);
+		
+		System.out.println("In Repository..." + notification);
+		
+		notification.setNotificationStatus("FETCHED");
+		
+		mongoTemplate.save(notification);
+	}
+	
 	public void markCustomerNotificationAsRead(String notificationId) {
 		Query query = new Query(Criteria.where("_id").is(notificationId));
 		
@@ -76,5 +90,18 @@ public class NotificationRepository {
 		mongoTemplate.save(notification);
 	}
 	
+	public void markCustomerNotificationAsFetched(String notificationId) {
+		Query query = new Query(Criteria.where("_id").is(notificationId));
+		
+		System.out.println("In Repository...");
+		
+		CustomerNotification notification = mongoTemplate.findOne(query, CustomerNotification.class);
+		
+		System.out.println("In Repository..." + notification);
+		
+		notification.setNotificationStatus("FETCHED");
+		
+		mongoTemplate.save(notification);
+	}
 	
 }

@@ -21,7 +21,7 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.model.menu.CustFoodItem;
-import com.endeavour.tap4food.app.model.offer.FoodItemCustomizationDetails;
+import com.endeavour.tap4food.app.request.dto.FoodItemEditRequest;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
@@ -367,13 +367,39 @@ public class FoodItemRepository {
 		mongoTemplate.save(foodItemPricing);
 	}
 	
-	public void deleteFoodItemExistingDataBeforeEdit(Long foodItemId) {
+	public void deleteFoodItemExistingDataBeforeEdit(FoodItemEditRequest foodItem) {
+		
+		Long foodItemId = foodItem.getFoodItemId();
 		
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
 		
 		mongoTemplate.remove(query, FoodItemCustomizationPricing.class);
 		
 		mongoTemplate.remove(query, FoodItemCustomiseDetails.class);
+				
+		query = new Query(Criteria.where("baseItem").is(foodItemId));
+		
+		List<FoodItem> childFoodItems = mongoTemplate.find(query, FoodItem.class);
+		
+		for(FoodItem childItem : childFoodItems) {
+			query = new Query(Criteria.where("foodItemId").is(childItem.getFoodItemId()));
+			mongoTemplate.remove(query, FoodItemPricing.class);
+		}
+		
+		query = new Query(Criteria.where("foodItemId").is(foodItemId));
+		
+		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
+		itemPricingObject.setPrice(Double.valueOf(0));
+		
+		String notes = "";
+		
+		itemPricingObject.setNotes(notes);
+		itemPricingObject.setFoodItemName(notes);
+		itemPricingObject.setFoodItemName(foodItem.getFoodItemName());
+		itemPricingObject.setCategory(foodItem.getCategory());
+		itemPricingObject.setSubCategory(foodItem.getSubCategory());
+		
+		mongoTemplate.save(itemPricingObject);
 		
 		query = new Query(Criteria.where("baseItem").is(foodItemId));
 		

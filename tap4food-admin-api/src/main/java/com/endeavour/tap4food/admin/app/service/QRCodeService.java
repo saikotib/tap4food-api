@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
@@ -21,6 +22,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.admin.app.repository.AdminRepository;
+import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.EncodeHintType;
@@ -56,12 +58,17 @@ public class QRCodeService {
 	@Autowired
 	private AdminRepository adminRepository;
 
-	public String generateQRCodeImage(Long foodCourtId, boolean isRestaurant)
-			throws WriterException, IOException {
+	public String generateQRCodeImage(Long foodCourtId, boolean isRestaurant, Long stallId)
+			throws WriterException, IOException, TFException {
 		
 		String qrCodePath = imagesPath + File.separator + "QRCodes";
-		
+			
 		String imagesServerPath = imagesServer + "/QRCodes/" + foodCourtId + ".png";
+		
+		if(Objects.nonNull(stallId)) {
+			qrCodePath = imagesPath + File.separator + "QRCodes" + File.separator + "self";
+			imagesServerPath = imagesServer + "/QRCodes/self/" + foodCourtId + ".png";
+		}
 		
 		File qrCodeDirPath = new File(qrCodePath);
 		
@@ -74,10 +81,18 @@ public class QRCodeService {
 		}else {
 			embedUrl = embedUrl + "&restaurant=false";
 		}
+		
+		if(Objects.nonNull(stallId)) {
+			embedUrl = embedUrl + "&stallId=" + stallId;
+		}
 
 		generateColoredQRCode(embedUrl, qrCodePath + File.separator + foodCourtId + ".png");
 		
-		adminRepository.updateFoodCourt(foodCourtId, imagesServerPath, true);
+		if(Objects.isNull(stallId)) {
+			adminRepository.updateFoodCourt(foodCourtId, imagesServerPath, true);
+		}else {
+			adminRepository.updateSelfQRCode(stallId, imagesServerPath);
+		}		
 		
 		return imagesServerPath;
 	}

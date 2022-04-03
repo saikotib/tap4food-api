@@ -334,20 +334,21 @@ public class ManageOrderService {
 		notification.setNotificationType("ORDER");
 		notification.setNotificationObjectId(orderId);
 		
-		if(status.equalsIgnoreCase("READY")) {
-			notification.setMessage("Your order " + order.getOrderId() + " from " + stall.getFoodStallName() + " is ready");
-		}else if(status.equalsIgnoreCase("START_PREPARING")) {
-			notification.setMessage("Your order " + order.getOrderId() + " is accepted by " + stall.getFoodStallName());
-		}else if(status.equalsIgnoreCase("DELIVERED")) {
-			notification.setMessage("Your order " + order.getOrderId() + " is delovered by " + stall.getFoodStallName());
-		}else if(status.equalsIgnoreCase("CANCELLED")) {
-			notification.setMessage("Your order " + order.getOrderId() + " is cancelled by " + stall.getFoodStallName());
-		}
-		
 		notification.setCustomerPhoneNumber(customer.getPhoneNumber());
 		
-		notificationService.addCustomerNotification(notification);
-				
+		if(status.equalsIgnoreCase("READY")) {
+			notification.setMessage("Your order " + order.getOrderId() + " from " + stall.getFoodStallName() + " is ready");
+			notificationService.addCustomerNotification(notification);
+		}else if(status.equalsIgnoreCase("START_PREPARING")) {
+			notification.setMessage("Your order " + order.getOrderId() + " is accepted by " + stall.getFoodStallName());
+			notificationService.addCustomerNotification(notification);
+		}else if(status.equalsIgnoreCase("DELIVERED")) {
+			notification.setMessage("Your order " + order.getOrderId() + " is delivered by " + stall.getFoodStallName());
+			notificationService.addCustomerNotification(notification);
+		}else if(status.equalsIgnoreCase("CANCELLED")) {
+			notification.setMessage("Your order " + order.getOrderId() + " is cancelled by " + stall.getFoodStallName());
+			notificationService.addCustomerNotification(notification);
+		}
 	}
 	
 	public List<MessageNotification> getNotifications(Long foodStallId){

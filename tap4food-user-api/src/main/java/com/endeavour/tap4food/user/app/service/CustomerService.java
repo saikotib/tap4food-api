@@ -1,6 +1,7 @@
 package com.endeavour.tap4food.user.app.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -523,18 +524,25 @@ public class CustomerService {
 	public List<FoodItem> getFoodItemSuggesions(Long foodItemId){
 		
 		FoodItemCustomiseDetails customiseDetails = userRepository.getFoodItemCustomDetails(foodItemId);
-
+		
+		
+		if(Objects.isNull(customiseDetails)) {
+			return Collections.emptyList();
+		}
 		List<String> suggestionItemIds = customiseDetails.getAddOnItemsIds();
 		
 //		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
 		
 		List<FoodItem> foodItems = new ArrayList<FoodItem>();
 		
-		for(String itemId : suggestionItemIds) {
-			FoodItem item = userRepository.getFoodItem(Long.valueOf(itemId));
-			
-			foodItems.add(item);
+		if(Objects.nonNull(suggestionItemIds)) {
+			for(String itemId : suggestionItemIds) {
+				FoodItem item = userRepository.getFoodItem(Long.valueOf(itemId));
+				
+				foodItems.add(item);
+			}
 		}
+		
 		
 		return foodItems;
 	}

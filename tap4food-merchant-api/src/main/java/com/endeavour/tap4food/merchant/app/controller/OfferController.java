@@ -80,7 +80,7 @@ public class OfferController {
 	@RequestMapping(value = "/upload-offer-image", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadOfferImage(@RequestParam("fsId") Long fsId, 
 			@RequestParam("offerId") Long offerId,
-			@RequestParam("offer-image") MultipartFile offerImage) throws TFException, IOException{
+			@RequestParam("pic") MultipartFile offerImage) throws TFException, IOException{
 
 		String cdnLink = offerService.uploadOfferImage(fsId, offerId, offerImage);
 		

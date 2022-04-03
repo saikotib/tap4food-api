@@ -67,6 +67,8 @@ public class FoodStall {
 	
 	private String qrCode;
 	
+	private String selfQrCode;   // This is the self QR code for the restaurant/foodstall in theater or shopping mall.
+	
 	private String status;
 	
 	private String createdDate;

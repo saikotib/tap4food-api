@@ -27,7 +27,13 @@ public class NotificationService {
 
 	public List<MessageNotification> getPendingNotifications(Long foodStallId) {
 
-		return notificationRepository.getPendingNotifications(foodStallId);
+		List<MessageNotification> notifications = notificationRepository.getPendingNotifications(foodStallId);
+		
+		for(MessageNotification notif : notifications) {
+			notificationRepository.markNotificationAsFetched(notif.getNotificationId());
+		}
+		
+		return notifications;
 	}
 
 	public void markNotificationAsRead(String notificationId) {
@@ -41,6 +47,12 @@ public class NotificationService {
 	
 	public List<CustomerNotification> getPendingCustomerNotifications(String phoneNumber) {
 
-		return notificationRepository.getPendingCustomerNotifications(phoneNumber);
+		List<CustomerNotification> notifications = notificationRepository.getPendingCustomerNotifications(phoneNumber); 
+		
+		for(CustomerNotification notif : notifications) {
+			notificationRepository.markCustomerNotificationAsFetched(notif.getNotificationId());
+		}
+		
+		return notifications;
 	}
 }
