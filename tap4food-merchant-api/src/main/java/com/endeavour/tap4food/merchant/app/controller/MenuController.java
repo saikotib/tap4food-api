@@ -278,6 +278,21 @@ public class MenuController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/change-food-item-visibility", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> changeFoodItemVisibility(@RequestParam("foodItemId") Long foodItemId,
+			@RequestParam("status") String status) throws TFException{
+		
+		System.out.println("Changing Food Item visibilty: " + foodItemId);
+		foodItemService.changeFoodItemVisibility(foodItemId, status);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data("Food Item " + foodItemId + " is updated with new status." + status)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/get-food-item-for-edit", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodItemForEdit(@RequestParam("foodItemId") Long foodItemId) throws TFException{
 		

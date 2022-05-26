@@ -37,6 +37,8 @@ public class Order {
 	
 	private String orderedTime;
 	
+	private String timeZone;
+	
 	private Integer totalItems;
 	
 	private String paymentStatus;

@@ -304,6 +304,10 @@ public class FoodStallService {
 	public void removeCustomizeType(Long fsId, CustomizeType customizeType) throws TFException {
 		foodStallRepository.removeCustomizeType(fsId, customizeType);
 	}
+	
+	public void removeCustomizeFoodItem(String custFoodItemId) throws TFException {
+		foodStallRepository.deleteCustomiseFoodItem(custFoodItemId);
+	}
 
 	public CustomizeType toggleCustomizeType(Long fsId,  CustomizeType customizeType) throws TFException {
 		return foodStallRepository.updateCustomizeType(fsId, customizeType, true);

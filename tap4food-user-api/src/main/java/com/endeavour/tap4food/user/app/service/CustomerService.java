@@ -17,18 +17,21 @@ import org.springframework.util.ObjectUtils;
 import com.endeavour.tap4food.app.enums.UserStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.ContactUs;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Otp;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
 import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
-import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.app.response.dto.ItemPatternPrice;
 import com.endeavour.tap4food.app.service.CommonService;
+import com.endeavour.tap4food.app.util.DateUtil;
 import com.endeavour.tap4food.user.app.payload.request.ProfileUpdateRequest;
 import com.endeavour.tap4food.user.app.repository.UserRepository;
 import com.endeavour.tap4food.user.app.security.model.User;
@@ -165,10 +168,49 @@ public class CustomerService {
 		
 		List<FoodStall> foodstalls = userRepository.getFoodStalls(foodCourtId);
 		
-		foodstalls = foodstalls
-				.stream()
-				.filter(stall -> stall.isOpened())
-				.collect(Collectors.toList());
+		List<FoodStall> responseFoodstalls = new ArrayList<FoodStall>();
+		
+		String today = DateUtil.todayName();
+		
+		for(FoodStall stall : foodstalls) {
+			FoodStallTimings timings = userRepository.getFoodStallTimings(stall.getFoodStallId());
+			
+			if(ObjectUtils.isEmpty(timings.getDays())) {
+				stall.setOpened(false);
+			}else {
+				for(WeekDay day : timings.getDays()) {
+					
+					if(day.getWeekDayName().equalsIgnoreCase(today)) {
+						
+						if(Objects.nonNull(day.getOpened24Hours()) && day.getOpened24Hours()) {
+							stall.setOpened(true);
+						}else if(Objects.nonNull(day.getClosed()) && day.getClosed()) {
+							stall.setOpened(false);
+						}else {
+							
+							
+							String openTime = day.getOpenTime();
+							String closeTime = day.getCloseTime();
+							
+							boolean stallOpenFlag = DateUtil.checkIfStallOpenedNow(openTime, closeTime);
+							
+							stall.setOpened(stallOpenFlag);
+							
+						}
+					
+						break;
+					}			
+					
+				}
+			}		
+			
+			responseFoodstalls.add(stall);
+		}
+		
+//		foodstalls = foodstalls
+//				.stream()
+//				.filter(stall -> stall.isOpened())
+//				.collect(Collectors.toList());
 		
 		return foodstalls;
 	}
@@ -204,13 +246,24 @@ public class CustomerService {
 		
 		for(FoodItem foodItem : foodItems) {
 			
-			String category = foodItem.getCategory();
-			
-			if(!foodItemsMap.containsKey(category)) {
-				foodItemsMap.put(category, new ArrayList<FoodItem>());
+			if(foodItem.getPrice() == 0) {
+				continue;
 			}
 			
-			List<FoodItem> categorisedFoodItemsList = foodItemsMap.get(category);
+			if("INACTIVE".equalsIgnoreCase(foodItem.getStatus())) {
+				continue;
+			}
+			
+			String category = foodItem.getCategory();
+			String subcategory = foodItem.getSubCategory();
+			
+			String categoryAndSubCategory = category + " - " + subcategory;
+			
+			if(!foodItemsMap.containsKey(category)) {
+				foodItemsMap.put(categoryAndSubCategory, new ArrayList<FoodItem>());
+			}
+			
+			List<FoodItem> categorisedFoodItemsList = foodItemsMap.get(categoryAndSubCategory);
 			categorisedFoodItemsList.add(foodItem);
 			if(foodItem.isReccommended()) {
 				recomendedFoodItems.add(foodItem);
@@ -226,7 +279,7 @@ public class CustomerService {
 		
 		foodItemsMap.put("veg", vegItems);
 		foodItemsMap.put("egg", eggItems);
-		foodItemsMap.put("recommended", recomendedFoodItems);
+		foodItemsMap.put("Recommended", recomendedFoodItems);
 		
 		return foodItemsMap;
 	}
@@ -294,6 +347,8 @@ public class CustomerService {
 		customizationResponse.setFoodItemId(foodItemId);
 		
 		FoodItemCustomiseDetails foodItemCustomiseDetails = userRepository.getFoodItemCustomDetails(foodItemId);
+		
+		List<String> customiseTypes = foodItemCustomiseDetails.getCustomiseTypes();
 
 		Map<String, String> descriptionsMap = this.getCustomiseTypeDescriptions(foodItemCustomiseDetails.getCustomiseFoodItemsDescriptions());
 		Map<String, List<String>> customizeTypeWiseFoodItemsMap = this.getCustomizeTypeWiseFoodItems(foodItemCustomiseDetails.getCustomiseFoodItems());
@@ -319,15 +374,16 @@ public class CustomerService {
 		List<String> topKeyList = new ArrayList<String>();
 		
 		int order = 1;
-		for(Map.Entry<String, String> entry : descriptionsMap.entrySet()) {
+//		for(Map.Entry<String, String> entry : descriptionsMap.entrySet()) {
+		for(String custTypeKey : customiseTypes) {
 			CustomizationResponse.Option option = new CustomizationResponse.Option();
 			
 			option.setOrder(order);
-			option.setKey(entry.getKey());
-			option.setLabel(entry.getValue());
-			option.setOptionItems(customizeTypeWiseFoodItemsMap.get(entry.getKey()));
+			option.setKey(custTypeKey);
+			option.setLabel(descriptionsMap.get(custTypeKey));
+			option.setOptionItems(customizeTypeWiseFoodItemsMap.get(custTypeKey));
 			
-			String buttonType = selectButtonsMap.get(entry.getKey());
+			String buttonType = selectButtonsMap.get(custTypeKey);
 			
 			if(buttonType.equalsIgnoreCase("single")) {
 				option.setMulti(false);
@@ -340,7 +396,7 @@ public class CustomerService {
 				List<ItemPatternPrice> itemPatternPrices = new ArrayList<ItemPatternPrice>();
 				
 				if(!isPizza) {
-					for(String combination : customizeTypeWiseFoodItemsMap.get(entry.getKey())) {
+					for(String combination : customizeTypeWiseFoodItemsMap.get(custTypeKey)) {
 						
 						System.out.println("combinationItemsMap > " + combinationItemsMap.keySet());
 						System.out.println("combination > " + combination);
@@ -356,14 +412,14 @@ public class CustomerService {
 				
 				option.setPrices(itemPatternPrices);
 				
-				topKey = entry.getKey();
+				topKey = custTypeKey;
 				topKeyList = customizeTypeWiseFoodItemsMap.get(topKey);
 				
 			}else {
 				List<ItemPatternPrice> itemPatternPrices = new ArrayList<ItemPatternPrice>();
 				for(String topKeyItem : topKeyList) {
 					
-					List<String> custItems = customizeTypeWiseFoodItemsMap.get(entry.getKey());
+					List<String> custItems = customizeTypeWiseFoodItemsMap.get(custTypeKey);
 					
 					for(String customizeTypeWiseFoodItem : custItems) {
 
@@ -545,5 +601,10 @@ public class CustomerService {
 		
 		
 		return foodItems;
+	}
+	
+	public void submitContactUsForm(ContactUs form) {
+		
+		userRepository.submitContactUsForm(form);
 	}
 }

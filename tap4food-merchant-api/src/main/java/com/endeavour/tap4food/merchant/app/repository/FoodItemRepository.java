@@ -310,13 +310,13 @@ public class FoodItemRepository {
 		return foodItemCustomiseDetails;
 	}
 	
-	public void addItemPricing(FoodItem foodItem) {
+	public void addItemPricing(FoodItem foodItem, Double price) {
 		
 		FoodItemPricing itemPricingInfo = new FoodItemPricing();
 		itemPricingInfo.setCategory(foodItem.getCategory());
 		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
 		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
-		itemPricingInfo.setPrice(Double.valueOf(0));
+		itemPricingInfo.setPrice(price);
 //		itemPricingInfo.setCombinationPrice(Double.valueOf(0));
 		
 		if(StringUtils.hasText(foodItem.getCombination())) {
@@ -389,6 +389,7 @@ public class FoodItemRepository {
 		query = new Query(Criteria.where("foodItemId").is(foodItemId));
 		
 		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
+		
 		itemPricingObject.setPrice(Double.valueOf(0));
 		
 		String notes = "";
@@ -405,4 +406,5 @@ public class FoodItemRepository {
 		
 		mongoTemplate.remove(query, FoodItem.class);
 	}
+	
 }

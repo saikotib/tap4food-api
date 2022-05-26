@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ObjectUtils;
 
+import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.offer.FoodItemsList;
 import com.endeavour.tap4food.app.model.offer.Offer;
 
@@ -42,4 +44,5 @@ public class CartRepository {
 		
 		return offer;
 	}
+	
 }

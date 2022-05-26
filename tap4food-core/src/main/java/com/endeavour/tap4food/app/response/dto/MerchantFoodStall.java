@@ -41,6 +41,8 @@ public class MerchantFoodStall {
 	
 	private String buName;
 	
+	private Long buId;
+	
 	private String fcName;
 	
 	private String fcQRCode;

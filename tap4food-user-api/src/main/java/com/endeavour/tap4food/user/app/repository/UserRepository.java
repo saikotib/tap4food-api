@@ -11,9 +11,12 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import com.endeavour.tap4food.app.model.BusinessUnit;
+import com.endeavour.tap4food.app.model.ContactUs;
 import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Otp;
+import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
@@ -121,6 +124,20 @@ public class UserRepository {
 		return foodStall;
 	}
 	
+	public FoodStallTimings getFoodStallTimings(Long fsId) {
+		FoodStallTimings timings = new FoodStallTimings();
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		List<WeekDay> weekdays = mongoTemplate.find(query, WeekDay.class);
+		
+		timings.setFoodStallId(fsId);
+		timings.setDays(weekdays);
+		
+		return timings;
+	}	
+	
+	
 	public FoodCourt getFoodCourt(Long fcId){
 		
 		Query query = new Query(Criteria.where("foodCourtId").is(fcId));
@@ -177,5 +194,9 @@ public class UserRepository {
 		List<FoodItemsList> foodItemLists = mongoTemplate.find(query, FoodItemsList.class);
 		
 		return foodItemLists;
+	}
+	
+	public void submitContactUsForm(ContactUs form) {
+		mongoTemplate.save(form);
 	}
 }

@@ -9,9 +9,11 @@ import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
+import com.endeavour.tap4food.app.model.notifications.Notification;
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
@@ -42,6 +44,9 @@ public class OrderService {
 	@Autowired
 	private NotificationService notificationService;
 	
+	@Autowired
+	private WebSocketNotificationService webSocketNotificationService;
+	
 	public Order placeOrder(PlaceOrderRequest orderRequest) {
 		
 		log.info("Input order request : {}", orderRequest);
@@ -53,8 +58,14 @@ public class OrderService {
 		order.setId(newOrderSeq);
 		order.setOrderId(newOrderSeq + 100000);
 		order.setGrandTotal(orderRequest.getGrandTotal());
-		order.setOrderedTime(DateUtil.getPresentDateAndTime());
+		order.setOrderedTime(DateUtil.getPresentDateAndTimeInIST());
+		order.setTimeZone("IST");
 		order.setSelfPickup(orderRequest.isSelfPickup());
+		if(StringUtils.hasText(order.getScreenNumber())) {
+			order.setSelfPickup(false);
+		}else {
+			order.setSelfPickup(true);
+		}
 		order.setFoodStallId(orderRequest.getFoodStallId());
 		
 		if(orderRequest.isTheatre()) {
@@ -152,9 +163,7 @@ public class OrderService {
 		customer.setId(newOrderSeq);
 		
 		orderRepository.saveCustomer(customer);
-		
-		this.addToNotifications(orderRequest.getCustomer().getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
-		
+				
 		try {
 			RazorPayOrder rzpOrder = paymentService.createRPOrder(customer.getPhoneNumber(), order.getGrandTotal());
 			
@@ -179,11 +188,12 @@ public class OrderService {
 		notification.setNotificationStatus("ACTIVE");
 		notification.setNotificationType("NEW_ORDER");
 		notification.setNotificationObjectId(orderId);
+		notification.setNotifTime(System.currentTimeMillis());
 		
 		notificationService.addNotification(notification);
 	}
 	
-	public List<OrderDto> getOrders(String phoneNumber, Long fsId){
+	public List<OrderDto> getOrders(String phoneNumber){
 		
 		List<OrderDto> orders = new ArrayList<OrderDto>();
 		
@@ -202,7 +212,11 @@ public class OrderService {
 		
 		for(Order order : existingOrders) {
 			
-			if(!order.getFoodStallId().equals(fsId)) {
+//			if(!order.getFoodStallId().equals(fsId)) {
+//				continue;
+//			}
+			
+			if(!order.getPaymentStatus().equalsIgnoreCase("Completed")) {
 				continue;
 			}
 			
@@ -216,8 +230,15 @@ public class OrderService {
 			orderDto.setTotalAmount(order.getGrandTotal());
 			orderDto.setTotalItems(order.getTotalItems());
 			orderDto.setSelfPickup(order.isSelfPickup());
+			orderDto.setOrderedTime(order.getOrderedTime());
 			
-			FoodStall foodStall = orderRepository.getFoodStall(fsId);
+			System.out.println("order.getFoodStallId() : " + order.getFoodStallId());
+			
+			FoodStall foodStall = orderRepository.getFoodStall(order.getFoodStallId());
+			
+			if(Objects.isNull(foodStall)) {
+				continue;
+			}
 			
 			orderDto.setFoodStallName(foodStall.getFoodStallName());
 			
@@ -226,6 +247,10 @@ public class OrderService {
 			orderDto.setCustomerName(customer.getFullName());
 			orderDto.setCustomerPhoneNumber(customer.getPhoneNumber());
 
+			if(!StringUtils.hasText(order.getSeatNumber())) {
+				order.setSelfPickup(true);
+			}
+			
 			if(!order.isSelfPickup()) {
 				orderDto.setSeatNumber(order.getSeatNumber());
 				if(order.isTheatre()) {
@@ -329,7 +354,20 @@ public class OrderService {
 		
 		orderRepository.updateOrder(order);
 		
-		this.directTransferToMerchant(order.getOrderId(), order.getGrandTotal());
+//		this.directTransferToMerchant(order.getOrderId(), order.getGrandTotal());
+		
+		if(request.getPaymentStatus().equals("Completed")) {
+			
+			Notification notification = new Notification();
+			notification.setMessage("New order is placed");
+			notification.setSender(request.getPhoneNumber());
+			notification.setReciever(String.valueOf(order.getFoodStallId()));
+			notification.setStatus("NEW");
+			
+			webSocketNotificationService.sendNotificationToMerchant(notification);
+			
+			this.addToNotifications(request.getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
+		}
 		
 		return order;
 	}

@@ -41,6 +41,7 @@ import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.model.admin.TermsNConditions;
+import com.endeavour.tap4food.app.request.dto.MerchantSearchRequest;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.app.util.AvatarImage;
@@ -221,7 +222,7 @@ public class AdminController {
 		return response;
 
 	}
-
+	
 	@RequestMapping(value = "/bunit/{bu-id}/upload-logo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> uploadLogo(@Valid @PathVariable("bu-id") Long buId,
 			@RequestParam(value = "logo", required = true) MultipartFile logo) {

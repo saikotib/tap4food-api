@@ -14,4 +14,6 @@ public class UpdatePaymentDetailsRequest {
 	private String paymentStatus;
 	
 	private String rzpOrderId;
+	
+	private String phoneNumber;
 }

@@ -1,5 +1,5 @@
 
-package com.endeavour.tap4food.merchant.app.config;
+package com.endeavour.tap4food.user.app.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer{
 
 	@Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/wsMerchant").setAllowedOriginPatterns(guiUrl).withSockJS();
+        registry.addEndpoint("/wsUser").setAllowedOriginPatterns(guiUrl).withSockJS();
     }
 
     @Override

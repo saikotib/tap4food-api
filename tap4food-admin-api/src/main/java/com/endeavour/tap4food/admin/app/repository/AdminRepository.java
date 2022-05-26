@@ -229,6 +229,20 @@ public class AdminRepository {
 
 	}
 	
+	public void updateMerchantStatus(Long uniqueNumber, String status) throws TFException {
+		
+		Query query = Query.query(Criteria.where("uniqueNumber").is(uniqueNumber));
+		
+		Merchant merchant = mongoTemplate.findOne(query, Merchant.class);
+		
+		merchant.setStatus(status);
+
+		mongoTemplate.save(merchant);
+		
+		System.out.println(merchant);
+
+	}
+	
 	public FoodStall updateFoodstallStatus(Long uniqueNumber, Long foodstallId, String status) throws TFException {
 
 		FoodStall foodstall = this.getFoodStall(foodstallId);
@@ -344,6 +358,14 @@ public class AdminRepository {
 		
 		System.out.println(res);
 		return res;
+	}
+	
+	public List<BusinessUnit> getBusinessUnits(String country, String state, String city){
+		Query query = new Query(Criteria.where("country").is(country).andOperator(Criteria.where("state").is(state), Criteria.where("city").is(city)));
+		
+		List<BusinessUnit> buList = mongoTemplate.find(query, BusinessUnit.class);
+		
+		return buList;
 	}
 
 	public Optional<BusinessUnit> findBusinessUnit(Long buId) {

@@ -47,4 +47,6 @@ public class FoodItemResponse {
 	
 	@JsonProperty("hasCustomizations")
 	private boolean hasCustomizations;
+	
+	private String status;
 }

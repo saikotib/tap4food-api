@@ -74,9 +74,9 @@ public class OrderController {
 	}
 	
 	@RequestMapping(value = "/getOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> placeOrder(@RequestParam("phoneNumber") String phoneNunber, @RequestParam("fsId") Long fsId){
+	public ResponseEntity<ResponseHolder> getOrders(@RequestParam("phoneNumber") String phoneNunber){
 		
-		List<OrderDto> orders = orderService.getOrders(phoneNunber, fsId);
+		List<OrderDto> orders = orderService.getOrders(phoneNunber);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("OK")

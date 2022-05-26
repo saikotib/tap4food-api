@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.app.model.notifications.CustomerNotification;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
+import com.endeavour.tap4food.app.model.notifications.MessageNotificationsResponse;
 import com.endeavour.tap4food.app.repository.NotificationRepository;
 
 @Service
@@ -25,15 +26,24 @@ public class NotificationService {
 		notificationRepository.saveCustomerNotification(notification);
 	}
 
-	public List<MessageNotification> getPendingNotifications(Long foodStallId) {
+	public MessageNotificationsResponse getPendingNotifications(Long foodStallId) {
 
+		MessageNotificationsResponse response = new MessageNotificationsResponse();
+		
 		List<MessageNotification> notifications = notificationRepository.getPendingNotifications(foodStallId);
 		
+		long activeAcount = 0;
 		for(MessageNotification notif : notifications) {
+			if(notif.getNotificationStatus().equalsIgnoreCase("ACTIVE")) {
+				activeAcount ++;
+			}
 			notificationRepository.markNotificationAsFetched(notif.getNotificationId());
 		}
 		
-		return notifications;
+		response.setNotifications(notifications);
+		response.setActiveCount(activeAcount);
+		
+		return response;
 	}
 
 	public void markNotificationAsRead(String notificationId) {

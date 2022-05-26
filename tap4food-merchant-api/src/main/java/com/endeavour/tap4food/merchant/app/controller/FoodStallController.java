@@ -32,8 +32,10 @@ import com.endeavour.tap4food.app.model.menu.Cuisine;
 import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.model.menu.CustomizeType;
 import com.endeavour.tap4food.app.model.menu.SubCategory;
+import com.endeavour.tap4food.app.response.dto.MerchantDashboardResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.util.ImageConstants;
+import com.endeavour.tap4food.merchant.app.service.DashboardService;
 import com.endeavour.tap4food.merchant.app.service.FoodStallService;
 
 import io.swagger.annotations.Api;
@@ -45,6 +47,9 @@ public class FoodStallController {
 
 	@Autowired
 	private FoodStallService foodStallService;
+	
+	@Autowired
+	private DashboardService dashboardService;
 
 	@RequestMapping(value = "/create", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> createFoodStall(@RequestParam("merchant-number") Long merchantId,
@@ -326,6 +331,17 @@ public class FoodStallController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(path = "/{fs-id}/remove-customize-fooditem", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> removeCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, @RequestParam("custFoodItemId") String custFoodItemId) throws TFException {
+
+		foodStallService.removeCustomizeFoodItem(custFoodItemId);
+
+		ResponseHolder response = ResponseHolder.builder().status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).data("Item is deleted").build();
+
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(path = "/{fs-id}/add-customize-food-item", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> addCustomizeFoodItem(@PathVariable("fs-id") Long foodStallId, String customiseTypeName, @Valid @RequestBody CustFoodItem customizeFoodItem) throws TFException {
 
@@ -581,6 +597,22 @@ public class FoodStallController {
 		ResponseHolder responseHolder = ResponseHolder.builder()
 				.status("OK")
 				.data(subscriptionDetails)
+				.build();
+		
+		ResponseEntity<ResponseHolder> response = new ResponseEntity<ResponseHolder>(responseHolder, HttpStatus.OK);
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/get-dashboard", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getDashboardData(@RequestParam("foodstallId") Long fsId) throws TFException {
+
+
+		MerchantDashboardResponse dashboardResponse = dashboardService.getDashboardData(fsId);
+		
+		ResponseHolder responseHolder = ResponseHolder.builder()
+				.status("OK")
+				.data(dashboardResponse)
 				.build();
 		
 		ResponseEntity<ResponseHolder> response = new ResponseEntity<ResponseHolder>(responseHolder, HttpStatus.OK);

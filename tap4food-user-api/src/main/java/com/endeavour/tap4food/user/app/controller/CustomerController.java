@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.ContactUs;
 import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
@@ -199,6 +200,19 @@ public class CustomerController {
 		ResponseHolder response = ResponseHolder.builder()
 				.status("OK")
 				.data(offer)
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@RequestMapping(value = "/submitContactUsForm", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> submitContactUsForm(@RequestBody ContactUs form){
+		
+		customerService.submitContactUsForm(form);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("OK")
+				.data("Details are submitted")
 				.build();
 		
 		return ResponseEntity.ok().body(response);

@@ -54,6 +54,7 @@ import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.repository.CommonRepository;
+import com.endeavour.tap4food.app.request.dto.MerchantSearchRequest;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.app.util.ActiveStatus;
@@ -159,7 +160,13 @@ public class AdminService {
 	
 	public FoodStall updateFoodstallStatus(final String status, final Long foodstallId, final Long merchantUniqueId) throws TFException {
 
-		FoodStall foodstall = adminRepository.updateFoodstallStatus(merchantUniqueId, foodstallId, status);
+		FoodStall foodstall = null;
+		
+		if(foodstallId == 0) {
+			adminRepository.updateMerchantStatus(merchantUniqueId, status);
+		}else {
+			foodstall = adminRepository.updateFoodstallStatus(merchantUniqueId, foodstallId, status);
+		}		
 
 		return foodstall;
 	}
@@ -168,6 +175,7 @@ public class AdminService {
 
 		merchant.setStatus("Active");
 		merchant.setPhoneNumberVerified(true);
+		merchant.setCreatedBy("ADMIN");
 
 		Long currentTimeInMilli = System.currentTimeMillis();
 
@@ -261,6 +269,9 @@ public class AdminService {
 					merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
 					merchantFoodStallInfo.setFoodStallName(foodStall.getFoodStallName());
 					merchantFoodStallInfo.setFoodStallId(foodStall.getFoodStallId());
+					merchantFoodStallInfo.setBuId(foodStall.getBuId());
+					merchantFoodStallInfo.setBuType(foodStall.getBuType());
+					merchantFoodStallInfo.setBuName(foodStall.getBuName());
 					
 					if(StringUtils.hasText(foodStall.getStatus())) {
 						if(foodStall.getStatus().equals(AccountStatusEnum.ACTIVE.getName())) {
@@ -282,6 +293,20 @@ public class AdminService {
 					
 					merchantFoodStallInfoList.add(merchantFoodStallInfo);
 				}
+			}else {
+				
+				if("ADMIN".equalsIgnoreCase(merchant.getCreatedBy())){
+					MerchantFoodStall merchantFoodStallInfo = new MerchantFoodStall();
+					merchantFoodStallInfo.setMerchantId(merchant.getUniqueNumber());
+					merchantFoodStallInfo.setDate(merchant.getCreatedDate());
+					merchantFoodStallInfo.setFoodStallName("");
+					merchantFoodStallInfo.setOwner(merchant.getUserName());
+					merchantFoodStallInfo.setPhoneNumber(merchant.getPhoneNumber());
+					merchantFoodStallInfo.setFoodStallId(Long.valueOf(0));
+					merchantFoodStallInfo.setStatus(merchant.getStatus());
+									
+					merchantFoodStallInfoList.add(merchantFoodStallInfo);
+				}				
 			}
 		}
 
@@ -463,7 +488,7 @@ public class AdminService {
 	public Optional<List<BusinessUnit>> getBusinessUnits(Map<String, Object> filterMap) {
 		return Optional.ofNullable(adminRepository.findBusinessUnitsByFilter(filterMap));
 	}
-
+	
 	public Optional<BusinessUnit> uploadLogo(final Long buId, MultipartFile image) {
 		Optional<BusinessUnit> businessUnit = adminRepository.findBusinessUnit(buId);
 		

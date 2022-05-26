@@ -32,7 +32,9 @@ public class NotificationRepository {
 	
 	public List<MessageNotification> getPendingNotifications(Long foodStallId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("notificationStatus").ne("READ")));
+//		Query query = new Query(Criteria.where("foodStallId").is(foodStallId).andOperator(Criteria.where("notificationStatus").ne("READ")));
+		
+		Query query = new Query(Criteria.where("foodStallId").is(foodStallId));
 		
 		List<MessageNotification> notifications = mongoTemplate.find(query, MessageNotification.class);
 		
@@ -41,7 +43,7 @@ public class NotificationRepository {
 	
 	public List<CustomerNotification> getPendingCustomerNotifications(String customerPhoneNumber){
 		
-		Query query = new Query(Criteria.where("customerPhoneNumber").is(customerPhoneNumber).andOperator(Criteria.where("notificationStatus").ne("READ")));
+		Query query = new Query(Criteria.where("customerPhoneNumber").is(customerPhoneNumber).andOperator(Criteria.where("notificationStatus").is("ACTIVE")));
 		
 		List<CustomerNotification> notifications = mongoTemplate.find(query, CustomerNotification.class);
 		

@@ -37,6 +37,8 @@ public class OrderDto {
 	
 	private String orderedTime;
 	
+	private String paymentId;
+	
 	private List<OrderedItem> orderedItems;
 	
 	@JsonProperty("isOtpVerified")

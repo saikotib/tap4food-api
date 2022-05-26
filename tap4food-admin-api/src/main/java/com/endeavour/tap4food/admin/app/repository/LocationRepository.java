@@ -73,6 +73,11 @@ public class LocationRepository {
 		mongoTemplate.save(country);
 	}
 	
+	public void updateCountry(Country country) throws TFException {
+
+		mongoTemplate.save(country);
+	}
+	
 	public void addState(String countryCode, State state) throws TFException {
 
 		Query countryQuery = new Query(Criteria.where("countryCode").is(countryCode));
@@ -92,6 +97,16 @@ public class LocationRepository {
 		
 	}
 	
+	public void updateState(State state) throws TFException {
+
+		mongoTemplate.save(state);
+	}
+	
+	public void updateCity(City city) throws TFException {
+
+		mongoTemplate.save(city);
+	}
+	
 	public void addCity(String stateName, City city) throws TFException {
 
 		if (isCityExists(city.getName())) {
@@ -109,6 +124,45 @@ public class LocationRepository {
 
 		mongoTemplate.save(city);
 		
+	}
+	
+	public Country getCountry(String id) throws TFException {
+		
+		Query query = new Query(Criteria.where("_id").is(id));
+		
+		Country country = mongoTemplate.findOne(query, Country.class);
+		
+		if(Objects.isNull(country)) {
+			throw new TFException("Invalid country Details");
+		}
+		
+		return country;
+	}
+	
+	public State getState(String id) throws TFException {
+		
+		Query query = new Query(Criteria.where("_id").is(id));
+		
+		State state = mongoTemplate.findOne(query, State.class);
+		
+		if(Objects.isNull(state)) {
+			throw new TFException("Invalid state Details");
+		}
+		
+		return state;
+	}
+	
+	public City getCity(String id) throws TFException {
+		
+		Query query = new Query(Criteria.where("_id").is(id));
+		
+		City city = mongoTemplate.findOne(query, City.class);
+		
+		if(Objects.isNull(city)) {
+			throw new TFException("Invalid city Details");
+		}
+		
+		return city;
 	}
 	
 	public Country getCountryByCode(String countryCode) throws TFException {
@@ -139,11 +193,26 @@ public class LocationRepository {
 		return states;
 	}
 	
+	public List<State> getStates() throws TFException {
+		
+		
+		List<State> states = mongoTemplate.findAll(State.class);
+		
+		return states;
+	}
+	
 	public List<City> getCities(String state) throws TFException {
 		
 		Query query = new Query(Criteria.where("state").is(state));
 		
 		List<City> cities = mongoTemplate.find(query, City.class);
+		
+		return cities;
+	}
+	
+	public List<City> getCities() throws TFException {
+		
+		List<City> cities = mongoTemplate.findAll(City.class);
 		
 		return cities;
 	}

@@ -94,6 +94,8 @@ public class FoodItemService {
 	
 	public FoodItem updateFoodItem(FoodItemEditRequest foodItemRequest) throws TFException {
 		
+		Long fsId = foodItemRequest.getFoodStallId();
+		
 		FoodItem existingFoodItem = foodItemRepository.getFoodItem(foodItemRequest.getFoodItemId());
 		
 		existingFoodItem.setAddOn(foodItemRequest.isAddOnFlag());
@@ -104,7 +106,14 @@ public class FoodItemService {
 		existingFoodItem.setSubCategory(foodItemRequest.getSubCategory());
 		existingFoodItem.setReccommended(foodItemRequest.isRecomendedFlag());
 		existingFoodItem.setVeg(foodItemRequest.isVegFlag());
+		
+		boolean isExistingItemHasCustomization = existingFoodItem.isAvailableCustomisation();
+		
 		existingFoodItem.setAvailableCustomisation(foodItemRequest.isCustomizationFlag());
+		
+		FoodItemPricing foodItemPricing = foodItemRepository.getFoodItemPricingDetails(fsId, foodItemRequest.getFoodItemId());
+		List<FoodItemCustomizationPricing> foodItemCustomizationsList = foodItemRepository.getFoodItemPricingDetailsWithCustomization(fsId, foodItemRequest.getFoodItemId());
+		List<FoodItem> combinationFoodItems = foodItemRepository.getCombinationFoodItems(fsId, foodItemRequest.getFoodItemId());
 
 		foodItemRepository.updateFoodItem(existingFoodItem);
 		foodItemRepository.deleteFoodItemExistingDataBeforeEdit(foodItemRequest);
@@ -132,14 +141,70 @@ public class FoodItemService {
 				System.out.println("Food item customisation details are saved successfully");
 			}
 			
+//			this.addItemCustomizationPricing(existingFoodItem, custDetails, foodItemPricing, foodItemCustomizationsList);
 			this.addItemCustomizationPricing(existingFoodItem, custDetails);
+			
+			FoodItemPricing foodItemPricingLatest = foodItemRepository.getFoodItemPricingDetails(foodItemRequest.getFoodStallId(), foodItemRequest.getFoodItemId());
+			List<FoodItemCustomizationPricing> foodItemCustomizationsListLatest = foodItemRepository.getFoodItemPricingDetailsWithCustomization(foodItemRequest.getFoodStallId(), foodItemRequest.getFoodItemId());
+			
+			System.out.println("Existing DATA ========================START");
+			
+			System.out.println(foodItemPricing);
+			System.out.println(foodItemCustomizationsList);
+			
+			System.out.println("Existing DATA ========================END");
+			
+			System.out.println("Latest DATA ========================START");
+			
+			System.out.println(foodItemPricingLatest);
+			System.out.println(foodItemCustomizationsListLatest);
+			
+			System.out.println("Latest DATA ========================END");
+			
+			this.updateFoodItemPrice(foodItemRequest.getFoodStallId(), foodItemPricingLatest.getId(), foodItemPricing.getPrice());
+			
+			List<FoodItem> combinationFoodItemsLatest = foodItemRepository.getCombinationFoodItems(fsId, foodItemRequest.getFoodItemId());
+			
+			for(FoodItem combinationItem : combinationFoodItems) {
+				
+				for(FoodItem combinationItemLatest : combinationFoodItemsLatest) {
+					
+					if(combinationItem.getCombination().equalsIgnoreCase(combinationItemLatest.getCombination())) {
+						
+						FoodItemPricing combinationFoodItemPricing =  foodItemRepository.getFoodItemPricingDetails(fsId, combinationItemLatest.getFoodItemId());
+						
+						this.updateFoodItemPrice(fsId, combinationFoodItemPricing.getId(), combinationItem.getPrice());
+						
+						break;
+					}
+				}
+			}
+			
+			for(FoodItemCustomizationPricing custPrice : foodItemCustomizationsList) {
+				
+				String combination = custPrice.getCustomiseType();
+				Double price = custPrice.getPrice();
+				
+				for(FoodItemCustomizationPricing custPriceLatest : foodItemCustomizationsListLatest) {
+					
+					if(custPriceLatest.getCustomiseType().equalsIgnoreCase(combination)) {
+						
+						this.updateFoodItemCustomizationPrice(fsId, custPriceLatest.getId(), price);
+						break;
+					}
+				}
+			}
 		}
 		
 		return existingFoodItem;
 	}
 	
 	public void addItemPricing(FoodItem foodItem) {
-		foodItemRepository.addItemPricing(foodItem);
+		foodItemRepository.addItemPricing(foodItem, Double.valueOf(0));
+	}
+	
+	public void addItemPricing(FoodItem foodItem, Double price) {
+		foodItemRepository.addItemPricing(foodItem, price);
 	}
 	
 	public FoodItem uploadFoodItemPics(final Long fsId, final String requestId, List<MultipartFile> images) throws TFException {
@@ -238,6 +303,7 @@ public class FoodItemService {
 			foodItem.setTotalReviews(item.getTotalReviews());
 			foodItem.setVeg(item.isVeg());
 			foodItem.setHasCustomizations(item.isAvailableCustomisation());
+			foodItem.setStatus(item.getStatus());
 			
 			foodItemsResponseList.add(foodItem);
 		}
@@ -636,6 +702,187 @@ public class FoodItemService {
 		foodItemRepository.addItemCustomizationPricing(foodItemCustPricing);
 	}
 	
+	public void addItemCustomizationPricing(FoodItem foodItem, FoodItemCustomiseDetails customizationDetails, FoodItemPricing existingItemPriceDetails, List<FoodItemCustomizationPricing> existingCustPricingDetails) throws TFException {
+
+		String category = foodItem.getCategory();
+		String subCategory = foodItem.getSubCategory();
+		String foodItemName = foodItem.getFoodItemName();
+		Long foodItemId = foodItem.getFoodItemId();
+		
+		List<String> customiseTypes = customizationDetails.getCustomiseTypes();
+		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems());
+		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications());
+		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions());
+		Map<String, List<String>> customiseFoodItemsSelectButtons = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsSelectButtons());
+		
+		List<String> addOnItems = customizationDetails.getAddOnItemsIds();
+		
+		boolean isSingleCustType = true;
+		
+		if(customizeFoodItems.size() > 1) {
+			isSingleCustType = false;
+		}
+		
+		List<String> foodItemCombinations = new ArrayList<String>();
+		
+		List<String> foodItemCustCombinations = new ArrayList<String>();
+		
+		System.out.println("customizeFoodItems data for combinations : " + customizeFoodItems);
+		
+		if(foodItem.isPizza()) {
+			int count = 0;
+			for(List<String> list : customizeFoodItems.values()) {
+				foodItemCustCombinations = preparePizzaCombinations(foodItemCustCombinations, list, isSingleCustType, count++);
+				foodItemCombinations = preparePizzaCombinations(foodItemCombinations, list, isSingleCustType);
+			}
+			
+		}else {
+			for(List<String> list : customizeFoodItems.values()) {
+				foodItemCustCombinations = prepareCombinations(foodItemCustCombinations, list, isSingleCustType);
+			}
+		}
+		
+		System.out.println("foodItemCombinations >>" + foodItemCombinations);
+		
+		if(foodItem.isPizza()) {
+			boolean isDefaultCombination = true;
+			for(String combination : foodItemCombinations) {
+				
+				if(!combination.contains("##") || (combination.indexOf("##") < combination.lastIndexOf("##"))) {
+					continue;
+				}
+				
+				FoodItem custSupportItem = new FoodItem();
+				
+				custSupportItem.setAddOn(false);
+				custSupportItem.setBaseItem(foodItem.getFoodItemId());
+				custSupportItem.setFoodStallId(foodItem.getFoodStallId());
+				
+				custSupportItem.setCombination(combination);
+				
+				custSupportItem.setFoodItemName(foodItem.getFoodItemName());
+				
+				custSupportItem.setCategory(foodItem.getCategory());
+				custSupportItem.setSubCategory(foodItem.getSubCategory());
+				custSupportItem.setAvailableCustomisation(false);
+				custSupportItem.setDescription("NA");
+				custSupportItem.setCuisine(foodItem.getCuisine());
+				custSupportItem.setPizza(foodItem.isPizza());
+				custSupportItem.setDefaultCombination(isDefaultCombination);
+				
+				if(isDefaultCombination && foodItem.isPizza()) {
+					foodItem.setCombination(combination);
+					foodItemRepository.updateFoodItem(foodItem);
+					System.out.println("Base Item updated with combination : " + foodItem.getCombination() + " : " + foodItem.getFoodItemName());
+				}
+				
+				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
+				this.addItemPricing(custSupportItem);
+				
+				isDefaultCombination = false;
+			}
+		}else {
+			boolean isDefaultCombination = true;
+			for(String combination : foodItemCustCombinations) {
+				FoodItem custSupportItem = new FoodItem();
+				
+				custSupportItem.setAddOn(false);
+				custSupportItem.setBaseItem(foodItem.getFoodItemId());
+				custSupportItem.setFoodStallId(foodItem.getFoodStallId());
+				
+				custSupportItem.setCombination(combination);
+				
+				custSupportItem.setFoodItemName(foodItem.getFoodItemName());
+				custSupportItem.setCategory(foodItem.getCategory());
+				custSupportItem.setSubCategory(foodItem.getSubCategory());
+				custSupportItem.setAvailableCustomisation(false);
+				custSupportItem.setDescription("NA");
+				custSupportItem.setCuisine(foodItem.getCuisine());
+				custSupportItem.setPizza(foodItem.isPizza());
+				custSupportItem.setDefaultCombination(isDefaultCombination);
+				
+				if(isDefaultCombination) {
+					foodItem.setCombination(combination);
+					foodItemRepository.updateFoodItem(foodItem);
+					System.out.println("Base Item updated with combination : " + foodItem.getCombination() + " : " + foodItem.getFoodItemName());
+				}
+				
+				Double price = Double.valueOf(0);
+				
+				for(FoodItemCustomizationPricing custItemPrice  : existingCustPricingDetails) {
+					if(combination.equalsIgnoreCase(custItemPrice.getCustomiseType())) {
+						
+						price = custItemPrice.getPrice();
+						break;
+					}
+				}
+				custSupportItem.setPrice(price);
+				
+				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
+				this.addItemPricing(custSupportItem, price);
+				
+				isDefaultCombination = false;
+			}
+
+			/* for(List<String> list : customizeFoodItems.values()) {
+				for(String custName : list) {
+					FoodItem custSupportItem = new FoodItem();
+					
+					custSupportItem.setAddOn(false);
+					custSupportItem.setBaseItem(foodItem.getFoodItemId());
+					custSupportItem.setFoodStallId(foodItem.getFoodStallId());
+					
+					custSupportItem.setCombination(custName);
+					
+					custSupportItem.setFoodItemName(foodItem.getFoodItemName());
+					custSupportItem.setCategory(foodItem.getCategory());
+					custSupportItem.setSubCategory(foodItem.getSubCategory());
+					custSupportItem.setAvailableCustomisation(false);
+					custSupportItem.setDescription("NA");
+					custSupportItem.setCuisine(foodItem.getCuisine());
+					custSupportItem.setPizza(foodItem.isPizza());
+					
+					custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
+					this.addItemPricing(custSupportItem);
+				
+				}
+			} */
+		}
+		
+		System.out.println("Combinations : " + foodItemCustCombinations);
+		
+		List<FoodItemCustomizationPricing> foodItemCustPricing = new ArrayList<FoodItemCustomizationPricing>();
+		List<FoodItemDirectOffer> foodItemOffers = new ArrayList<FoodItemDirectOffer>();
+		
+		for(String combination : foodItemCustCombinations) {
+			if(foodItem.isPizza()) {
+				
+				if(!combination.contains("##") || combination.indexOf("##") == combination.lastIndexOf("##"))
+				continue;
+				//This is to skip the single items for PIZZA
+			}
+			
+			FoodItemCustomizationPricing custPricingData = new FoodItemCustomizationPricing();
+			custPricingData.setCategory(category);
+			custPricingData.setSubCategory(subCategory);
+			custPricingData.setFoodItemId(foodItemId);
+			custPricingData.setFoodItemName(foodItemName);
+			
+			Double foodItemPrice = foodItemRepository.getFoodItemPrice(foodItemId);
+			if(Objects.isNull(foodItemPrice))
+				custPricingData.setPrice(Double.valueOf(0));
+			else
+				custPricingData.setPrice(foodItemPrice);
+			
+			custPricingData.setCustomiseType(combination);
+			custPricingData.setFoodStallId(foodItem.getFoodStallId());
+			
+			foodItemCustPricing.add(custPricingData);
+		}
+		
+		foodItemRepository.addItemCustomizationPricing(foodItemCustPricing);
+	}
+	
 	public List<String> prepareCombinations(List<String> combinations, List<String> list, boolean isSingleCustType) {
 		
 		List<String> latestCombinations = new ArrayList<String>();
@@ -714,6 +961,15 @@ public class FoodItemService {
 	public void deleteFoodItem(Long foodItemId) {
 		
 		foodItemRepository.deleteFoodItem(foodItemId);		
+	}
+	
+	public void changeFoodItemVisibility(Long foodItemId, String status) throws TFException {
+		
+		FoodItem foodItem = foodItemRepository.getFoodItem(foodItemId);
+		
+		foodItem.setStatus(status.toUpperCase());
+		
+		foodItemRepository.updateFoodItem(foodItem);
 	}
 	
 	public FoodItemDataToEdit getFoodItemDataForEdit(Long foodItemId) throws TFException {

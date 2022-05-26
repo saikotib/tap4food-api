@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.app.model.notifications;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,4 +25,6 @@ public class MessageNotification {
 	private String notificationType;
 	
 	private Long notificationObjectId;
+	
+	private Long notifTime;
 }

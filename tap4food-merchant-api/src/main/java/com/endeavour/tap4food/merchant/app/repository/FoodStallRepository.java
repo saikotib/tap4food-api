@@ -516,6 +516,13 @@ public class FoodStallRepository {
 		foodStall.setMenuListing(menuListing);
 	
 	}
+	
+	public void deleteCustomiseFoodItem(String custFoodItemId) {
+		
+		CustFoodItem custFoodItem = mongoTemplate.findById(custFoodItemId, CustFoodItem.class);
+		
+		mongoTemplate.remove(custFoodItem);		
+	}
 
 	@Transactional
 	public void saveCuisine(Long fsId, Cuisine cuisine) throws TFException {

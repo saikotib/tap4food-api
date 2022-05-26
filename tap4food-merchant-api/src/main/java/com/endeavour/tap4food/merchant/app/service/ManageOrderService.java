@@ -35,6 +35,9 @@ public class ManageOrderService {
 	@Autowired
 	private NotificationService notificationService;
 	
+	@Autowired
+	private NotificationClientService notificationClientService;
+	
 	public Map<String, List<OrderDto>> getOrders(Long foodStallId) {
 		
 		Map<String, List<OrderDto>> ordersMap = new HashMap<String, List<OrderDto>>();
@@ -80,7 +83,7 @@ public class ManageOrderService {
 			
 			for(CartItem item : cartItems) {
 				
-				System.out.println("Cart Item : " + item);
+//				System.out.println("Cart Item : " + item);
 				
 				OrderDto.OrderedItem orderedItem = new OrderDto.OrderedItem();
 				
@@ -130,13 +133,13 @@ public class ManageOrderService {
 								customizationsMap.put(customization.getCustomizationName(), new ArrayList<String>());
 							}
 							
-							System.out.println("Cart Item customization: " + customization);
+//							System.out.println("Cart Item customization: " + customization);
 							
 							String items = customization.getCustomizationItem();
 							
 							List<String> itemsList = new ArrayList<String>();
 							
-							System.out.println("Items : " + items);
+//							System.out.println("Items : " + items);
 							
 							if(Objects.isNull(items)) {
 								continue;
@@ -214,6 +217,7 @@ public class ManageOrderService {
 			orderDto.setTotalItems(order.getTotalItems());
 			orderDto.setSelfPickup(order.isSelfPickup());
 			orderDto.setOrderedTime(order.getOrderedTime());
+			orderDto.setPaymentId(order.getPaymentId());
 			
 			FoodStall foodStall = foodStallService.getFoodStallById(foodStallId);
 			
@@ -239,7 +243,7 @@ public class ManageOrderService {
 			
 			for(CartItem item : cartItems) {
 				
-				System.out.println("Cart Item : " + item);
+//				System.out.println("Cart Item : " + item);
 				
 				OrderDto.OrderedItem orderedItem = new OrderDto.OrderedItem();
 				
@@ -260,13 +264,13 @@ public class ManageOrderService {
 							customizationsMap.put(customization.getCustomizationName(), new ArrayList<String>());
 						}
 						
-						System.out.println("Cart Item customization: " + customization);
+//						System.out.println("Cart Item customization: " + customization);
 						
 						String items = customization.getCustomizationItem();
 						
 						List<String> itemsList = new ArrayList<String>();
 						
-						System.out.println("Items : " + items);
+//						System.out.println("Items : " + items);
 						
 						if(Objects.isNull(items)) {
 							continue;
@@ -339,16 +343,25 @@ public class ManageOrderService {
 		if(status.equalsIgnoreCase("READY")) {
 			notification.setMessage("Your order " + order.getOrderId() + " from " + stall.getFoodStallName() + " is ready");
 			notificationService.addCustomerNotification(notification);
+			
+			notificationClientService.sendMessageToCustomer(notification, customer.getPhoneNumber());
 		}else if(status.equalsIgnoreCase("START_PREPARING")) {
 			notification.setMessage("Your order " + order.getOrderId() + " is accepted by " + stall.getFoodStallName());
 			notificationService.addCustomerNotification(notification);
+			
+			notificationClientService.sendMessageToCustomer(notification, customer.getPhoneNumber());
 		}else if(status.equalsIgnoreCase("DELIVERED")) {
 			notification.setMessage("Your order " + order.getOrderId() + " is delivered by " + stall.getFoodStallName());
 			notificationService.addCustomerNotification(notification);
+			
+			notificationClientService.sendMessageToCustomer(notification, customer.getPhoneNumber());
 		}else if(status.equalsIgnoreCase("CANCELLED")) {
 			notification.setMessage("Your order " + order.getOrderId() + " is cancelled by " + stall.getFoodStallName());
 			notificationService.addCustomerNotification(notification);
+			
+			notificationClientService.sendMessageToCustomer(notification, customer.getPhoneNumber());
 		}
+		
 	}
 	
 	public List<MessageNotification> getNotifications(Long foodStallId){
