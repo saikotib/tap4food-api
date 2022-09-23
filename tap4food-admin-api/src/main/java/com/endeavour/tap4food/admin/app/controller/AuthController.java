@@ -35,7 +35,6 @@ import com.endeavour.tap4food.admin.app.security.model.UserDetailsImpl;
 import com.endeavour.tap4food.admin.app.service.AdminService;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Admin;
-import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.service.CommonService;
 
 import io.swagger.annotations.Api;

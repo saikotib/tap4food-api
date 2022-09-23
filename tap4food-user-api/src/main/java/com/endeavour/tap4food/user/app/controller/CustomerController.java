@@ -3,11 +3,13 @@ package com.endeavour.tap4food.user.app.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -95,9 +97,17 @@ public class CustomerController {
 	}
 	
 	@RequestMapping(value = "/get-foodstalls", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getFoodStalls(@RequestParam("fcId") Long fcId){
+	public ResponseEntity<ResponseHolder> getFoodStalls(@RequestParam("fcId") Long fcId, @RequestParam(value = "timezone", required = false) String timezone){
 		
-		List<FoodStall> foodStalls = customerService.getFoodStalls(fcId);
+		if(StringUtils.hasText(timezone)) {
+			timezone = timezone.replaceAll("_", "/");
+		}else {
+			timezone = "Asia/Calcutta";
+		}
+		
+		System.out.println("Timezone" + timezone);
+		
+		List<FoodStall> foodStalls = customerService.getFoodStalls(fcId, timezone);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -150,6 +160,28 @@ public class CustomerController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/get-foodstall", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodStall(@RequestParam("fs-id") Long fsId, @RequestParam(value = "timezone", required = false) String timezone){
+				
+		if(StringUtils.hasText(timezone)) {
+			timezone = timezone.replaceAll("_", "/");
+		}else {
+			timezone = "Asia/Calcutta";
+		}
+		
+		System.out.println("Timezone" + timezone);
+		
+		FoodStall stall = customerService.getFoodStall(fsId, timezone);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(stall)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/get-fooditem-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodItemDetails(@RequestParam("fooditem-id") Long foodItemId){
 				
@@ -164,10 +196,10 @@ public class CustomerController {
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/get-suggestion-items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getFoodItemSuggestions(@RequestParam("fooditem-id") Long foodItemId){
+	@RequestMapping(value = "/get-suggestion-items", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getFoodItemSuggestions(@RequestBody Set<Long> foodItemIdSet){
 				
-		List<FoodItem> foodItems = customerService.getFoodItemSuggesions(foodItemId);
+		List<FoodItem> foodItems = customerService.getFoodItemSuggesions(foodItemIdSet);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -213,6 +245,28 @@ public class CustomerController {
 		ResponseHolder response = ResponseHolder.builder()
 				.status("OK")
 				.data("Details are submitted")
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@RequestMapping(value = "/getAboutData", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAboutData(){
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("OK")
+				.data(customerService.getAboutData())
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@RequestMapping(value = "/getTnC", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getTnC(){
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("OK")
+				.data(customerService.getTnC())
 				.build();
 		
 		return ResponseEntity.ok().body(response);

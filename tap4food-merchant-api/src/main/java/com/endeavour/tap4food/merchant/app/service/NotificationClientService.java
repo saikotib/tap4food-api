@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.merchant.app.service;
 
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -9,8 +11,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.MerchantSettings;
 import com.endeavour.tap4food.app.model.notifications.CustomerNotification;
 import com.endeavour.tap4food.app.model.notifications.Notification;
+import com.endeavour.tap4food.merchant.app.repository.FoodStallRepository;
+import com.endeavour.tap4food.merchant.app.repository.MerchantRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +29,12 @@ public class NotificationClientService {
 	
 	@Autowired
 	private SimpMessagingTemplate simpMessagingTemplate;
+	
+	@Autowired
+	private MerchantRepository merchantRepository;
+	
+	@Autowired
+	private FoodStallRepository foodStallRepository;
 	
 	private static final String MERCHANT_WS_MESSAGE_TRANSFER_DESTINATION = "/user/%s/private";
 
@@ -50,8 +62,16 @@ public class NotificationClientService {
 		log.info("Inside the sendMessageToMerchant()");
 		log.info("Notification : {}", notification.toString());
 		
-		String topic = String.format(MERCHANT_WS_MESSAGE_TRANSFER_DESTINATION, notification.getReciever());
+		FoodStall stall = foodStallRepository.getFoodStallById(Long.valueOf(notification.getReciever()));
 		
-        simpMessagingTemplate.convertAndSend(topic, notification);
+		MerchantSettings settings = merchantRepository.getSettings(stall.getMerchantId());
+		
+		if(Objects.nonNull(settings) && settings.isOrderNotifications()) {
+			String topic = String.format(MERCHANT_WS_MESSAGE_TRANSFER_DESTINATION, notification.getReciever());
+			
+	        simpMessagingTemplate.convertAndSend(topic, notification);
+		}else {
+			log.info("Order notifications are disabled. Hence not processing the notifications.");
+		}
     }
 }

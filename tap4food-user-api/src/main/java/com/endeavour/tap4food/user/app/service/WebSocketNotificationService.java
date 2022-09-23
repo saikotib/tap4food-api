@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -50,8 +52,8 @@ public class WebSocketNotificationService {
 		
 		HttpEntity<Notification> request = new HttpEntity<Notification>(notification, httpHeaders);
 		
-		String response = 
-			      restTemplate.postForObject(notificationEndpoint, request, String.class);
+		ResponseEntity<String> response = 
+			      restTemplate.exchange(notificationEndpoint, HttpMethod.POST, request, String.class);
 		
 		System.out.println("response = " + response);
 		

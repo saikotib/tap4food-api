@@ -30,6 +30,7 @@ import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.MerchantContactAdmin;
+import com.endeavour.tap4food.app.model.MerchantSettings;
 import com.endeavour.tap4food.app.model.UniqueNumber;
 import com.endeavour.tap4food.app.model.WeekDay;
 import com.endeavour.tap4food.app.response.dto.StallManager;
@@ -42,7 +43,7 @@ public class MerchantRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	
+		
 //	@Autowired
 //	private FoodStallRepository foodStallRepository;
 
@@ -380,5 +381,23 @@ public class MerchantRepository {
 		List<FoodCourt> foodCourts = mongoTemplate.find(query, FoodCourt.class);
 		
 		return foodCourts;
+	}
+	
+	public void saveMerchantMessage(MerchantContactAdmin msg){
+		
+		mongoTemplate.save(msg);
+	}
+	
+	
+	public synchronized void saveSettings(MerchantSettings settings){
+		
+		mongoTemplate.save(settings);
+	}
+	
+	public MerchantSettings getSettings(Long merchantId) {
+		
+		Query query = new Query(Criteria.where("merchantId").is(merchantId));
+		
+		return mongoTemplate.findOne(query, MerchantSettings.class);
 	}
 }

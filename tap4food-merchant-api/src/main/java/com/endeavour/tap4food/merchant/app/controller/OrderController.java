@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.response.dto.OrderDto;
+import com.endeavour.tap4food.app.response.dto.OrderFeedbackDto;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.merchant.app.service.ManageOrderService;
 
@@ -74,6 +75,32 @@ public class OrderController {
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
 				.data(notifications)
+				.build();
+		
+		return ResponseEntity.ok().body(response);		
+	}
+	
+	@RequestMapping(value = "/get-orders-feedback", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getOrdersFeedback(@RequestParam("fsId") Long foodStallId){
+		
+		List<OrderFeedbackDto> feedbackList = manageOrderService.getOrderFeedbacks(foodStallId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(feedbackList)
+				.build();
+		
+		return ResponseEntity.ok().body(response);		
+	}
+	
+	@RequestMapping(value = "/get-orders-complaints", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getOrdersComplaints(@RequestParam("fsId") Long foodStallId){
+		
+		List<OrderFeedbackDto> feedbackList = manageOrderService.getOrderComplaints(foodStallId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(feedbackList)
 				.build();
 		
 		return ResponseEntity.ok().body(response);		

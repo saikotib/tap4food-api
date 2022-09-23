@@ -6,13 +6,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.endeavour.tap4food.admin.app.enums.BusinessUnitEnum;
 import com.endeavour.tap4food.admin.app.repository.AdminRepository;
 import com.endeavour.tap4food.admin.app.response.dto.FoodCourtResponse;
-import com.endeavour.tap4food.admin.app.response.dto.MerchantResponseDto;
+import com.endeavour.tap4food.admin.app.security.model.User;
 import com.endeavour.tap4food.app.enums.AccountStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Access;
@@ -53,8 +52,8 @@ import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.model.admin.TermsNConditions;
+import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.repository.CommonRepository;
-import com.endeavour.tap4food.app.request.dto.MerchantSearchRequest;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.app.util.ActiveStatus;
@@ -272,6 +271,9 @@ public class AdminService {
 					merchantFoodStallInfo.setBuId(foodStall.getBuId());
 					merchantFoodStallInfo.setBuType(foodStall.getBuType());
 					merchantFoodStallInfo.setBuName(foodStall.getBuName());
+					merchantFoodStallInfo.setCity(foodStall.getCity());
+					merchantFoodStallInfo.setCountry(foodStall.getCountry());
+					merchantFoodStallInfo.setState(foodStall.getState());
 					
 					if(StringUtils.hasText(foodStall.getStatus())) {
 						if(foodStall.getStatus().equals(AccountStatusEnum.ACTIVE.getName())) {
@@ -479,6 +481,15 @@ public class AdminService {
 		
 		return adminRepository.saveBusinessUnit(businessUnit);
 	}
+	
+	public BusinessUnit updateBusinessUnit(Long buId, String name) {
+		
+		BusinessUnit bu = adminRepository.getBusinessUnit(buId);
+		
+		bu.setName(name);
+		
+		return adminRepository.saveBusinessUnit(bu);
+	}
 
 	public boolean deleteBusinessUnitById(final String businessUnitId) {
 
@@ -680,16 +691,35 @@ public class AdminService {
 	}
 
 	public AdminDashboardData loadAdminDashboardData() {
-
+		
+		List<FoodStall> stalls = adminRepository.getFoodStallList();
+		List<BusinessUnit> businessUnits = adminRepository.getBusinessUnits();
+		List<FoodCourt> fcList = adminRepository.getFoodCourts();
+		List<Merchant> merchants = adminRepository.getMerchants();
+		List<User> users = adminRepository.getUsers();
+		List<Order> orders = adminRepository.getOrders();
+		
+		long theatres = 0;
+		long shoppingMalls = 0;
+		long restaurants = stalls.size();
+		
+		for(BusinessUnit bu : businessUnits) {
+			if(bu.getType().equalsIgnoreCase("SHOPPING_MALL")) {
+				shoppingMalls ++;
+			}else if(bu.getType().equalsIgnoreCase("THEATRE")) {
+				theatres ++;
+			}
+		}
+				
 		AdminDashboardData dashboard = new AdminDashboardData();
-		dashboard.setShoppingMalls(26L);
-		dashboard.setRestaurants(78L);
-		dashboard.setTheaters(969L);
-		dashboard.setTotalCustomers(8236L);
-		dashboard.setTotalFoodCourts(50L);
-		dashboard.setTotalFoodStalls(724L);
-		dashboard.setTotalMerchants(610L);
-		dashboard.setTotalOrders(16071L);
+		dashboard.setShoppingMalls(shoppingMalls);
+		dashboard.setRestaurants(restaurants);
+		dashboard.setTheaters(theatres);
+		dashboard.setTotalCustomers(Long.valueOf(users.size()));
+		dashboard.setTotalFoodCourts(Long.valueOf(fcList.size()));
+		dashboard.setTotalFoodStalls(Long.valueOf(stalls.size()));
+		dashboard.setTotalMerchants(Long.valueOf(merchants.size()));
+		dashboard.setTotalOrders(Long.valueOf(orders.size()));
 
 		ReportParams reportData = new ReportParams();
 		reportData.setCustomers(170L);
@@ -794,10 +824,37 @@ public class AdminService {
 		adminRepository.correlateFCFS(foodStallId, foodCourtId);
 	}
 
-	public AdminRole saveAdminRole(AdminRole adminRole) {
+	public AdminRole saveAdminRole(AdminRole adminRole) throws TFException {
+		
+		AdminRole existingRole = adminRepository.findRoleByRoleName(adminRole.getRole());
+		
+		if(Objects.nonNull(existingRole)) {
+			throw new TFException("This role is already exists");
+		}
 
 		return adminRepository.saveAdminRole(adminRole);
 	}
+	
+//	public void savePermissions(String roleId) {
+//		
+//		List<String> features = Arrays.asList("Dashboard", "MerchantRequests", "Merchants", "QRCodeGenerator", "Customers", "Notifications", 
+//				"Roles", "MasterData", "Subscriptions", "AboutUs", "FAQ", "TermsAndConditions", "Grievance", "Inbox");
+//		
+//		List<Access> accessList = new ArrayList<Access>();
+//		for(String feature : features) {
+//			Access access = new Access();
+//			access.setScreenName(feature);
+//			access.setHasEditAccess(true);
+//			access.setHasReadAccess(true);
+//			
+//			accessList.add(adminRepository.saveAdminRoleAccess(access));
+//		}
+//		
+//		RoleConfiguration roleConfiguration = new RoleConfiguration();
+//		
+//		roleConfiguration.setAccessDetails(accessList);
+//		roleConfiguration.setRoleId(roleId);
+//	}
 
 	public List<AdminRole> getAdminRoles() {
 
@@ -825,6 +882,11 @@ public class AdminService {
 		}
 
 		return admin;
+	}
+	
+	public AdminRole getAdminRole(final String role) {
+
+		return adminRepository.findRoleByRoleName(role);
 	}
 
 	public List<Admin> getAdminUserByRole(final String role) {
@@ -859,9 +921,9 @@ public class AdminService {
 
 	}
 
-	public Boolean deleteAdminUser(long adminUserId) {
+	public Boolean deleteAdminUser(String adminUserId) {
 
-		Boolean flag = adminRepository.deleteAdminUserByRole(adminUserId);
+		Boolean flag = adminRepository.deleteAdminUser(adminUserId);
 		return flag;
 	}
 
@@ -896,16 +958,28 @@ public class AdminService {
 
 	public RoleConfiguration saveAdminRoleConfiguration(String roleName, List<Access> accessDetails) {
 
-		RoleConfiguration roleConfiguration = new RoleConfiguration();
+		RoleConfiguration roleConfiguration = null;
+		
 		AdminRole adminRole = adminRepository.findRoleByRoleName(roleName);
 
 		if (!Objects.isNull(adminRole)) {
+			
+			roleConfiguration = adminRepository.findRoleConfiguration(roleName);
+			
+			if(Objects.isNull(roleConfiguration)) {
+				roleConfiguration = new RoleConfiguration();
+			}
+			
+			for(Access access : accessDetails) {
+				adminRepository.saveAdminRoleAccess(access);
+			}
+			
+			System.out.println(accessDetails);
+			
 			roleConfiguration.setRoleName(roleName);
 			roleConfiguration.setAccessDetails(accessDetails);
 
 			roleConfiguration = adminRepository.saveAdminRoleConfiguration(roleConfiguration);
-		} else {
-			roleConfiguration = null;
 		}
 
 		return roleConfiguration;
@@ -935,12 +1009,24 @@ public class AdminService {
 			}
 		}
 		
+		subscription.setStatus("ACTIVE");		
 		subscription = adminRepository.addSubscription(subscription);
 		
 		return subscription;
 	}
 	
-	@Bean
+	public void deleteSubscription(String id) throws TFException {
+
+		Subscription existingSubscription = adminRepository.getSubscriptionById(id);
+		
+		if(Objects.isNull(existingSubscription)) {
+			throw new TFException("No subscription found by the input ID.");
+		}
+		
+		adminRepository.deleteSubscription(existingSubscription);
+		
+	}
+	
 	public List<Subscription> getExistingSubscriptions(){
 		
 		return adminRepository.getExistingSubscriptions();
@@ -962,5 +1048,10 @@ public class AdminService {
 		}
 		
 		return content;
+	}
+	
+	public List<User> getUsers(){
+		
+		return adminRepository.getUsers();
 	}
 }

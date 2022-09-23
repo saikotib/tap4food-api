@@ -127,6 +127,7 @@ public class FoodStallRepository {
 		existingStall.setCity(foodStall.getCity());
 		existingStall.setLocation(foodStall.getLocation());
 		existingStall.setManagerId(foodStall.getManagerId());
+		existingStall.setDeliveryTime(foodStall.getDeliveryTime());
 		
 		mongoTemplate.save(existingStall);
 
@@ -152,6 +153,10 @@ public class FoodStallRepository {
 		Query query = new Query(Criteria.where("foodStallId").is(fsId));
 		FoodStall foodStall = mongoTemplate.findOne(query, FoodStall.class);
 
+		if(foodStall.getTax() == null) {
+			foodStall.setTax(Double.valueOf(5));
+		}
+		
 		return foodStall;
 	}
 	
@@ -167,11 +172,25 @@ public class FoodStallRepository {
 		return foodstall;
 	}
 	
+	public FoodStall updateTax(Long foodstallId, Double tax) throws TFException {
+		FoodStall foodstall = this.getFoodStallById(foodstallId);
+		
+		if(Objects.nonNull(foodstall)) {
+			foodstall.setTax(tax);
+			mongoTemplate.save(foodstall);
+		}else {
+			throw new TFException("No foodstall found");
+		}
+		
+		return foodstall;
+	}
+	
 	public FoodStall updateFoodstallOpenStatus(Long foodstallId, boolean openStatus) throws TFException {
 		FoodStall foodstall = this.getFoodStallById(foodstallId);
 		
 		if(Objects.nonNull(foodstall)) {
 			foodstall.setOpened(openStatus);
+			mongoTemplate.save(foodstall);
 		}else {
 			throw new TFException("No foodstall found");
 		}

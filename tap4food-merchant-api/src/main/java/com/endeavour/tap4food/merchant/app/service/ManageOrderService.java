@@ -6,12 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.CustomerComplaints;
 import com.endeavour.tap4food.app.model.FoodStall;
+import com.endeavour.tap4food.app.model.OrderFeedback;
 import com.endeavour.tap4food.app.model.notifications.CustomerNotification;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
@@ -20,6 +23,7 @@ import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.model.order.OrderedOfferItems;
 import com.endeavour.tap4food.app.response.dto.OrderDto;
+import com.endeavour.tap4food.app.response.dto.OrderFeedbackDto;
 import com.endeavour.tap4food.app.service.NotificationService;
 import com.endeavour.tap4food.merchant.app.repository.ManageOrderRepository;
 
@@ -58,6 +62,12 @@ public class ManageOrderService {
 			orderDto.setTotalItems(order.getTotalItems());
 			orderDto.setSelfPickup(order.isSelfPickup());
 			orderDto.setOtpVerified(order.isOtpVerified());
+			orderDto.setOrderedTime(order.getOrderedTime());
+			if(Objects.isNull(order.getTax())) {
+				orderDto.setTax(Double.valueOf(5));
+			}else {
+				orderDto.setTax(order.getTax());
+			}			
 			
 			FoodStall foodStall = foodStallService.getFoodStallById(foodStallId);
 			
@@ -356,7 +366,7 @@ public class ManageOrderService {
 			
 			notificationClientService.sendMessageToCustomer(notification, customer.getPhoneNumber());
 		}else if(status.equalsIgnoreCase("CANCELLED")) {
-			notification.setMessage("Your order " + order.getOrderId() + " is cancelled by " + stall.getFoodStallName());
+			notification.setMessage("Your order " + order.getOrderId() + " is cancelled by " + stall.getFoodStallName() + ". Please visit stall counter to collect the payment.");
 			notificationService.addCustomerNotification(notification);
 			
 			notificationClientService.sendMessageToCustomer(notification, customer.getPhoneNumber());
@@ -368,5 +378,67 @@ public class ManageOrderService {
 		List<MessageNotification> notofications = new ArrayList<MessageNotification>();
 		
 		return notofications;
+	}
+	
+	public List<OrderFeedbackDto> getOrderFeedbacks(Long foodstallId){
+		List<OrderFeedbackDto> feedbackResponseList = new ArrayList<OrderFeedbackDto>();
+		
+		List<OrderFeedback> feedbackList = manageOrderRepository.getFeedbacks(foodstallId);
+		for(OrderFeedback feedback : feedbackList) {
+			
+			OrderFeedbackDto orderFeedbackResponseDto = new OrderFeedbackDto();
+			orderFeedbackResponseDto.setPhoneNumber(feedback.getCustomerPhoneNumber());
+			orderFeedbackResponseDto.setOrderId(feedback.getOrderId());
+			
+			Order order = manageOrderRepository.getOrder(feedback.getOrderId());
+			Customer customer = manageOrderRepository.getOrderCustomer(order.getOrderId());
+			
+			orderFeedbackResponseDto.setOrderDate(order.getOrderedTime());
+			orderFeedbackResponseDto.setCustomerName(customer.getFullName());
+			orderFeedbackResponseDto.setEmail(customer.getEmail());
+			
+			List<CartItem> orderedItems = manageOrderRepository.getOrderCartItems(feedback.getOrderId());
+			
+			List<String> items = orderedItems.stream().map(item -> item.getItemName()).collect(Collectors.toList());
+			orderFeedbackResponseDto.setItems(items);
+			
+			int totalRating = 0;
+			
+			for(int rating : feedback.getRatings().values()) {
+				totalRating += rating;
+			}
+			
+			orderFeedbackResponseDto.setReview(feedback.getReview());
+			orderFeedbackResponseDto.setRatingVal(totalRating / feedback.getRatings().size());
+			
+			feedbackResponseList.add(orderFeedbackResponseDto);
+		}
+		
+		return feedbackResponseList;
+	}
+	
+	public List<OrderFeedbackDto> getOrderComplaints(Long foodstallId){
+		List<OrderFeedbackDto> feedbackResponseList = new ArrayList<OrderFeedbackDto>();
+		
+		List<CustomerComplaints> complaints = manageOrderRepository.getCustomerComplaints(foodstallId);
+		for(CustomerComplaints complaint : complaints) {
+			
+			Order order = manageOrderRepository.getOrder(complaint.getOrderId());
+			
+			Customer customer = manageOrderRepository.getOrderCustomer(order.getOrderId());
+			
+			OrderFeedbackDto orderFeedbackResponseDto = new OrderFeedbackDto();
+			orderFeedbackResponseDto.setPhoneNumber(complaint.getCustomerPhoneNumber());
+			orderFeedbackResponseDto.setOrderId(complaint.getOrderId());
+			orderFeedbackResponseDto.setCustomerName(customer.getFullName());
+			
+			orderFeedbackResponseDto.setOrderDate(order.getOrderedTime());
+						
+			orderFeedbackResponseDto.setReview(complaint.getReview());
+			
+			feedbackResponseList.add(orderFeedbackResponseDto);
+		}
+		
+		return feedbackResponseList;
 	}
 }

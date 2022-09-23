@@ -29,6 +29,7 @@ import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.MerchantContactAdmin;
+import com.endeavour.tap4food.app.model.MerchantSettings;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.StallManager;
@@ -530,7 +531,9 @@ public class MerchantService {
 		if(merchant.isManager()) {
 			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, true);
 			for(FoodStall stall : foodStalls) {
-				
+				if(stall.getTax() == null) {
+					stall.setTax(Double.valueOf(5));
+				}
 				FoodStallTimings timings = foodStallRepository.getFoodStallTimings(stall.getFoodStallId());
 				
 				stall.setFoodStallTimings(timings);
@@ -560,7 +563,9 @@ public class MerchantService {
 			List<FoodStall> foodStalls = foodStallRepository.getFoodStalls(uniqueNumber, false);
 			
 			for(FoodStall stall : foodStalls) {
-				
+				if(stall.getTax() == null) {
+					stall.setTax(Double.valueOf(5));
+				}
 				FoodStallTimings timings = foodStallRepository.getFoodStallTimings(stall.getFoodStallId());
 				
 				stall.setFoodStallTimings(timings);
@@ -635,6 +640,43 @@ public class MerchantService {
 
 	public void saveMerchantMessageToAdmin(MerchantContactAdmin merchantContactAdmin) {
 		
-		saveMerchantMessageToAdmin(merchantContactAdmin);
+		merchantRepository.saveMerchantMessage(merchantContactAdmin);
+	}
+	
+	public MerchantSettings getSettings(Long merchantId) {
+		MerchantSettings settings = merchantRepository.getSettings(merchantId);
+		
+		if(Objects.isNull(settings)) {
+			settings = new MerchantSettings();
+			settings.setPrintType("Manual");
+		}
+		
+		return settings;
+	}
+	
+	public void saveSettings(Long merchantId, String key) {
+		
+		MerchantSettings existingSettings = this.getSettings(merchantId);
+		
+		if(Objects.isNull(existingSettings)) {
+			existingSettings = new MerchantSettings();
+		}
+		
+		if(key.equalsIgnoreCase("ADMIN_NOTIF")) {
+			existingSettings.setAdminNotification(!existingSettings.isAdminNotification());
+		}else if(key.equalsIgnoreCase("ORDER_NOTIF")) {
+			existingSettings.setOrderNotifications(!existingSettings.isOrderNotifications());
+		}else if(key.equalsIgnoreCase("REMAINDER_NOTIF")) {
+			existingSettings.setRemainderNotifications(!existingSettings.isRemainderNotifications());
+		}else if(key.equalsIgnoreCase("SUB_NOTIF")) {
+			existingSettings.setSubscriptionNotifications(!existingSettings.isSubscriptionNotifications());
+		}else if(key.equalsIgnoreCase("PRINT")) {
+			existingSettings.setPrintType(existingSettings.getPrintType().equalsIgnoreCase("Manual") ? "Auto" : "Manual");
+		}
+
+		existingSettings.setMerchantId(merchantId);
+		
+		merchantRepository.saveSettings(existingSettings);
+		
 	}
 }

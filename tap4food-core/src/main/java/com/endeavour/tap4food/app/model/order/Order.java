@@ -53,4 +53,6 @@ public class Order {
 	
 	@JsonProperty("isOtpVerified")
 	private boolean isOtpVerified;
+	
+	private Double tax;
 }

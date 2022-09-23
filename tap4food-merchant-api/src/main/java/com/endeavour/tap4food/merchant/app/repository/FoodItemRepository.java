@@ -367,7 +367,7 @@ public class FoodItemRepository {
 		mongoTemplate.save(foodItemPricing);
 	}
 	
-	public void deleteFoodItemExistingDataBeforeEdit(FoodItemEditRequest foodItem) {
+	public void deleteFoodItemExistingDataBeforeEdit(FoodItemEditRequest foodItem, Double existingPrice) {
 		
 		Long foodItemId = foodItem.getFoodItemId();
 		
@@ -390,7 +390,8 @@ public class FoodItemRepository {
 		
 		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
 		
-		itemPricingObject.setPrice(Double.valueOf(0));
+//		itemPricingObject.setPrice(Double.valueOf(0));
+		itemPricingObject.setPrice(existingPrice);
 		
 		String notes = "";
 		

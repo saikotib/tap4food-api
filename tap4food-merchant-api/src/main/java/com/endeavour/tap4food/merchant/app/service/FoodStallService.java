@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -75,6 +76,7 @@ public class FoodStallService {
 		
 		foodStall.setCreatedDate(DateUtil.getToday());
 		foodStall.setOpened(true);
+		foodStall.setTax(Double.valueOf(5));
 		
 		if(foodStall.getBuType().equalsIgnoreCase("Restaurant")) {
 			foodStall.setRestaurant(true);
@@ -114,7 +116,83 @@ public class FoodStallService {
 		
 		this.updateFoodStall(foodStall);
 		
+		addEmptyTimings(foodStall);
+		
+		
 		return foodStall;
+	}
+
+	private void addEmptyTimings(FoodStall foodStall) {
+		ArrayList<WeekDay> timingsList = new ArrayList<WeekDay>();
+		WeekDay day1 = new WeekDay();
+		day1.setWeekDayName("Monday");
+		day1.setClosed(true);
+		day1.setCloseTime("");
+		day1.setOpened24Hours(false);
+		day1.setOpenTime("");
+		day1.setFoodStallId(foodStall.getFoodStallId());
+		
+		WeekDay day2 = new WeekDay();
+		day2.setWeekDayName("Tuesday");
+		day2.setClosed(true);
+		day2.setCloseTime("");
+		day2.setOpened24Hours(false);
+		day2.setOpenTime("");
+		day2.setFoodStallId(foodStall.getFoodStallId());
+		
+		WeekDay day3 = new WeekDay();
+		day3.setWeekDayName("Wednesday");
+		day3.setClosed(true);
+		day3.setCloseTime("");
+		day3.setOpened24Hours(false);
+		day3.setOpenTime("");
+		day3.setFoodStallId(foodStall.getFoodStallId());
+		
+		WeekDay day4 = new WeekDay();
+		day4.setWeekDayName("Thursday");
+		day4.setClosed(true);
+		day4.setCloseTime("");
+		day4.setOpened24Hours(false);
+		day4.setOpenTime("");
+		day4.setFoodStallId(foodStall.getFoodStallId());
+		
+		WeekDay day5 = new WeekDay();
+		day5.setWeekDayName("Friday");
+		day5.setClosed(true);
+		day5.setCloseTime("");
+		day5.setOpened24Hours(false);
+		day5.setOpenTime("");
+		day5.setFoodStallId(foodStall.getFoodStallId());
+		
+		WeekDay day6 = new WeekDay();
+		day6.setWeekDayName("Saturday");
+		day6.setClosed(true);
+		day6.setCloseTime("");
+		day6.setOpened24Hours(false);
+		day6.setOpenTime("");
+		day6.setFoodStallId(foodStall.getFoodStallId());
+		
+		WeekDay day7 = new WeekDay();
+		day7.setWeekDayName("Sunday");
+		day7.setClosed(true);
+		day7.setCloseTime("");
+		day7.setOpened24Hours(false);
+		day7.setOpenTime("");
+		day7.setFoodStallId(foodStall.getFoodStallId());
+		
+		timingsList.add(day1);
+		timingsList.add(day2);
+		timingsList.add(day3);
+		timingsList.add(day4);
+		timingsList.add(day5);
+		timingsList.add(day6);
+		timingsList.add(day7);
+		
+		try {
+			this.updateFoodStallTimings(foodStall.getFoodStallId(), timingsList);
+		} catch (TFException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private String getQRCodeUrl(FoodStall foodStall) {
@@ -188,6 +266,22 @@ public class FoodStallService {
 	public FoodStall updateFoodstallStatus(Long foodStallId, String status) throws TFException {
 		
 		return foodStallRepository.updateFoodstallStatus(foodStallId, status);
+	}
+	
+	public FoodStall updateTax(Long foodStallId, Double tax) throws TFException {
+		
+		return foodStallRepository.updateTax(foodStallId, tax);
+	}
+	
+	public Double getTax(Long foodStallId) throws TFException {
+		
+		FoodStall stall = this.getFoodStallById(foodStallId);
+		
+		if(stall.getTax() == null) {
+			stall.setTax(Double.valueOf(5));
+		}
+				
+		return stall.getTax();
 	}
 	
 	public FoodStall updateFoodstallOpenStatus(Long foodStallId, boolean openStatus) throws TFException {
@@ -361,6 +455,7 @@ public class FoodStallService {
 	public FoodStall getFoodStallById(Long fsId) {
 		
 		FoodStall stall = foodStallRepository.getFoodStallById(fsId);
+		
 		stall.setQrCode(mediaServerUrl + "/QRCodes/" + stall.getFoodCourtId() + ".png");
 		
 		return stall;

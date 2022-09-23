@@ -7,15 +7,15 @@ import lombok.Data;
 @Data
 public class MerchantDashboardResponse {
 
-	private long newOrders;
+	private long openOrders;
 	
 	private long deliveredOrders;
 	
 	private long cancelledOrders;
+		
+	private long allOrders;
 	
-	private long inPreparationOrders;
-	
-	private long readyOrders;
+	private long todayOrders;
 	
 	private String subscription;
 	

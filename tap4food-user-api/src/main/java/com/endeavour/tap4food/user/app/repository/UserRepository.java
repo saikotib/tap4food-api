@@ -17,6 +17,8 @@ import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.WeekDay;
+import com.endeavour.tap4food.app.model.admin.AboutUs;
+import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
@@ -198,5 +200,19 @@ public class UserRepository {
 	
 	public void submitContactUsForm(ContactUs form) {
 		mongoTemplate.save(form);
+	}
+	
+	public AboutUs getAboutUsContent() {
+		
+		List<AboutUs> content = mongoTemplate.findAll(AboutUs.class);
+		
+		return content.get(0);
+	}
+	
+	public TermsNConditions getTnC() {
+		
+		List<TermsNConditions> content = mongoTemplate.findAll(TermsNConditions.class);
+		
+		return content.get(0);
 	}
 }

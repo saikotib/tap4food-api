@@ -3,12 +3,13 @@ package com.endeavour.tap4food.user.app.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ import com.endeavour.tap4food.app.model.FoodStall;
 import com.endeavour.tap4food.app.model.FoodStallTimings;
 import com.endeavour.tap4food.app.model.Otp;
 import com.endeavour.tap4food.app.model.WeekDay;
+import com.endeavour.tap4food.app.model.admin.AboutUs;
+import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
@@ -149,7 +152,7 @@ public class CustomerService {
 		commonRepository.saveOtp(otp);
 		
 		if(!ObjectUtils.isEmpty(user.getStatus()) && user.getStatus().equals(UserStatusEnum.LOCKED.name())) {
-			throw new TFException("This phone number is temporarily blocked.");
+			throw new TFException("Temporarily blocked. Please retry after 5 mins.");
 		}
 		
 		return otpMatch;		
@@ -164,20 +167,22 @@ public class CustomerService {
 		return otp;		
 	}
 	
-	public List<FoodStall> getFoodStalls(Long foodCourtId){
+	public List<FoodStall> getFoodStalls(Long foodCourtId, String timezone){
 		
 		List<FoodStall> foodstalls = userRepository.getFoodStalls(foodCourtId);
 		
 		List<FoodStall> responseFoodstalls = new ArrayList<FoodStall>();
 		
-		String today = DateUtil.todayName();
+		String today = DateUtil.todayName(timezone);
 		
 		for(FoodStall stall : foodstalls) {
 			FoodStallTimings timings = userRepository.getFoodStallTimings(stall.getFoodStallId());
-			
-			if(ObjectUtils.isEmpty(timings.getDays())) {
+						
+			if(!stall.getStatus().equalsIgnoreCase("Active")){
 				stall.setOpened(false);
-			}else {
+			}else if(ObjectUtils.isEmpty(timings.getDays())) {
+				stall.setOpened(false);
+			}else if(stall.isOpened()){
 				for(WeekDay day : timings.getDays()) {
 					
 					if(day.getWeekDayName().equalsIgnoreCase(today)) {
@@ -192,7 +197,7 @@ public class CustomerService {
 							String openTime = day.getOpenTime();
 							String closeTime = day.getCloseTime();
 							
-							boolean stallOpenFlag = DateUtil.checkIfStallOpenedNow(openTime, closeTime);
+							boolean stallOpenFlag = DateUtil.checkIfStallOpenedNow(openTime, closeTime, timezone);
 							
 							stall.setOpened(stallOpenFlag);
 							
@@ -246,7 +251,9 @@ public class CustomerService {
 		
 		for(FoodItem foodItem : foodItems) {
 			
-			if(foodItem.getPrice() == 0) {
+			System.out.println(foodItem);
+			
+			if(foodItem.getPrice() == null || foodItem.getPrice() == 0) {
 				continue;
 			}
 			
@@ -259,7 +266,7 @@ public class CustomerService {
 			
 			String categoryAndSubCategory = category + " - " + subcategory;
 			
-			if(!foodItemsMap.containsKey(category)) {
+			if(!foodItemsMap.containsKey(categoryAndSubCategory)) {
 				foodItemsMap.put(categoryAndSubCategory, new ArrayList<FoodItem>());
 			}
 			
@@ -577,34 +584,95 @@ public class CustomerService {
 		}
 	}
 	
-	public List<FoodItem> getFoodItemSuggesions(Long foodItemId){
+	public List<FoodItem> getFoodItemSuggesions(Set<Long> foodItemIdSet){
 		
-		FoodItemCustomiseDetails customiseDetails = userRepository.getFoodItemCustomDetails(foodItemId);
+		Set<FoodItem> foodItems = new HashSet<FoodItem>();
 		
-		
-		if(Objects.isNull(customiseDetails)) {
-			return Collections.emptyList();
-		}
-		List<String> suggestionItemIds = customiseDetails.getAddOnItemsIds();
-		
-//		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
-		
-		List<FoodItem> foodItems = new ArrayList<FoodItem>();
-		
-		if(Objects.nonNull(suggestionItemIds)) {
-			for(String itemId : suggestionItemIds) {
-				FoodItem item = userRepository.getFoodItem(Long.valueOf(itemId));
-				
-				foodItems.add(item);
+		for(Long foodItemId : foodItemIdSet) {
+			FoodItemCustomiseDetails customiseDetails = userRepository.getFoodItemCustomDetails(foodItemId);
+			
+			
+			if(Objects.isNull(customiseDetails)) {
+				continue;
 			}
-		}
+			List<String> suggestionItemIds = customiseDetails.getAddOnItemsIds();
+			
+			if(Objects.nonNull(suggestionItemIds)) {
+				
+				for(String itemId : suggestionItemIds) {
+					FoodItem item = userRepository.getFoodItem(Long.valueOf(itemId));
+					
+					foodItems.add(item);
+				}
+			}			
+		}	
 		
-		
-		return foodItems;
+		return new ArrayList<FoodItem>(foodItems);
 	}
 	
 	public void submitContactUsForm(ContactUs form) {
 		
 		userRepository.submitContactUsForm(form);
+	}
+	
+	public FoodStall getFoodStall(Long fsId, String timezone) {
+		FoodStall stall = getFoodStall(fsId);
+		
+		String today = DateUtil.todayName(timezone);
+		
+		System.out.println(today);
+		
+		FoodStallTimings timings = userRepository.getFoodStallTimings(stall.getFoodStallId());
+		
+		if(!stall.getStatus().equalsIgnoreCase("Active")){
+			stall.setOpened(false);
+		}else if(ObjectUtils.isEmpty(timings.getDays())) {
+			stall.setOpened(false);
+		}else if(stall.isOpened()){
+			for(WeekDay day : timings.getDays()) {
+				
+				if(day.getWeekDayName().equalsIgnoreCase(today)) {
+					
+					if(Objects.nonNull(day.getOpened24Hours()) && day.getOpened24Hours()) {
+						stall.setOpened(true);
+					}else if(Objects.nonNull(day.getClosed()) && day.getClosed()) {
+						stall.setOpened(false);
+					}else {
+						
+						
+						String openTime = day.getOpenTime();
+						String closeTime = day.getCloseTime();
+						
+						System.out.println(openTime);
+						System.out.println(closeTime);
+						
+						boolean stallOpenFlag = DateUtil.checkIfStallOpenedNow(openTime, closeTime, timezone);
+						
+						stall.setOpened(stallOpenFlag);
+						
+					}
+				
+					break;
+				}			
+				
+			}
+		}
+		
+		return stall;
+	}
+	
+	public FoodStall getFoodStall(Long fsId) {
+		
+		return userRepository.getFoodStall(fsId);
+	}
+	
+	public AboutUs getAboutData() {
+		
+		return userRepository.getAboutUsContent();
+	}
+	
+	public TermsNConditions getTnC() {
+		
+		return userRepository.getTnC();
 	}
 }

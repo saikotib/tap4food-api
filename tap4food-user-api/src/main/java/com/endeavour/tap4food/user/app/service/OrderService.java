@@ -61,12 +61,20 @@ public class OrderService {
 		order.setOrderedTime(DateUtil.getPresentDateAndTimeInIST());
 		order.setTimeZone("IST");
 		order.setSelfPickup(orderRequest.isSelfPickup());
-		if(StringUtils.hasText(order.getScreenNumber())) {
+		if(StringUtils.hasText(orderRequest.getScreenNumber())) {
 			order.setSelfPickup(false);
 		}else {
 			order.setSelfPickup(true);
 		}
 		order.setFoodStallId(orderRequest.getFoodStallId());
+		
+		FoodStall stall = orderRepository.getFoodStall(orderRequest.getFoodStallId());
+		
+		if(stall.getTax() == null) {
+			order.setTax(Double.valueOf(5));
+		}else {
+			order.setTax(stall.getTax());
+		}
 		
 		if(orderRequest.isTheatre()) {
 			order.setTheatre(true);
@@ -231,6 +239,11 @@ public class OrderService {
 			orderDto.setTotalItems(order.getTotalItems());
 			orderDto.setSelfPickup(order.isSelfPickup());
 			orderDto.setOrderedTime(order.getOrderedTime());
+			if(order.getTax() == null) {
+				orderDto.setTax(Double.valueOf(5));
+			}else {
+				orderDto.setTax(order.getTax());
+			}
 			
 			System.out.println("order.getFoodStallId() : " + order.getFoodStallId());
 			
@@ -263,6 +276,8 @@ public class OrderService {
 			List<CartItem> cartItems = this.getOrderedItems(order.getOrderId());
 			
 			List<OrderDto.OrderedItem> orderedItems = new ArrayList<OrderDto.OrderedItem>();
+			
+			Double subTotal = (double) 0;
 			
 			for(CartItem item : cartItems) {
 				
@@ -327,12 +342,22 @@ public class OrderService {
 					orderedItem.setCustomizations(Collections.emptyList());
 				}
 				
+				subTotal += item.getFinalPrice();
+				
 				orderedItems.add(orderedItem);
 			}
 			
+			Double taxAmount = (subTotal * 0.01 * orderDto.getTax());
+			
+			orderDto.setSubTotal(subTotal);
+			orderDto.setTaxAmount(taxAmount);
 			orderDto.setOrderedItems(orderedItems);
 			
 			orders.add(orderDto);
+		}
+		
+		if(Objects.nonNull(orders) && !orders.isEmpty()) {
+			orders.sort((o1, o2) -> (int)(o2.getOrderId() - o1.getOrderId()));
 		}
 		
 		return orders;
@@ -371,7 +396,7 @@ public class OrderService {
 		
 		return order;
 	}
-	
+		
 	public void directTransferToMerchant(long orderId, Double amount) {
 		
 		String account = "acc_Iiof4RJnl5vwRy";

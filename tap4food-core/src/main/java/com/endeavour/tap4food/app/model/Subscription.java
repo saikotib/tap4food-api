@@ -16,7 +16,11 @@ public class Subscription {
 	
 	private String planName;
 	
-	private String duration;
-	
 	private String amount;
+	
+	private int period;
+	
+	private String description;
+	
+	private String status;
 }

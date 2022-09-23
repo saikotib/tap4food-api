@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
@@ -92,7 +94,50 @@ public class FoodItemService {
 		return existingFoodItem;
 	}
 	
+	private String validateEditData(FoodItemEditRequest foodItemRequest) {
+		String message = null;
+		
+		if(foodItemRequest.isCustomizationFlag()) {
+			
+			List<String> custTypes = foodItemRequest.getCustomizationTypes();
+			List<String> custItems = foodItemRequest.getCustomiseFoodItems();
+			
+			if(ObjectUtils.isEmpty(custTypes) || ObjectUtils.isEmpty(foodItemRequest.getCustomiseFoodItems())) {
+				message = "Invalid customization data";
+				return message;
+			}
+			Set<String> custItemsSet = new HashSet<String>();
+			for(String custItem : custItems) {
+				String custItemTokens[] = custItem.split("~");
+				custItemsSet.add(custItemTokens[0]);
+				if(!StringUtils.hasText(custItemTokens[1])) {
+					message = "Invalid customization data";
+					return message;
+				}
+			}
+			
+			if(!custTypes.containsAll(custItemsSet)) {
+				message = "Invalid customization data";
+				return message;
+			}
+			
+			if(custTypes.size() != foodItemRequest.getCustomiseFoodItemsDescriptions().size()) {
+				message = "Invalid customization data";
+				return message;
+			}
+			
+		}
+		
+		return message;
+	}
+	
 	public FoodItem updateFoodItem(FoodItemEditRequest foodItemRequest) throws TFException {
+		
+		String validationMessage = validateEditData(foodItemRequest);
+		
+		if(StringUtils.hasText(validationMessage)) {
+			throw new TFException(validationMessage);
+		}
 		
 		Long fsId = foodItemRequest.getFoodStallId();
 		
@@ -116,7 +161,7 @@ public class FoodItemService {
 		List<FoodItem> combinationFoodItems = foodItemRepository.getCombinationFoodItems(fsId, foodItemRequest.getFoodItemId());
 
 		foodItemRepository.updateFoodItem(existingFoodItem);
-		foodItemRepository.deleteFoodItemExistingDataBeforeEdit(foodItemRequest);
+		foodItemRepository.deleteFoodItemExistingDataBeforeEdit(foodItemRequest, existingFoodItem.getPrice());
 		
 		if(existingFoodItem.isAvailableCustomisation()) {
 			
@@ -435,6 +480,10 @@ public class FoodItemService {
 		for(FoodItemCustomizationPricing foodItemCustomizationPricing : foodItemCustomizationPricingDetails) {
 			
 			Double existingPrice = foodItemCustomizationPricing.getPrice();
+			
+			if(Objects.isNull(existingPrice)) {
+				existingPrice = Double.valueOf(0);
+			}
 			
 			String combination = foodItemCustomizationPricing.getCustomiseType();
 			List<String> combinationTokens = Arrays.asList(combination.split("##"));
@@ -1067,11 +1116,13 @@ public class FoodItemService {
 			
 			System.out.println("Addon ItemIds : " + adOnItemIds);
 			
-			if(!ObjectUtils.isEmpty(addOnItems)) {
+			if(!ObjectUtils.isEmpty(adOnItemIds)) {
 				for(String addOnItemId : adOnItemIds) {
 					addOnItems.add(foodItemRepository.getFoodItem(Long.parseLong(addOnItemId)));
 				}
-			}			
+			}	
+			
+			System.out.println("addOnItems : " + addOnItems);
 			
 			foodItemDataToEdit.setAddOnItems(addOnItems);
 			foodItemDataToEdit.setAddOnDescription(customizationDetails.getAddOnDescription());

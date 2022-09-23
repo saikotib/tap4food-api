@@ -25,6 +25,8 @@ public class OrderDto {
 	
 	private Double totalAmount;
 	
+	private Double subTotal;
+	
 	private Long foodStallId;
 	
 	private String foodStallName;
@@ -43,6 +45,10 @@ public class OrderDto {
 	
 	@JsonProperty("isOtpVerified")
 	private boolean isOtpVerified;
+	
+	private Double tax;
+	
+	private Double taxAmount;
 	
 	@Data
 	public static class OrderedItem{

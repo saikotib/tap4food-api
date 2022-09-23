@@ -28,7 +28,7 @@ public class LocationService {
 		
 		if(Objects.nonNull(existingCountry)) {
 			existingCountry.setName(country.getName());
-			locationRepository.updateCountry(country);
+			locationRepository.updateCountry(existingCountry);
 		}		
 	}
 	

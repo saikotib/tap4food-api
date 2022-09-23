@@ -9,20 +9,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
+import com.endeavour.tap4food.admin.app.security.model.User;
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.Access;
 import com.endeavour.tap4food.app.model.Admin;
 import com.endeavour.tap4food.app.model.AdminRole;
 import com.endeavour.tap4food.app.model.BusinessUnit;
@@ -37,6 +35,7 @@ import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.model.collection.constants.BusinessUnitCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodCourtCollectionConstants;
 import com.endeavour.tap4food.app.model.collection.constants.FoodStallCollectionConstants;
+import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 import com.mongodb.client.FindIterable;
@@ -132,6 +131,14 @@ public class AdminRepository {
 
 		return Optional.ofNullable(merchant);
 	}
+	
+	public List<Merchant> getMerchants() {
+		Query query = new Query(Criteria.where("status").ne("DELETED"));
+
+		List<Merchant> merchants = mongoTemplate.find(query, Merchant.class);
+
+		return merchants;
+	}
 
 	@Transactional
 	public synchronized Long getRecentUniqueNumber() {
@@ -210,6 +217,12 @@ public class AdminRepository {
 		}
 		
 		return foodStallMap;
+	}
+	
+	public List<FoodStall> getFoodStallList(){
+		Query query = new Query();
+		List<FoodStall> foodStalls = mongoTemplate.find(query, FoodStall.class);
+		return foodStalls;
 	}
 	
 	public FoodStall updateMerchantStatus(Long uniqueNumber, Long foodstallId, String status) throws TFException {
@@ -367,6 +380,22 @@ public class AdminRepository {
 		
 		return buList;
 	}
+	
+	public List<BusinessUnit> getBusinessUnits(){
+		Query query = new Query();
+		
+		List<BusinessUnit> buList = mongoTemplate.find(query, BusinessUnit.class);
+		
+		return buList;
+	}
+	
+	public BusinessUnit getBusinessUnit(Long buId){
+		Query query = new Query(Criteria.where("businessUnitId").is(buId));
+		
+		BusinessUnit bu = mongoTemplate.findOne(query, BusinessUnit.class);
+		
+		return bu;
+	}
 
 	public Optional<BusinessUnit> findBusinessUnit(Long buId) {
 		Query query = new Query(Criteria.where("businessUnitId").is(buId));
@@ -390,6 +419,15 @@ public class AdminRepository {
 		Query query = new Query(Criteria.where("businessUnitId").is(buId));
 
 		List<FoodCourt> foodCourts = mongoTemplate.find(query, FoodCourt.class);
+		
+		System.out.println(foodCourts);
+
+		return foodCourts;
+	}
+	
+	public List<FoodCourt> getFoodCourts() {
+		
+		List<FoodCourt> foodCourts = mongoTemplate.findAll(FoodCourt.class);
 		
 		System.out.println(foodCourts);
 
@@ -473,6 +511,14 @@ public class AdminRepository {
 	public AdminRole saveAdminRole(AdminRole adminRole) {
 		return mongoTemplate.save(adminRole);
 	}
+	
+	public Access saveAdminRoleAccess(Access access) {
+		return mongoTemplate.save(access);
+	}
+	
+	public RoleConfiguration saveRoleConfiguration(RoleConfiguration config) {
+		return mongoTemplate.save(config);
+	}
 
 	public List<AdminRole> findAdminRoles() {
 		System.out.println(mongoTemplate.findAll(AdminRole.class));
@@ -518,11 +564,11 @@ public class AdminRepository {
 		return admin;
 	}
 
-	public Boolean deleteAdminUserByRole(long adminUserId) {
+	public Boolean deleteAdminUser(String adminUserId) {
 
 		Boolean flag = false;
 
-		mongoTemplate.remove(Query.query(Criteria.where("adminUserId").is(adminUserId)), Admin.class);
+		mongoTemplate.remove(Query.query(Criteria.where("_id").is(adminUserId)), Admin.class);
 
 		flag = true;
 		return flag;
@@ -544,6 +590,7 @@ public class AdminRepository {
 	}
 
 	public RoleConfiguration saveAdminRoleConfiguration(RoleConfiguration roleConfiguration) {
+		mongoTemplate.save(roleConfiguration);
 		return roleConfiguration;
 	}
 
@@ -591,6 +638,20 @@ public class AdminRepository {
 		return subscriptions;
 	}
 	
+	public Subscription getSubscriptionById(String id){
+		
+		Query query = new Query(Criteria.where("_id").is(id));
+		
+		Subscription subscription = mongoTemplate.findOne(query, Subscription.class);
+		
+		return subscription;
+	}
+	
+	public void deleteSubscription(Subscription subscription){
+				
+		mongoTemplate.remove(subscription);
+	}
+	
 	public TermsNConditions saveTermsAndConditions(String content) {
 		
 		TermsNConditions existingContent = this.getTermsAndConditions();
@@ -613,5 +674,21 @@ public class AdminRepository {
 		TermsNConditions content = mongoTemplate.findOne(query, TermsNConditions.class);
 		
 		return content;
+	}
+	
+	public List<User> getUsers(){
+		
+		List<User> users = mongoTemplate.findAll(User.class);
+		
+		System.out.println(users);
+		
+		return users;
+	}
+	
+	public List<Order> getOrders(){
+		
+		List<Order> orders = mongoTemplate.findAll(Order.class);
+		
+		return orders;
 	}
 }

@@ -3,7 +3,9 @@ package com.endeavour.tap4food.merchant.app.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -93,11 +95,47 @@ public class FoodStallController {
 		return responseEntity;
 	}
 	
+	@RequestMapping(value = "/{fs-id}/update-tax/{tax}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateTax(
+			@PathVariable("fs-id") Long fsId,
+			@PathVariable("tax") Double tax) throws TFException {
+
+		FoodStall foodstall = foodStallService.updateTax(fsId, tax);
+
+		ResponseHolder response = ResponseHolder.builder().data(foodstall).status("success")
+				.timestamp(String.valueOf(LocalDateTime.now())).build();
+
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/{fs-id}/get-tax", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getTax(
+			@PathVariable("fs-id") Long fsId) throws TFException {
+
+		Double tax = foodStallService.getTax(fsId);
+		
+		Map<String, Double> responseMap = new HashMap<String, Double>();
+		responseMap.put("tax", tax);
+
+		ResponseHolder response = ResponseHolder.builder().data(responseMap)
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.build();
+
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+
+		return responseEntity;
+	}
+	
 	@RequestMapping(value = "/{fs-id}/update-open-status", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodStallOpenStatus(
 			@PathVariable("fs-id") Long fsId,
 			@RequestParam("openStatus") boolean openStatus) throws TFException {
 
+		System.out.println("Openstatus :" + openStatus);
+		
 		FoodStall foodstall = foodStallService.updateFoodstallOpenStatus(fsId, openStatus);
 
 		ResponseHolder response = ResponseHolder.builder().data(foodstall).status("success")

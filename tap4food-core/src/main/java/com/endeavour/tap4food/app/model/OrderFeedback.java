@@ -24,4 +24,6 @@ public class OrderFeedback {
 	
 	private String customerPhoneNumber;
 	
+	private String email;
+	
 }

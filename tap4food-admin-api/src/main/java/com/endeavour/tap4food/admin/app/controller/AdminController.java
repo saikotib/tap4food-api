@@ -12,6 +12,9 @@ import javax.validation.Valid;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.endeavour.tap4food.admin.app.response.dto.FoodCourtResponse;
 import com.endeavour.tap4food.admin.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.admin.app.security.model.User;
 import com.endeavour.tap4food.admin.app.service.AdminService;
+import com.endeavour.tap4food.admin.app.service.CSVService;
 import com.endeavour.tap4food.app.exception.custom.TFException;
 import com.endeavour.tap4food.app.model.Access;
 import com.endeavour.tap4food.app.model.Admin;
@@ -41,7 +46,6 @@ import com.endeavour.tap4food.app.model.RoleConfiguration;
 import com.endeavour.tap4food.app.model.Subscription;
 import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.model.admin.TermsNConditions;
-import com.endeavour.tap4food.app.request.dto.MerchantSearchRequest;
 import com.endeavour.tap4food.app.response.dto.MerchantFoodStall;
 import com.endeavour.tap4food.app.service.CommonService;
 import com.endeavour.tap4food.app.util.AvatarImage;
@@ -58,6 +62,9 @@ public class AdminController {
 	
 	@Autowired
 	private CommonService commonService;
+	
+	@Autowired
+	private CSVService csvService;
 
 	@RequestMapping(value = "/update-foodstall-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updateFoodstallStatus(@RequestParam Long merchantUniqueId,
@@ -166,9 +173,9 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/update-business-unit", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateBusinessUnits(@Valid @RequestBody BusinessUnit businessUnit) {
+	public ResponseEntity<ResponseHolder> updateBusinessUnits(@RequestParam("buId") Long buId, @RequestParam("newName") String newName) {
 
-		BusinessUnit businessUniRes = adminService.saveBusinessUnits(businessUnit);
+		BusinessUnit businessUniRes = adminService.updateBusinessUnit(buId, newName);
 
 		ResponseEntity<ResponseHolder> response = null;
 		if (Objects.nonNull(businessUniRes)) {
@@ -443,6 +450,22 @@ public class AdminController {
 		return response;
 
 	}
+	
+	@RequestMapping(value = "/get-admin-role", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getAdminRole(@RequestParam("role") String role) {
+
+		AdminRole adminRole = adminService.getAdminRole(role);
+		
+		if(Objects.isNull(adminRole)) {
+			adminRole = new AdminRole();
+		}
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("Admin Roles retrieved successfully")
+				.timestamp(String.valueOf(LocalDateTime.now())).data(adminRole).build());
+
+		return response;
+
+	}
 
 	@RequestMapping(value = "/add-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> saveAdminUser(@RequestBody Admin admin) throws TFException {
@@ -527,7 +550,7 @@ public class AdminController {
 	}
 
 	@RequestMapping(value = "/delete-admin-user", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> deleteAdminUser(@RequestParam long adminUserId) throws TFException {
+	public ResponseEntity<ResponseHolder> deleteAdminUser(@RequestParam String adminUserId) throws TFException {
 
 		Boolean flag = adminService.deleteAdminUser(adminUserId);
 
@@ -617,8 +640,20 @@ public class AdminController {
 
 	}
 	
-	@RequestMapping(value = "/get-subscription", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getSubscription() throws TFException {
+	@RequestMapping(value = "/delete-subscription", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> deleteSubscription(@RequestParam("subscriptionId") String id) throws TFException {
+
+		adminService.deleteSubscription(id);
+
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder().status("success")
+					.timestamp(String.valueOf(LocalDateTime.now())).data("Subscription is deleted.").build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/get-subscriptions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getSubscriptions() throws TFException {
 
 		List<Subscription> subscriptions = adminService.getExistingSubscriptions();
 
@@ -677,5 +712,34 @@ public class AdminController {
 
 		return response;
 
+	}
+	
+	@RequestMapping(value = "/getCustomers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getCustomers() throws TFException {
+
+		List<User> users = adminService.getUsers();
+		
+		ResponseEntity<ResponseHolder> response = ResponseEntity.ok(ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(users)
+				.build());
+
+		return response;
+
+	}
+	
+	@RequestMapping(value = "/downloadCustomers", method = RequestMethod.GET)
+	public ResponseEntity<Resource> downloadServiceEngineers(){
+		
+		String fileName = "Customers_" + String.valueOf(LocalDateTime.now()) + ".csv";
+		
+		InputStreamResource file = new InputStreamResource(csvService.getCustomersStream());
+		
+	    return ResponseEntity.ok()
+	        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+	        .contentType(MediaType.parseMediaType("application/csv"))
+	        .body(file);
+		
 	}
 }

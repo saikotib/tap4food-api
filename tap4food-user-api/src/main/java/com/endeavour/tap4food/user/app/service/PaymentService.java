@@ -14,12 +14,12 @@ import com.razorpay.Transfer;
 public class PaymentService {
 
 //	Test Keys
-	private static final String SECRET_ID = "rzp_test_rMdZ1T7Z6asYXb";
-	private static final String SECRET_KEY = "ukwYXWOOjITBxaRZT8fWYt2C";
+//	private static final String SECRET_ID = "rzp_test_rMdZ1T7Z6asYXb";
+//	private static final String SECRET_KEY = "ukwYXWOOjITBxaRZT8fWYt2C";
 	
 //	Live Details	
-//	private static final String SECRET_ID = "rzp_live_ozqtNqhs4Il6ST";
-//	private static final String SECRET_KEY = "NbAPtMKFO0Zyal6QpgG8Da7W";
+	private static final String SECRET_ID = "rzp_live_ozqtNqhs4Il6ST";
+	private static final String SECRET_KEY = "NbAPtMKFO0Zyal6QpgG8Da7W";
 
 	@Bean
 	private RazorpayClient getClient() throws RazorpayException {

@@ -26,6 +26,7 @@ import com.endeavour.tap4food.app.model.FoodCourt;
 import com.endeavour.tap4food.app.model.Merchant;
 import com.endeavour.tap4food.app.model.MerchantBankDetails;
 import com.endeavour.tap4food.app.model.MerchantContactAdmin;
+import com.endeavour.tap4food.app.model.MerchantSettings;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.response.dto.StallManager;
 import com.endeavour.tap4food.app.util.ImageConstants;
@@ -322,5 +323,37 @@ public class MerchantController {
 		
 		return responseEntity;
 	}
+	
+	@RequestMapping(value = "/saveSettings", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> saveSettings(@RequestBody MerchantSettings request, @RequestParam("key") String key){
+		
+		merchantService.saveSettings(request.getMerchantId(), key);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data("Settings are saved.")
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;
+	} 
+	
+	@RequestMapping(value = "/{merchantId}/getSettings", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getSettings(@PathVariable("merchantId") Long merchantId){
+		
+		MerchantSettings settings = merchantService.getSettings(merchantId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(settings)
+				.build();
+		
+		ResponseEntity<ResponseHolder> responseEntity = new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+		
+		return responseEntity;
+	} 
 
 }

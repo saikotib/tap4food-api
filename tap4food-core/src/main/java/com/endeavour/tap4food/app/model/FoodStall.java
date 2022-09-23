@@ -73,11 +73,19 @@ public class FoodStall {
 	
 	private String createdDate;
 	
+	private String subscriptionId;
+	
+	private String startDate;
+	
+	private String endDate;
+	
 	@JsonProperty("isOpened")
 	private boolean isOpened;
 	
 	@JsonProperty("isRestaurant")
 	private boolean isRestaurant;
+	
+	private Double tax;
 	
 	@DBRef
 	private MenuListings menuListing;

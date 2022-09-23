@@ -29,6 +29,8 @@ public class User {
 	
 	private String phoneNumber;
 	
+	private String fullName;
+	
 	@NotBlank
 	@Size(max = 50)
 	private String userName;
@@ -40,11 +42,12 @@ public class User {
 	@DBRef
 	private Set<UserRole> roles = new HashSet<>();
 	
-	public User(String username, String email, String password, String phoneNumber) {
+	public User(String username, String email, String password, String phoneNumber, String fullName) {
 	    this.userName = username;
 	    this.email = email;
 	    this.password = password;
 	    this.phoneNumber = phoneNumber;
+	    this.fullName = fullName;
 	}
 	
 	public User(String username, String email, String phoneNumber) {

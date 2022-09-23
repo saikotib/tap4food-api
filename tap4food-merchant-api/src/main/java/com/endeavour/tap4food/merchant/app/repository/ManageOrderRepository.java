@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.endeavour.tap4food.app.exception.custom.TFException;
+import com.endeavour.tap4food.app.model.CustomerComplaints;
+import com.endeavour.tap4food.app.model.OrderFeedback;
 import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.model.order.CartItem;
 import com.endeavour.tap4food.app.model.order.CartItemCustomization;
@@ -123,4 +125,23 @@ public class ManageOrderRepository {
 		
 		return notification;
 	}
+	
+	public List<OrderFeedback> getFeedbacks(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		List<OrderFeedback> feedbackList = mongoTemplate.find(query, OrderFeedback.class);
+		
+		return feedbackList;
+	}
+	
+	public List<CustomerComplaints> getCustomerComplaints(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId));
+		
+		List<CustomerComplaints> complaints = mongoTemplate.find(query, CustomerComplaints.class);
+		
+		return complaints;
+	}
+	
 }

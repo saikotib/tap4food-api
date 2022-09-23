@@ -1,7 +1,5 @@
 package com.endeavour.tap4food.app.model.notifications;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import lombok.Data;
 
 @Data
