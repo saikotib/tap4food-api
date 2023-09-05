@@ -167,4 +167,20 @@ public class OfferController {
 		
 		return ResponseEntity.ok().body(response);
 	}
+	
+	@RequestMapping(value = "/update-offer-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> updateOfferStatus(@RequestParam("fsId") Long fsId,
+			@RequestParam("offerId") Long offerId,
+			@RequestParam("activeFlag") Boolean flag) throws TFException{
+		
+		String message = offerService.updateOfferStatus(fsId, offerId, flag);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.timestamp(String.valueOf(LocalDateTime.now()))
+				.data(message)
+				.build();
+		
+		return ResponseEntity.ok().body(response);
+	}
 }

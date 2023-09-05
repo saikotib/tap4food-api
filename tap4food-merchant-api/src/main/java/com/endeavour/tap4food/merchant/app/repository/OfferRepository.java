@@ -52,7 +52,8 @@ public class OfferRepository {
 	
 	public List<Offer> getOffers(Long fsId){
 		
-		Query query = new Query(Criteria.where("fsId").is(fsId).andOperator(Criteria.where("status").is("ACTIVE")));
+		Query query = new Query(Criteria.where("fsId").is(fsId).andOperator(Criteria.where("status").ne("DELETED")));
+//		Query query = new Query(Criteria.where("fsId").is(fsId));
 		
 		List<Offer> offers = mongoTemplate.find(query, Offer.class);
 	

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,15 +20,14 @@ import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.model.order.OrderedOfferItems;
-import com.endeavour.tap4food.app.model.order.RazorPayOrder;
-import com.endeavour.tap4food.app.model.order.UpdatePaymentDetailsRequest;
+import com.endeavour.tap4food.app.model.order.PaytmReceipt;
 import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
 import com.endeavour.tap4food.app.response.dto.OrderDto;
 import com.endeavour.tap4food.app.service.NotificationService;
 import com.endeavour.tap4food.app.util.DateUtil;
+import com.endeavour.tap4food.user.app.config.PaytmDetailPojo;
 import com.endeavour.tap4food.user.app.repository.OrderRepository;
-import com.razorpay.RazorpayException;
-import com.razorpay.Transfer;
+import com.paytm.pg.merchant.PaytmChecksum;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,14 +38,17 @@ public class OrderService {
 	@Autowired
 	private OrderRepository orderRepository;
 	
-	@Autowired
-	private PaymentService paymentService;
+//	@Autowired
+//	private PaymentService paymentService;
 	
 	@Autowired
 	private NotificationService notificationService;
 	
 	@Autowired
 	private WebSocketNotificationService webSocketNotificationService;
+	
+	@Autowired
+	private PaytmDetailPojo paytmDetailPojo;
 	
 	public Order placeOrder(PlaceOrderRequest orderRequest) {
 		
@@ -71,7 +74,7 @@ public class OrderService {
 		FoodStall stall = orderRepository.getFoodStall(orderRequest.getFoodStallId());
 		
 		if(stall.getTax() == null) {
-			order.setTax(Double.valueOf(5));
+			order.setTax(Double.valueOf(0));
 		}else {
 			order.setTax(stall.getTax());
 		}
@@ -88,7 +91,8 @@ public class OrderService {
 		order.setStatus("NEW");
 		order.setPaymentStatus("InProgress");
 		order.setSubTotalAmount(orderRequest.getSubTotalAmount());
-		order.setTaxAmount(orderRequest.getTaxAmount());
+		order.setCTaxAmount((orderRequest.getCTaxAmount()));
+		order.setSTaxAmount(orderRequest.getSTaxAmount());
 		
 		List<PlaceOrderRequest.SelectedCartItem> selectedCartItems = orderRequest.getCartItems();
 		
@@ -171,7 +175,8 @@ public class OrderService {
 		customer.setId(newOrderSeq);
 		
 		orderRepository.saveCustomer(customer);
-				
+		
+		/*
 		try {
 			RazorPayOrder rzpOrder = paymentService.createRPOrder(customer.getPhoneNumber(), order.getGrandTotal());
 			
@@ -181,10 +186,37 @@ public class OrderService {
 
 			e.printStackTrace();
 		}
+		*/
+		
+		try {
+			
+			TreeMap<String, String> parameters = new TreeMap<>();
+			paytmDetailPojo.getDetails().forEach((k, v) -> parameters.put(k, v));
+			parameters.put("MOBILE_NO", orderRequest.getCustomer().getPhoneNumber());
+			parameters.put("EMAIL", orderRequest.getCustomer().getEmail());
+			parameters.put("ORDER_ID", String.valueOf(order.getOrderId()));
+			parameters.put("TXN_AMOUNT", String.valueOf(order.getGrandTotal()));
+			parameters.put("CUST_ID", orderRequest.getCustomer().getPhoneNumber());
+			String checkSum = getCheckSum(parameters);
+			System.out.println(checkSum);
+			
+			PaytmReceipt paytmRecept = new PaytmReceipt();
+			paytmRecept.setChecksum(checkSum);
+			paytmRecept.setOrderId(order.getOrderId());
+			
+			order.setPaytmReceipt(paytmRecept);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		System.out.println("Order is placed : " + order);
 		
 		return order;
+	}
+	
+	private String getCheckSum(TreeMap<String, String> parameters) throws Exception {
+		return PaytmChecksum.generateSignature(parameters, paytmDetailPojo.getMerchantKey());
 	}
 	
 	private void addToNotifications(String phoneNumber, Long foodStallId, String message, Long orderId, String orderStatus) {
@@ -352,6 +384,8 @@ public class OrderService {
 			orderDto.setSubTotal(subTotal);
 			orderDto.setTaxAmount(taxAmount);
 			orderDto.setOrderedItems(orderedItems);
+			orderDto.setOtp(order.getOtp());
+			orderDto.setDeliveryTime(order.getDeliveryTime());
 			
 			orders.add(orderDto);
 		}
@@ -369,45 +403,80 @@ public class OrderService {
 		return cartItems;
 	}
 	
-	public Order updateOrderPaymentStatus(UpdatePaymentDetailsRequest request) {
+	public Order getOrder(Long orderId){
+		Order order = orderRepository.getOrder(orderId);
 		
-		Order order = orderRepository.getOrder(request.getOrderId());
-		order.setPaymentStatus(request.getPaymentStatus());
-		order.setPaymentId(request.getPaymentId());
-		order.setPaymentSignature(request.getPaymentSignature());
-		order.setRzpOrderId(request.getRzpOrderId());
+		return order;
+	}
+	
+	public Order updateOrderPaymentStatus(TreeMap<String, String> request, String status, Long orderId) {
+		
+		Order order = orderRepository.getOrder(orderId);
+		order.setPaymentStatus(status);
+		order.setTransactionId(request.get("TXNID"));
+		order.setPayTmTransactionParameters(request);
 		
 		orderRepository.updateOrder(order);
 		
 //		this.directTransferToMerchant(order.getOrderId(), order.getGrandTotal());
 		
-		if(request.getPaymentStatus().equals("Completed")) {
+		if(status.equals("Completed")) {
+			
+			Customer customer = orderRepository.getCustomer(orderId);
 			
 			Notification notification = new Notification();
 			notification.setMessage("New order is placed");
-			notification.setSender(request.getPhoneNumber());
+			notification.setSender(customer.getPhoneNumber());
 			notification.setReciever(String.valueOf(order.getFoodStallId()));
 			notification.setStatus("NEW");
 			
 			webSocketNotificationService.sendNotificationToMerchant(notification);
 			
-			this.addToNotifications(request.getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
+			this.addToNotifications(customer.getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
 		}
 		
 		return order;
 	}
+	
+//	public Order updateOrderPaymentStatus(UpdatePaymentDetailsRequest request) {
+//		
+//		Order order = orderRepository.getOrder(request.getOrderId());
+//		order.setPaymentStatus(request.getPaymentStatus());
+//		order.setPaymentId(request.getPaymentId());
+//		order.setPaymentSignature(request.getPaymentSignature());
+//		order.setRzpOrderId(request.getRzpOrderId());
+//		
+//		orderRepository.updateOrder(order);
+//		
+////		this.directTransferToMerchant(order.getOrderId(), order.getGrandTotal());
+//		
+//		if(request.getPaymentStatus().equals("Completed")) {
+//			
+//			Notification notification = new Notification();
+//			notification.setMessage("New order is placed");
+//			notification.setSender(request.getPhoneNumber());
+//			notification.setReciever(String.valueOf(order.getFoodStallId()));
+//			notification.setStatus("NEW");
+//			
+//			webSocketNotificationService.sendNotificationToMerchant(notification);
+//			
+//			this.addToNotifications(request.getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
+//		}
+//		
+//		return order;
+//	}
 		
-	public void directTransferToMerchant(long orderId, Double amount) {
-		
-		String account = "acc_Iiof4RJnl5vwRy";
-		
-		try {
-			Transfer tx = paymentService.directTransfer(account, amount);
-			System.out.println(tx);
-		} catch (RazorpayException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void directTransferToMerchant(long orderId, Double amount) {
+//		
+//		String account = "acc_Iiof4RJnl5vwRy";
+//		
+//		try {
+//			Transfer tx = paymentService.directTransfer(account, amount);
+//			System.out.println(tx);
+//		} catch (RazorpayException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	
 }

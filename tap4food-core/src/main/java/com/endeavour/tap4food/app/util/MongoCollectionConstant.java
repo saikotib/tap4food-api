@@ -89,4 +89,6 @@ public class MongoCollectionConstant {
 	public static final String COLLECTION_SUBSCRIPTIONS = "subscriptions";
 	
 	public static final String COLLECTION_FOODSTALL_SUBSCRIPTIONS = "foodstallSubscriptions";
+	
+	public static final String COLLECTION_PRE_PROCESSED_FOODITEMS = "preProcessedFoodItems";
 }

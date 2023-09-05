@@ -66,6 +66,9 @@ public class MerchantService {
 	@Value("${images.server}")
 	private String mediaServerUrl;
 	
+	@Autowired
+	private MenuCacheService menuCacheService;
+	
 	private static final int OTP_EXPIRY_TIME_IN_MS = 5 * 60 * 1000;
 
 	public Optional<Merchant> findByEmailId(String emailId) {
@@ -522,6 +525,17 @@ public class MerchantService {
 		
 		return merchantRepository.findMerchantBankDetailsByUniqueNumber(uniqueId);
 	}
+	
+	private void addFoodItemsListToCache(Long foodStallId) {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+//				menuCacheService.addFoodItemsPricingDetailsToCacheV2(foodStallId);
+			}
+		});
+		executor.shutdown();
+	}
 
 	public Optional<Merchant> getMerchantDetailsByUniqueId(final Long uniqueNumber) throws TFException {
 		Merchant merchant = merchantRepository.getMerchant(uniqueNumber);
@@ -545,6 +559,7 @@ public class MerchantService {
 				
 				if(stall.isRestaurant()) {
 					foodStallsList.add(stall);
+					addFoodItemsListToCache(stall.getFoodStallId());
 				}else {
 					Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
 					
@@ -554,6 +569,8 @@ public class MerchantService {
 						stall.setBuName(bu.getName());
 						
 						foodStallsList.add(stall);
+						
+						addFoodItemsListToCache(stall.getFoodStallId());
 					}
 				}
 				
@@ -577,6 +594,7 @@ public class MerchantService {
 				
 				if(stall.isRestaurant()) {
 					foodStallsList.add(stall);
+					addFoodItemsListToCache(stall.getFoodStallId());
 				}else {
 					Optional<BusinessUnit> buData = foodStallRepository.findBusinessUnit(stall.getBuId());
 					
@@ -586,6 +604,7 @@ public class MerchantService {
 						stall.setBuName(bu.getName());
 						
 						foodStallsList.add(stall);
+						addFoodItemsListToCache(stall.getFoodStallId());
 					}
 				}			
 				

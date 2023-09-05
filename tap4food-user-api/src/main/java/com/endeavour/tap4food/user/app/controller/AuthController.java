@@ -61,9 +61,16 @@ public class AuthController {
 	JwtUtils jwtUtils;
 	
 	@RequestMapping(value = "/phone-number-login", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber) throws TFException {
+	public ResponseEntity<ResponseHolder> loginWithPhoneNumber(@RequestParam("phone-number") String phoneNumber,
+			@RequestParam(value = "orderId", required = false) Long orderId) throws TFException {
 
-		boolean smsSentFlag = customerService.sendOTPToPhone(phoneNumber);
+		boolean smsSentFlag;
+		if(orderId == null || orderId == 0) {
+			smsSentFlag = customerService.sendOTPToPhone(phoneNumber);
+		} else {
+			smsSentFlag = customerService.sendOTPToPhone(phoneNumber, orderId);
+		}
+		 
 		ResponseHolder response = null;
 		
 		if(smsSentFlag){
@@ -214,7 +221,8 @@ public class AuthController {
 	
 	
 	@RequestMapping(value = "/resent-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber) throws TFException{
+	public ResponseEntity<ResponseHolder> resendOTP(@RequestParam("phone-number") String phoneNumber,
+			@RequestParam(value = "orderId", required = false) Long orderId) throws TFException{
 		
 		userService.resendOtp(phoneNumber);
 		

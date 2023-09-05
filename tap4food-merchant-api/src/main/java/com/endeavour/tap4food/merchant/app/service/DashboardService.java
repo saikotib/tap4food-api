@@ -67,6 +67,7 @@ public class DashboardService {
 			allOrders ++;
 		}
 		
+		response.setAllOrdersList(allOrdersList);
 		
 		response.setOpenOrders(openOrders);
 		response.setDeliveredOrders(deliveredOrders);

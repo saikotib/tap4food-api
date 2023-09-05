@@ -17,8 +17,6 @@ import com.endeavour.tap4food.app.request.dto.PlaceOrderRequest;
 import com.endeavour.tap4food.app.response.dto.OrderDto;
 import com.endeavour.tap4food.user.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.user.app.service.OrderService;
-import com.endeavour.tap4food.user.app.service.PaymentService;
-import com.razorpay.RazorpayException;
 
 import io.swagger.annotations.Api;
 
@@ -30,8 +28,8 @@ public class OrderController {
 	@Autowired
 	private OrderService orderService;
 	
-	@Autowired
-	private PaymentService paymentService;
+//	@Autowired
+//	private PaymentService paymentService;
 
 
 	@RequestMapping(value = "/placeOrder", method = RequestMethod.POST ,consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -50,16 +48,16 @@ public class OrderController {
 	@RequestMapping(value = "/updatePaymentStatus", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> updatePaymentStatus(@RequestBody UpdatePaymentDetailsRequest request){
 		
-		Order order = orderService.updateOrderPaymentStatus(request);
+//		Order order = orderService.updateOrderPaymentStatus(request);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("OK")
-				.data(order)
+				.data("Disabled")
 				.build();
 		
 		return ResponseEntity.ok().body(response);
 	}
-	
+	/*
 	@RequestMapping(value = "/testPayment", method = RequestMethod.POST ,produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> testPayment() throws RazorpayException{
 		
@@ -72,7 +70,7 @@ public class OrderController {
 		
 		return ResponseEntity.ok().body(response);
 	}
-	
+	*/
 	@RequestMapping(value = "/getOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getOrders(@RequestParam("phoneNumber") String phoneNunber){
 		

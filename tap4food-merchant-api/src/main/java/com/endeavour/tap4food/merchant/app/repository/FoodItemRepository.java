@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -24,6 +26,7 @@ import com.endeavour.tap4food.app.model.menu.CustFoodItem;
 import com.endeavour.tap4food.app.request.dto.FoodItemEditRequest;
 import com.endeavour.tap4food.app.service.CommonSequenceService;
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
+import com.mongodb.bulk.BulkWriteResult;
 
 @Repository
 public class FoodItemRepository {
@@ -42,6 +45,21 @@ public class FoodItemRepository {
 			throw new TFException("Error occured while adding food item");
 		}
 		return foodItem;
+	}
+	
+	public void addFoodItems(List<FoodItem> foodItems){
+	
+		BulkOperations bulkFoodItemsInsertOperations = mongoTemplate.bulkOps(BulkMode.UNORDERED, FoodItem.class);
+		BulkOperations bulkFoodItemsPricingInsertOperations = mongoTemplate.bulkOps(BulkMode.UNORDERED, FoodItemPricing.class);
+		
+		for(FoodItem foodItem : foodItems) {
+			foodItem.setFoodItemId(getIdForNewFoodItem());
+			bulkFoodItemsInsertOperations.insert(foodItem);
+			bulkFoodItemsPricingInsertOperations.insert(getItemPricing(foodItem, Double.valueOf(0)));
+		}
+		
+		bulkFoodItemsInsertOperations.execute();
+		bulkFoodItemsPricingInsertOperations.execute();		
 	}
 	
 	public void updateFoodItem(FoodItem foodItem) throws TFException {
@@ -158,8 +176,11 @@ public class FoodItemRepository {
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
 		
 		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
-		
-		return foodItem.getPrice();
+		if(Objects.isNull(foodItem)) {
+			return Double.valueOf(0);
+		}else {
+			return foodItem.getPrice();
+		}		
 	}
 	
 	public Double getFoodItemPrice(String pricingId) {
@@ -171,6 +192,16 @@ public class FoodItemRepository {
 	}
 	
 	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
+		
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true),
+				Criteria.where("status").ne("DELETED")));
+		
+		List<FoodItemPricing> foodItems = mongoTemplate.find(query, FoodItemPricing.class);
+		
+		return foodItems;
+	}
+	
+	public List<FoodItemPricing> getFoodItemPricingDetailsV2(Long fsId){
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true),
 				Criteria.where("status").ne("DELETED")));
@@ -332,6 +363,28 @@ public class FoodItemRepository {
 		mongoTemplate.save(itemPricingInfo);
 	}
 	
+	public FoodItemPricing getItemPricing(FoodItem foodItem, Double price) {
+		
+		FoodItemPricing itemPricingInfo = new FoodItemPricing();
+		itemPricingInfo.setCategory(foodItem.getCategory());
+		itemPricingInfo.setSubCategory(foodItem.getSubCategory());
+		itemPricingInfo.setFoodItemName(foodItem.getFoodItemName());
+		itemPricingInfo.setPrice(price);
+//		itemPricingInfo.setCombinationPrice(Double.valueOf(0));
+		
+		if(StringUtils.hasText(foodItem.getCombination())) {
+			itemPricingInfo.setCombination(foodItem.getCombination());
+			itemPricingInfo.setBaseItem(false);
+		}else {
+			itemPricingInfo.setBaseItem(true);
+		}
+		
+		itemPricingInfo.setFoodItemId(foodItem.getFoodItemId());
+		itemPricingInfo.setFoodStallId(foodItem.getFoodStallId());
+		
+		return itemPricingInfo;
+	}
+	
 	public void addItemCustomizationRawData(FoodItem foodItem, FoodItemCustomiseDetails customizationDetails) {
 		
 		FoodItemPricing itemPricingInfo = new FoodItemPricing();
@@ -345,9 +398,13 @@ public class FoodItemRepository {
 	
 	public void addItemCustomizationPricing(List<FoodItemCustomizationPricing> pricingDataList) {
 		
+		BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkMode.ORDERED, FoodItemCustomizationPricing.class);
+		
 		for(FoodItemCustomizationPricing pricingData : pricingDataList) {
-			mongoTemplate.save(pricingData);
+			bulkOperations.insert(pricingData);
 		}
+		
+		bulkOperations.execute();
 	}
 	
 	public void deleteFoodItem(Long foodItemId) {
@@ -371,6 +428,7 @@ public class FoodItemRepository {
 		
 		Long foodItemId = foodItem.getFoodItemId();
 		
+		
 		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
 		
 		mongoTemplate.remove(query, FoodItemCustomizationPricing.class);
@@ -381,10 +439,19 @@ public class FoodItemRepository {
 		
 		List<FoodItem> childFoodItems = mongoTemplate.find(query, FoodItem.class);
 		
-		for(FoodItem childItem : childFoodItems) {
-			query = new Query(Criteria.where("foodItemId").is(childItem.getFoodItemId()));
-			mongoTemplate.remove(query, FoodItemPricing.class);
-		}
+//		for(FoodItem childItem : childFoodItems) {
+//			query = new Query(Criteria.where("foodItemId").is(childItem.getFoodItemId()));
+//			mongoTemplate.remove(query, FoodItemPricing.class);
+//		}
+		if(!childFoodItems.isEmpty()) {
+			BulkOperations removeChildItemsBulkOperation = mongoTemplate.bulkOps(BulkMode.UNORDERED, FoodItem.class);
+			
+			for(FoodItem childItem : childFoodItems) {
+				removeChildItemsBulkOperation.remove(new Query(Criteria.where("foodItemId").is(childItem.getFoodItemId())));
+			}
+			
+			removeChildItemsBulkOperation.execute();
+		}		
 		
 		query = new Query(Criteria.where("foodItemId").is(foodItemId));
 		

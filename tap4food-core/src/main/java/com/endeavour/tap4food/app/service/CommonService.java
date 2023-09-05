@@ -111,9 +111,13 @@ public class CommonService {
 	public boolean sendSMS(String phoneNumber,String message) {
 		String userId = "flyingkart";
 		String password = "krish";
-		String senderId = "TAPFOD";
-		String partnerEntityId = "1201159245741531244";
-		String templateId = "1207162433679098476";
+//		String senderId = "TAPFOD";
+//		String partnerEntityId = "1201159245741531244";
+//		String templateId = "1207162433679098476";
+		
+		String senderId = "INTSMS";
+		String partnerEntityId = "1701158036727349102";
+		String templateId = "1707168776336450408";
 
 		message = message.replaceAll("/", "%2F").replaceAll(":", "%3A").replaceAll("\\?", "%3F").replaceAll("=", "%3D").replaceAll("-", "%2D");
 		

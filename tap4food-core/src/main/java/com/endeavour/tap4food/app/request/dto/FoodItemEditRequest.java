@@ -54,4 +54,5 @@ public class FoodItemEditRequest {
 
 	private String addOnCustomerSpecification;
 	
+	private String taxType;
 }

@@ -1,7 +1,10 @@
 package com.endeavour.tap4food.merchant.app.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -42,7 +45,27 @@ public class OrderController {
 	}
 	
 	@RequestMapping(value = "/get-order-history", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> getOrderHistory(@RequestParam("fsId") Long foodStallId){
+	public ResponseEntity<ResponseHolder> getOrderHistory(@RequestParam("fsId") Long foodStallId) throws Exception{
+		
+		LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = today.format(formatter);
+
+        Thread thread = new Thread(() -> {
+            try {
+				updateTransactionDetails(formattedDate);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        });
+
+        thread.start();
+
+        // Continue with other main thread logic
+
+        
+        
 		
 		List<OrderDto> orders = manageOrderService.getOrderHistory(foodStallId);
 		
@@ -55,9 +78,11 @@ public class OrderController {
 	}
 	
 	@RequestMapping(value = "/update-status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateStatus(@RequestParam("orderId") Long orderId, @RequestParam("status") String status) throws TFException{
+	public ResponseEntity<ResponseHolder> updateStatus(@RequestParam("orderId") Long orderId, 
+			@RequestParam("status") String status,
+			@RequestParam(name = "deliveryTime", required = false) String deliveryTime) throws TFException{
 		
-		manageOrderService.updateOrderStatus(orderId, status);
+		manageOrderService.updateOrderStatus(orderId, status, deliveryTime);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -66,7 +91,7 @@ public class OrderController {
 		
 		return ResponseEntity.ok().body(response);		
 	}
-	
+		
 	@RequestMapping(value = "/get-notifications", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getNotifications(@RequestParam("fsId") Long foodStallId){
 		
@@ -80,6 +105,11 @@ public class OrderController {
 		return ResponseEntity.ok().body(response);		
 	}
 	
+	@RequestMapping(value ="/update-transactiondetails" ,method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public String updateTransactionDetails(@RequestParam("date") String date) throws Exception {
+		
+		return manageOrderService.updatepaytmPaymentdetails(date);
+	}
 	@RequestMapping(value = "/get-orders-feedback", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getOrdersFeedback(@RequestParam("fsId") Long foodStallId){
 		

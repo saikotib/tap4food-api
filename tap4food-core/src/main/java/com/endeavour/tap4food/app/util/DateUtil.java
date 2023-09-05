@@ -3,6 +3,7 @@ package com.endeavour.tap4food.app.util;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -21,7 +22,18 @@ public class DateUtil {
 	
 	public static void main(String[] args) throws ParseException {
 		
-		System.out.println(getMonth("2022-07-01 02:50:41"));
+		System.out.println("start");
+		String date = "2022-07-01 17:07:36";
+		
+		String dayVal = date.substring(0, 10).trim();
+		
+		String dateInString =new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		
+					
+		System.out.println(dayVal);
+		System.out.println(dateInString);
+		
+//		System.out.println(getMonth("2022-07-01 02:50:41"));
 //		System.out.println(getPresentDateAndTimeInGMT());
 //		System.out.println(getPresentDateAndTimeInIST());
 
@@ -41,6 +53,15 @@ public class DateUtil {
 //		System.out.println("IST Time: " + gmtFormat.format(date));
 //
 //		System.out.println(Integer.parseInt("01"));
+	}
+	
+	public static boolean isToday(String date) {
+		
+		String dayVal = date.substring(0, 10).trim();
+		
+		String dateInString =new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		
+		return dayVal.equalsIgnoreCase(dateInString);
 	}
 	
 	public static String todayName(String customerTimeZone) {

@@ -42,6 +42,8 @@ public class FoodItem {
 	
 	private boolean isEgg;
 	
+	private boolean isNonVeg;
+	
 	private boolean isReccommended;
 	
 	private boolean isPizza;
@@ -70,4 +72,6 @@ public class FoodItem {
 	private boolean isDefaultCombination;
 	
 	private String status;
+	
+	private String taxType;
 }

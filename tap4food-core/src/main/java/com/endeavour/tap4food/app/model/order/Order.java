@@ -1,5 +1,7 @@
 package com.endeavour.tap4food.app.model.order;
 
+import java.util.TreeMap;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -19,10 +21,12 @@ public class Order {
 
 	private Double subTotalAmount;
 	
-	private Double taxAmount;
+	private Double sTaxAmount;
+	
+	private Double cTaxAmount;
 	
 	private Double grandTotal;
-	
+		
 	private boolean selfPickup;
 	
 	private Long foodStallId;
@@ -45,14 +49,19 @@ public class Order {
 	
 	private String paymentId;
 	
-	private String rzpOrderId;
+	private String transactionId;
 	
-	private String paymentSignature;
+	 TreeMap<String, String> payTmTransactionParameters;
+//	private RazorPayOrder razorPayOrderDetails;
 	
-	private RazorPayOrder razorPayOrderDetails;
-	
+	private PaytmReceipt paytmReceipt;
+			
 	@JsonProperty("isOtpVerified")
 	private boolean isOtpVerified;
 	
 	private Double tax;
+	
+	private String otp;
+	
+	private String deliveryTime;
 }

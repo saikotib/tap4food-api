@@ -85,6 +85,25 @@ public class OfferService {
 		offerRepository.updateOffer(existingOffer);
 	}
 	
+	public String updateOfferStatus(Long fsId, Long offerId, Boolean flag) {
+		
+		Offer existingOffer = offerRepository.getOffer(fsId, offerId);
+		
+		String message = null;
+		
+		if(flag != null && flag) {
+			existingOffer.setStatus("ACTIVE");
+			message = "Offer is activated";
+		}else {
+			existingOffer.setStatus("INACTIVE");
+			message = "Offer is deactivated";
+		}
+		
+		offerRepository.updateOffer(existingOffer);
+		
+		return message;
+	}
+	
 	public void updateOfferImage(Long fsId, Long offerId, String url) {
 		
 		Offer existingOffer = offerRepository.getOffer(fsId, offerId);
@@ -243,8 +262,8 @@ public class OfferService {
 				listItem.setListName("LIST-" + i);
 				listItem.setOfferId(offerId);
 				listItem.setOfferPrice(item.getOfferPrice());
-//				listItem.setSelectType(singleList.getButtonType());
-				listItem.setSelectType("Single");
+				listItem.setSelectType(singleList.getButtonType());
+//				listItem.setSelectType("Single");
 				listItem.setQuantity(item.getQuantity());
 			
 				offerRepository.createOfferFoodItemsList(listItem);

@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.endeavour.tap4food.app.util.MongoCollectionConstant;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data

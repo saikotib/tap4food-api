@@ -62,12 +62,15 @@ public class QRCodeService {
 			throws WriterException, IOException, TFException {
 		
 		String qrCodePath = imagesPath + File.separator + "QRCodes";
-			
+					
 		String imagesServerPath = imagesServer + "/QRCodes/" + foodCourtId + ".png";
+		
+		String qrFilePath = qrCodePath + File.separator + foodCourtId + ".png";
 		
 		if(Objects.nonNull(stallId)) {
 			qrCodePath = imagesPath + File.separator + "QRCodes" + File.separator + "self";
-			imagesServerPath = imagesServer + "/QRCodes/self/" + foodCourtId + ".png";
+			imagesServerPath = imagesServer + "/QRCodes/self/" + stallId + ".png";
+			qrFilePath = qrCodePath + File.separator + stallId + ".png";
 		}
 		
 		File qrCodeDirPath = new File(qrCodePath);
@@ -84,9 +87,9 @@ public class QRCodeService {
 		
 		if(Objects.nonNull(stallId)) {
 			embedUrl = embedUrl + "&stallId=" + stallId;
-		}
+		}		
 
-		generateColoredQRCode(embedUrl, qrCodePath + File.separator + foodCourtId + ".png");
+		generateColoredQRCode(embedUrl, qrFilePath);
 		
 		if(Objects.isNull(stallId)) {
 			adminRepository.updateFoodCourt(foodCourtId, imagesServerPath, true);

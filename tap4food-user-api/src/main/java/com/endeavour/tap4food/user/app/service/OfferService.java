@@ -10,6 +10,7 @@ import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.model.offer.FoodItemsList;
 import com.endeavour.tap4food.app.model.offer.Offer;
@@ -31,6 +32,10 @@ public class OfferService {
 		List<Offer> offers = userRepository.getOffers(fsId);
 		
 		for(Offer offer : offers) {
+			
+			if(StringUtils.hasText(offer.getStatus()) && offer.getStatus().equalsIgnoreCase("INACTIVE")) {
+				continue;
+			}
 			
 			OfferResponseDto offerDto = new OfferResponseDto();
 			offerDto.setCategory(offer.getCategory());

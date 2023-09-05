@@ -10,10 +10,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.endeavour.tap4food.app.enums.UserStatusEnum;
 import com.endeavour.tap4food.app.exception.custom.TFException;
@@ -28,7 +31,10 @@ import com.endeavour.tap4food.app.model.admin.AboutUs;
 import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
+import com.endeavour.tap4food.app.model.fooditem.FoodItemDto;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.model.fooditem.PreProcessedFoodItems;
+import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.repository.CommonRepository;
 import com.endeavour.tap4food.app.response.dto.CustomizationResponse;
 import com.endeavour.tap4food.app.response.dto.FoodCourtResponse;
@@ -54,6 +60,9 @@ public class CustomerService {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private OrderService orderService;
 	
 	private int otpValidTime = 5 * 60 * 1000;  // 5 mins in milliseconds
 	
@@ -88,9 +97,48 @@ public class CustomerService {
 				
 		//The SMS logic come here..
 		
-		String message = String.format("%s is the OTP to login to your Tap4Food.please enter the OTP to verify your mobile number.", otp).replaceAll("\\s", "%20");
+		String message = String.format("%s is the OTP to login to your Tap4Food.please enter the OTP to verify your mobile number. Tap4Food", otp).replaceAll("\\s", "%20");
 		
 		commonService.sendSMS(phoneNumber, message);
+		
+		log.info("The OTP generated : {}", otp);
+		
+		return true;		
+	}
+	
+	public boolean sendOTPToPhone(final String phoneNumber, final Long orderId) throws TFException {
+		
+		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
+				
+		if(userData.isPresent()) {
+			User user = userData.get();
+			if(user.getStatus().equals(UserStatusEnum.LOCKED)) {
+				if(commonService.getTimeDiff(user.getLockedTimeMs()) > blockReleasTime) {
+					user.setStatus(UserStatusEnum.ACTIVE.name());
+					userRepository.save(user);
+				}else {
+					throw new TFException("You phone number is blocked.");
+				}
+			}
+		}
+		Order order = orderService.getOrder(orderId);
+		
+		String otp = order.getOtp();
+		
+		Otp otpObject = new Otp();
+		otpObject.setIsExpired(false);
+		otpObject.setOtp(otp);
+		otpObject.setPhoneNumber(phoneNumber);
+		otpObject.setIsExpired(false);
+		otpObject.setOtpSentTimeInMs(System.currentTimeMillis());
+		
+		commonRepository.persistOTP(otpObject);
+				
+		//The SMS logic come here..
+		
+//		String message = String.format("%s is the OTP to login to your Tap4Food.please enter the OTP to verify your mobile number. INTECH", otp).replaceAll("\\s", "%20");
+		
+//		commonService.sendSMS(phoneNumber, message);
 		
 		log.info("The OTP generated : {}", otp);
 		
@@ -207,7 +255,10 @@ public class CustomerService {
 					}			
 					
 				}
-			}		
+			}
+			if(Objects.isNull(stall.getKeywords())) {
+				stall.setKeywords(Collections.emptySet());
+			}
 			
 			responseFoodstalls.add(stall);
 		}
@@ -240,9 +291,16 @@ public class CustomerService {
 		return response;
 	}
 	
+	public Map<String, List<FoodItem>> getFoodItems_Parked(Long fsId){
+		PreProcessedFoodItems preProcessedData = userRepository.getPreProcessedData(fsId);
+		return preProcessedData.getFoodItemsMapByCategory();
+	}
+	
+	
+	
 	public Map<String, List<FoodItem>> getFoodItems(Long fsId){
 		
-		Map<String, List<FoodItem>> foodItemsMap = new HashMap<String, List<FoodItem>>();
+		Map<String, List<FoodItem>> foodItemsMap = new LinkedHashMap<String, List<FoodItem>>();
 		
 		List<FoodItem> foodItems = userRepository.getFoodItems(fsId);
 		List<FoodItem> recomendedFoodItems = new ArrayList<FoodItem>();
@@ -251,8 +309,10 @@ public class CustomerService {
 		
 		for(FoodItem foodItem : foodItems) {
 			
-			System.out.println(foodItem);
-			
+			if(!StringUtils.hasText(foodItem.getTaxType())) {
+				foodItem.setTaxType("E");
+			}
+						
 			if(foodItem.getPrice() == null || foodItem.getPrice() == 0) {
 				continue;
 			}
@@ -264,7 +324,11 @@ public class CustomerService {
 			String category = foodItem.getCategory();
 			String subcategory = foodItem.getSubCategory();
 			
-			String categoryAndSubCategory = category + " - " + subcategory;
+			String categoryAndSubCategory = category;
+			
+			if(!category.equalsIgnoreCase(subcategory)) {
+				categoryAndSubCategory = category + " - " + subcategory;
+			}
 			
 			if(!foodItemsMap.containsKey(categoryAndSubCategory)) {
 				foodItemsMap.put(categoryAndSubCategory, new ArrayList<FoodItem>());
@@ -305,8 +369,12 @@ public class CustomerService {
 
 		for(String customizeTypeEntry : rawDescriptions) {
 			String customizeItemTokens[] = customizeTypeEntry.split("~");
+			if(customizeItemTokens.length == 2) {
+				customiseTypeDescriptionsMap.put(customizeItemTokens[0], customizeItemTokens[1]);
+			}else {
+				customiseTypeDescriptionsMap.put(customizeItemTokens[0], "");
+			}
 			
-			customiseTypeDescriptionsMap.put(customizeItemTokens[0], customizeItemTokens[1]);
 		}
 		
 		return customiseTypeDescriptionsMap;
@@ -409,6 +477,10 @@ public class CustomerService {
 						System.out.println("combination > " + combination);
 						FoodItem combinationItem = combinationItemsMap.get(combination);
 						
+						if(Objects.isNull(combinationItem)) {
+							continue;
+						}
+						
 						ItemPatternPrice itemPatternPrice = new ItemPatternPrice();
 						itemPatternPrice.setPattern(combination);
 						itemPatternPrice.setPrice(combinationItem.getPrice());
@@ -433,6 +505,10 @@ public class CustomerService {
 						String custType = topKeyItem + "~" +customizeTypeWiseFoodItem;
 						
 						FoodItem combinationItem = combinationItemsMap.get(custType);
+						
+						if(Objects.isNull(combinationItem)) {
+							continue;
+						}
 						
 						FoodItemPricing pricingInfo = userRepository.getCombinationPrices(combinationItem.getFoodItemId());
 
@@ -675,4 +751,128 @@ public class CustomerService {
 		
 		return userRepository.getTnC();
 	}
+	
+	public Set<String> getSuggestionList(Long fcId) {
+		
+		Set<String> suggestions = new HashSet<String>();
+		
+		List<FoodStall> stalls = userRepository.getFoodStalls(fcId);
+		
+		stalls.forEach(stall -> {
+			List<FoodItem> items = userRepository.getFoodItems(stall.getFoodStallId());
+			items.forEach(item -> {
+				suggestions.add(item.getFoodItemName());
+			});
+		});
+		
+		return suggestions;
+	}
+
+	public List<Binary> getImageBytesById(Long foodItemId) {
+		FoodItem foodItems = userRepository.getFoodItem(foodItemId);
+		return foodItems.getPic();
+	}
+	
+	 public Map<String, List<FoodItemDto>> getFoodItemsMapped(Long fsId) {
+	        Map<String, List<FoodItem>> foodItemsMap = getFoodItemsWithoutpic(fsId);
+
+	        Map<String, List<FoodItemDto>> foodItemsDtoMap = new HashMap<>();
+
+	        foodItemsMap.forEach((key, foodItemList) -> {
+	            List<FoodItemDto> foodItemDtoList = foodItemList.stream()
+	                    .map(this::mapFoodItemToDto)
+	                    .collect(Collectors.toList());
+
+	            foodItemsDtoMap.put(key, foodItemDtoList);
+	        });
+
+	        return foodItemsDtoMap;
+	    }
+	 private FoodItemDto mapFoodItemToDto(FoodItem foodItem) {
+		    return FoodItemDto.builder()
+		            .id(foodItem.getId())
+		            .foodItemId(foodItem.getFoodItemId())
+		            .foodItemName(foodItem.getFoodItemName())
+		            .description(foodItem.getDescription())
+		            .category(foodItem.getCategory())
+		            .subCategory(foodItem.getSubCategory())
+		            .cuisine(foodItem.getCuisine())
+		            .isAddOn(foodItem.isAddOn())
+		            .isVeg(foodItem.isVeg())
+		            .isEgg(foodItem.isEgg())
+		            .isNonVeg(foodItem.isNonVeg())
+		            .isReccommended(foodItem.isReccommended())
+		            .isPizza(foodItem.isPizza())
+		            .foodStallId(foodItem.getFoodStallId())
+		            .rating(foodItem.getRating())
+		            .totalReviews(foodItem.getTotalReviews())
+		            .baseItem(foodItem.getBaseItem())
+		            .combination(foodItem.getCombination())
+		            .requestId(foodItem.getRequestId())
+		            .availableCustomisation(foodItem.isAvailableCustomisation())
+		            .addOns(foodItem.getAddOns())
+		            .price(foodItem.getPrice())
+		            .isDefaultCombination(foodItem.isDefaultCombination())
+		            .status(foodItem.getStatus())
+		            .taxType(foodItem.getTaxType())
+		            .build();
+		}
+	 
+	 
+	 public Map<String, List<FoodItem>> getFoodItemsWithoutpic(Long fsId){
+			
+			Map<String, List<FoodItem>> foodItemsMap = new LinkedHashMap<String, List<FoodItem>>();
+			
+			List<FoodItem> foodItems = userRepository.getFoodItemsExcludepic(fsId);
+			List<FoodItem> recomendedFoodItems = new ArrayList<FoodItem>();
+			List<FoodItem> vegItems = new ArrayList<FoodItem>();
+			List<FoodItem> eggItems = new ArrayList<FoodItem>();
+			
+			for(FoodItem foodItem : foodItems) {
+				
+				if(!StringUtils.hasText(foodItem.getTaxType())) {
+					foodItem.setTaxType("E");
+				}
+							
+				if(foodItem.getPrice() == null || foodItem.getPrice() == 0) {
+					continue;
+				}
+				
+				if("INACTIVE".equalsIgnoreCase(foodItem.getStatus())) {
+					continue;
+				}
+				
+				String category = foodItem.getCategory();
+				String subcategory = foodItem.getSubCategory();
+				
+				String categoryAndSubCategory = category;
+				
+				if(!category.equalsIgnoreCase(subcategory)) {
+					categoryAndSubCategory = category + " - " + subcategory;
+				}
+				
+				if(!foodItemsMap.containsKey(categoryAndSubCategory)) {
+					foodItemsMap.put(categoryAndSubCategory, new ArrayList<FoodItem>());
+				}
+				
+				List<FoodItem> categorisedFoodItemsList = foodItemsMap.get(categoryAndSubCategory);
+				categorisedFoodItemsList.add(foodItem);
+				if(foodItem.isReccommended()) {
+					recomendedFoodItems.add(foodItem);
+				}
+				if(foodItem.isVeg()) {
+					vegItems.add(foodItem);
+				}
+				if(foodItem.isEgg()) {
+					eggItems.add(foodItem);
+				}
+				
+			}
+			
+			foodItemsMap.put("veg", vegItems);
+			foodItemsMap.put("egg", eggItems);
+			foodItemsMap.put("Recommended", recomendedFoodItems);
+			
+			return foodItemsMap;
+		}
 }

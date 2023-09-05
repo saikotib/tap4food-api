@@ -84,4 +84,26 @@ public class UserService {
 		commonService.sendOTPToPhone(phoneNumber);
 
 	}
+	
+	public void resendOtp(final String phoneNumber, Long orderId) throws TFException {
+
+		Optional<User> userData = userRepository.findByPhoneNumber(phoneNumber);
+		
+		User user = new User();
+		
+		if(userData.isPresent()) {
+			user = userData.get();
+			if(user.getStatus().equalsIgnoreCase(UserStatusEnum.LOCKED.name())) {
+				throw new TFException("Your phone number is temporarily locked");
+			}
+		}else {
+			user.setPhoneNumber(phoneNumber);
+			user.setStatus(UserStatusEnum.ACTIVE.name());
+			
+			userRepository.save(user);
+		}
+		
+		commonService.sendOTPToPhone(phoneNumber);
+
+	}
 }

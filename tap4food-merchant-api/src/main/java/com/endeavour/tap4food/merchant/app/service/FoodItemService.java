@@ -1,8 +1,15 @@
 package com.endeavour.tap4food.merchant.app.service;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -10,7 +17,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.bson.BsonBinarySubType;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +42,18 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemDirectOffer;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.model.fooditem.PreProcessedFoodItems;
 import com.endeavour.tap4food.app.request.dto.FoodItemEditRequest;
+import com.endeavour.tap4food.app.response.dto.CategorisedFoodItemsResponse;
 import com.endeavour.tap4food.app.response.dto.FoodItemDataToEdit;
 import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.merchant.app.repository.FoodItemRepository;
 import com.endeavour.tap4food.merchant.app.repository.FoodStallRepository;
+import com.endeavour.tap4food.merchant.app.repository.PreProcessorRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class FoodItemService {
 	
@@ -41,6 +62,30 @@ public class FoodItemService {
 	
 	@Autowired
 	private FoodStallRepository foodStallRepository;
+	
+	@Autowired
+	private MenuCacheService menuCacheService;
+	
+	@Autowired
+	private PreProcessorRepository preProcessorRepository;
+	
+	private Map<Long, List<FoodItemResponse>> itemsMap = new HashMap<Long, List<FoodItemResponse>>();
+	
+	private List<FoodItemResponse> getItemsFromCache(Long fsId){
+
+		return itemsMap.get(fsId);
+	}
+	
+	private void addFoodItemsToCache(Long foodStallId) {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				menuCacheService.addFoodItemsListToCache(foodStallId);
+			}
+		});
+		executor.shutdown();
+	}
 
 	public void addFoodItem(Long merchantId, Long fsId, FoodItem foodItem) throws TFException {
 		
@@ -64,6 +109,10 @@ public class FoodItemService {
 				foodItem.setId(existingFoodItem.getId());
 				foodItem.setPic(existingFoodItem.getPic());
 				
+				if(!StringUtils.hasText(foodItem.getSubCategory())) {
+					foodItem.setSubCategory(foodItem.getCategory());
+				}
+				
 				foodItemRepository.addFoodItem(foodItem);
 				
 				System.out.println("Food Item is added. Now adding to procing");
@@ -72,6 +121,26 @@ public class FoodItemService {
 				System.out.println("creating new item....");
 			}
 		}
+		addToken(foodItem.getFoodItemName(), foodStall);
+//		addFoodItemsToCache(fsId);
+	}
+	
+	private void addToken(String itemName, FoodStall stall) {
+		
+//		String tokens[] = itemName.split("\\s+");
+		Set<String> keywords = stall.getKeywords();
+		if(Objects.isNull(keywords)) {
+			keywords = new HashSet<String>();
+		}
+//		for(String token : tokens) {
+//			keywords.add(token.toLowerCase());
+//		}
+		
+		keywords.add(itemName);
+		
+		stall.setKeywords(keywords);
+		
+		foodStallRepository.saveKeywords(stall);
 	}
 	
 	public FoodItem updateFoodItem(FoodItem item) throws TFException {
@@ -83,6 +152,7 @@ public class FoodItemService {
 		existingFoodItem.setCuisine(item.getCuisine());
 		existingFoodItem.setDescription(item.getDescription());
 		existingFoodItem.setEgg(item.isEgg());
+		existingFoodItem.setNonVeg(item.isNonVeg());
 		existingFoodItem.setFoodItemName(item.getFoodItemName());
 		existingFoodItem.setSubCategory(item.getSubCategory());
 		existingFoodItem.setReccommended(item.isReccommended());
@@ -91,6 +161,8 @@ public class FoodItemService {
 
 		foodItemRepository.updateFoodItem(existingFoodItem);
 		
+		addFoodItemsToCache(existingFoodItem.getFoodStallId());
+				
 		return existingFoodItem;
 	}
 	
@@ -121,10 +193,10 @@ public class FoodItemService {
 				return message;
 			}
 			
-			if(custTypes.size() != foodItemRequest.getCustomiseFoodItemsDescriptions().size()) {
-				message = "Invalid customization data";
-				return message;
-			}
+//			if(custTypes.size() != foodItemRequest.getCustomiseFoodItemsDescriptions().size()) {
+//				message = "Invalid customization data";
+//				return message;
+//			}
 			
 		}
 		
@@ -151,6 +223,7 @@ public class FoodItemService {
 		existingFoodItem.setSubCategory(foodItemRequest.getSubCategory());
 		existingFoodItem.setReccommended(foodItemRequest.isRecomendedFlag());
 		existingFoodItem.setVeg(foodItemRequest.isVegFlag());
+		existingFoodItem.setTaxType(foodItemRequest.getTaxType());
 		
 		boolean isExistingItemHasCustomization = existingFoodItem.isAvailableCustomisation();
 		
@@ -192,19 +265,19 @@ public class FoodItemService {
 			FoodItemPricing foodItemPricingLatest = foodItemRepository.getFoodItemPricingDetails(foodItemRequest.getFoodStallId(), foodItemRequest.getFoodItemId());
 			List<FoodItemCustomizationPricing> foodItemCustomizationsListLatest = foodItemRepository.getFoodItemPricingDetailsWithCustomization(foodItemRequest.getFoodStallId(), foodItemRequest.getFoodItemId());
 			
-			System.out.println("Existing DATA ========================START");
-			
-			System.out.println(foodItemPricing);
-			System.out.println(foodItemCustomizationsList);
-			
-			System.out.println("Existing DATA ========================END");
-			
-			System.out.println("Latest DATA ========================START");
-			
-			System.out.println(foodItemPricingLatest);
-			System.out.println(foodItemCustomizationsListLatest);
-			
-			System.out.println("Latest DATA ========================END");
+//			System.out.println("Existing DATA ========================START");
+//			
+//			System.out.println(foodItemPricing);
+//			System.out.println(foodItemCustomizationsList);
+//			
+//			System.out.println("Existing DATA ========================END");
+//			
+//			System.out.println("Latest DATA ========================START");
+//			
+//			System.out.println(foodItemPricingLatest);
+//			System.out.println(foodItemCustomizationsListLatest);
+//			
+//			System.out.println("Latest DATA ========================END");
 			
 			this.updateFoodItemPrice(foodItemRequest.getFoodStallId(), foodItemPricingLatest.getId(), foodItemPricing.getPrice());
 			
@@ -240,6 +313,8 @@ public class FoodItemService {
 				}
 			}
 		}
+		
+		addFoodItemsToCache(fsId);
 		
 		return existingFoodItem;
 	}
@@ -322,6 +397,20 @@ public class FoodItemService {
 	
 	public List<FoodItemResponse> getFoodItems(Long fsId){
 		
+//		if(itemsMap.containsKey(fsId)) {
+//			return getItemsFromCache(fsId);
+//		}
+		
+//		PreProcessedFoodItems preProcessedData =  preProcessorRepository.getPreProcessedItems(fsId);
+//		
+//		if(Objects.isNull(preProcessedData)) {
+//			return Collections.emptyList();
+//		}else {
+//			return new ArrayList(preProcessedData.getFoodItemsMapById().values());
+//		}
+		
+		
+		
 		List<FoodItem> foodItems = foodItemRepository.getFoodItems(fsId);
 		
 		List<FoodItemResponse> foodItemsResponseList = new ArrayList<FoodItemResponse>();
@@ -353,7 +442,35 @@ public class FoodItemService {
 			foodItemsResponseList.add(foodItem);
 		}
 		
+//		itemsMap.put(fsId, foodItemsResponseList);
+		
 		return foodItemsResponseList;
+		
+		
+	}
+	
+	public List<CategorisedFoodItemsResponse> getCategorisedItems(Long fsId){
+		
+		List<FoodItemResponse> items = getFoodItems(fsId);
+		
+		Map<String, List<FoodItemResponse>> itemsMap = new LinkedHashMap<String, List<FoodItemResponse>>();
+		
+		itemsMap = items.stream().collect(
+				Collectors.groupingBy(item -> !item.getCategory().equalsIgnoreCase(item.getSubCategory())
+						? String.format("%s-%s", item.getCategory(), item.getSubCategory())
+						: item.getCategory()));
+		
+		List<CategorisedFoodItemsResponse> responseList = new ArrayList<>();
+		
+		for(Map.Entry<String, List<FoodItemResponse>> entry : itemsMap.entrySet()) {
+			CategorisedFoodItemsResponse responseDto = new CategorisedFoodItemsResponse();
+			responseDto.setCategory(entry.getKey());
+			responseDto.setItems(entry.getValue());
+			
+			responseList.add(responseDto);
+		}
+		
+		return responseList;
 	}
 	
 	public List<FoodItemResponse> getFoodItemsForOffers(Long fsId){
@@ -394,45 +511,142 @@ public class FoodItemService {
 	
 	public List<FoodItemPricing> getFoodItemPricingDetails(Long fsId){
 		
+		List<FoodItemPricing> pricingDetails = foodItemRepository.getFoodItemPricingDetailsV2(fsId);
+		
+		/*
+		 * List<FoodItemPricing> latestPricingDetails = new
+		 * ArrayList<FoodItemPricing>();
+		 * 
+		 * System.out.println("START :" + LocalDateTime.now());
+		 * 
+		 * Map<Long, FoodItem> foodItemsMap = this.getFoodItemsMap(fsId);
+		 * 
+		 * pricingDetails.parallelStream().forEach(pricing -> { FoodItem item = null;
+		 * try { item = foodItemsMap.containsKey(pricing.getFoodItemId()) ?
+		 * foodItemsMap.get(pricing.getFoodItemId()) :
+		 * foodItemRepository.getFoodItem(pricing.getFoodItemId());
+		 * 
+		 * if(Objects.nonNull(item) && !item.isDefaultCombination()) { String name =
+		 * pricing.getFoodItemName(); name = name.replaceAll("##", " ");
+		 * pricing.setFoodItemName(name);
+		 * 
+		 * pricing.setCombination(item.getCombination());
+		 * 
+		 * latestPricingDetails.add(pricing); }
+		 * 
+		 * } catch (TFException e) { e.printStackTrace(); } });
+		 */
+		
+//		System.out.println("END :" + LocalDateTime.now());
+		return pricingDetails;
+	}
+	
+	public ByteArrayInputStream downloadFoodItemPricingDetails(Long fsId){
+		
+		List<FoodItemPricing> pricingDetails = foodItemRepository.getFoodItemPricingDetailsV2(fsId);
+		
+		CSVFormat format = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL);
+
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), format);) {
+			
+			List<String> header = Arrays.asList("ID", "FoodItem ID", "Food Item Name", "Customization", "Price", "FoodStall ID", "Flag");
+
+		        csvPrinter.printRecord(header);
+		        
+		      for (FoodItemPricing pricingObject : pricingDetails) {
+		    	  
+		    	  String price = pricingObject.getPrice() == null ? "" : String.valueOf(pricingObject.getPrice());
+		
+		    	  List<String> data = Arrays.asList(
+			              String.valueOf(pricingObject.getId()),
+			              String.valueOf(pricingObject.getFoodItemId()),
+			              pricingObject.getFoodItemName(),
+			              StringUtils.hasText(pricingObject.getCombination()) ? pricingObject.getCombination().replaceAll("##", " ") : "",
+			            		  price,
+			              String.valueOf(pricingObject.getFoodStallId()),
+			              "YES"
+			            );
+	
+			        csvPrinter.printRecord(data);
+		      }
+
+		      csvPrinter.flush();
+		      return new ByteArrayInputStream(out.toByteArray());
+		    } catch (IOException e) {
+		      throw new RuntimeException("fail to export data to CSV file: " + e.getMessage());
+		    }
+	}
+	
+	public void readPricingFile(Long fsId, MultipartFile multiPartFile) throws TFException {
+		System.out.println(multiPartFile.getOriginalFilename());
+
+		try (BufferedReader fileReader = new BufferedReader(
+				new InputStreamReader(multiPartFile.getInputStream(), "UTF-8"));
+				CSVParser csvParser = new CSVParser(fileReader,
+						CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());) {
+
+			Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+			for (CSVRecord csvRecord : csvRecords) {
+
+				String pricingId = csvRecord.get("ID");
+				String flag = csvRecord.get("Flag");
+				if("YES".equalsIgnoreCase(flag)) {
+					String foodItemName = csvRecord.get("Food Item Name");
+					String customization = csvRecord.get("Customization");
+					Long foodItemId = Long.parseLong(csvRecord.get("FoodItem ID"));
+					Long foodStallId = Long.parseLong(csvRecord.get("FoodStall ID"));
+					Double price = Double.parseDouble(csvRecord.get("Price"));
+					log.info("Updating price : {}, {}, {}", foodStallId, pricingId, price);
+					updateFoodItemPrice(foodStallId, pricingId, price);
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
+		}
+
+	}
+	
+	public List<FoodItemPricing> getFoodItemPricingDetails1(Long fsId){
+		
 		List<FoodItemPricing> pricingDetails = foodItemRepository.getFoodItemPricingDetails(fsId);
 		
 		List<FoodItemPricing> latestPricingDetails = new ArrayList<FoodItemPricing>();
 		
-		for(FoodItemPricing pricing : pricingDetails) {
-			
-			System.out.println("Pricing : " + pricing);
-			
+		System.out.println("START :" + LocalDateTime.now());
+		
+		Map<Long, FoodItem> foodItemsMap = this.getFoodItemsMap(fsId);
+		
+		pricingDetails.parallelStream().forEach(pricing -> {
 			FoodItem item = null;
 			try {
-				item = foodItemRepository.getFoodItem(pricing.getFoodItemId());
+				item = foodItemsMap.containsKey(pricing.getFoodItemId()) ? foodItemsMap.get(pricing.getFoodItemId()) : foodItemRepository.getFoodItem(pricing.getFoodItemId());
 				
-				if(Objects.isNull(item)) {
-					continue;
-				}
-				
-				System.out.println("FoodItem : " + item.getFoodItemName() + " : comb : " + item.getCombination() + " : isDefaultCombination : " + item.isDefaultCombination());
-				
-				if(item.isDefaultCombination()) {
-					continue;
-				}
-				
-				String name = pricing.getFoodItemName();
-				name = name.replaceAll("##", " ");
-				pricing.setFoodItemName(name);
+				if(Objects.nonNull(item) && !item.isDefaultCombination()) {
+					String name = pricing.getFoodItemName();
+					name = name.replaceAll("##", " ");
+					pricing.setFoodItemName(name);
 
-				pricing.setCombination(item.getCombination());
-				
-				latestPricingDetails.add(pricing);
+					pricing.setCombination(item.getCombination());
+					
+					latestPricingDetails.add(pricing);
+				}
 				
 			} catch (TFException e) {
 				e.printStackTrace();
 			}
-			
-			
-		}
+		});
 		
-		
+		System.out.println("END :" + LocalDateTime.now());
 		return latestPricingDetails;
+	}
+	
+	private Map<Long, FoodItem> getFoodItemsMap(Long fsId){
+		List<FoodItem> items = foodItemRepository.getFoodItems(fsId);
+		Map<Long, FoodItem> foodItemsMap = items.parallelStream().collect(Collectors.toMap(f -> f.getFoodItemId(), f -> f));
+		
+		return foodItemsMap;
 	}
 	
 	public List<FoodItem> getCombinationFoodItems(Long fsId, Long baseItemId){
@@ -440,13 +654,24 @@ public class FoodItemService {
 		return foodItemRepository.getCombinationFoodItems(fsId, baseItemId);
 	}
 	
+	public void updateItemPriceBulkProcess() {
+		
+	}
+	
 	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double newPrice) throws TFException {
 		
 		FoodItemPricing itemPricingExistingDetails = foodItemRepository.getFoodItemPricingDetails(pricingId);
 		
 		Double foodItemExistingPrice = itemPricingExistingDetails.getPrice();
+		if(foodItemExistingPrice == null) {
+			foodItemExistingPrice = Double.valueOf(0);
+		}
 		
 		FoodItem foodItem = foodItemRepository.getFoodItem(itemPricingExistingDetails.getFoodItemId());
+		if(foodItem == null ) {
+			System.out.println("itemPricingExistingDetails.getFoodItemId() : " + itemPricingExistingDetails.getFoodItemId());
+			return null;
+		}
 		
 		foodItem.setPrice(newPrice);
 		
@@ -472,6 +697,10 @@ public class FoodItemService {
 		System.out.println("FoodItem price is updated.");
 		
 		System.out.println("CustType comb name : " + foodItem.getFoodItemId() + " : " + foodItem.getCombination());
+		
+		if(!StringUtils.hasText(foodItem.getCombination())) {
+			return null;
+		}
 		
 		Long foodItemId = Objects.isNull(foodItem.getBaseItem()) ? foodItem.getFoodItemId() : foodItem.getBaseItem();
 		
@@ -503,23 +732,23 @@ public class FoodItemService {
 				}
 				
 				if(existingPrice == 0) {
-					System.out.println("In true case");
+//					System.out.println("In true case");
 					foodItemCustomizationPricing.setPrice(newPrice);
 				}else {
-					System.out.println("In false case");
-					System.out.println("In false case existingPrice : " + existingPrice);
-					System.out.println("In false case foodItemExistingPrice : " + foodItemExistingPrice);
+//					System.out.println("In false case");
+//					System.out.println("In false case existingPrice : " + existingPrice);
+//					System.out.println("In false case foodItemExistingPrice : " + foodItemExistingPrice);
 					existingPrice = existingPrice - foodItemExistingPrice;
 					Double revisedPrice = existingPrice + newPrice;
 					
-					System.out.println("In false case revisedPrice : " + revisedPrice);
+//					System.out.println("In false case revisedPrice : " + revisedPrice);
 					
 					foodItemCustomizationPricing.setPrice(revisedPrice);
 				}
 				
 				foodItemRepository.updateFoodItemCustomizingPrice(fsId, foodItemCustomizationPricing.getId(), foodItemCustomizationPricing.getPrice());
 		}
-		
+		addFoodItemsToCache(fsId);
 		return itemPricing;
 	}
 	
@@ -589,10 +818,10 @@ public class FoodItemService {
 		String foodItemDescription = foodItem.getDescription();
 		
 		List<String> customiseTypes = customizationDetails.getCustomiseTypes();
-		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems());
-		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications());
-		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions());
-		Map<String, List<String>> customiseFoodItemsSelectButtons = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsSelectButtons());
+		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems(), customiseTypes);
+		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications(), customiseTypes);
+		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions(), customiseTypes);
+		Map<String, List<String>> customiseFoodItemsSelectButtons = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsSelectButtons(), customiseTypes);
 		
 		List<String> addOnItems = customizationDetails.getAddOnItemsIds();
 		
@@ -623,7 +852,10 @@ public class FoodItemService {
 		
 		System.out.println("foodItemCombinations >>" + foodItemCombinations);
 		
+		List<FoodItem> foodItemsListToBulkInsert = new ArrayList<FoodItem>();
+		
 		if(foodItem.isPizza()) {
+			foodItemsListToBulkInsert = new ArrayList<FoodItem>();
 			boolean isDefaultCombination = true;
 			for(String combination : foodItemCombinations) {
 				
@@ -655,12 +887,14 @@ public class FoodItemService {
 					System.out.println("Base Item updated with combination : " + foodItem.getCombination() + " : " + foodItem.getFoodItemName());
 				}
 				
-				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
-				this.addItemPricing(custSupportItem);
+				foodItemsListToBulkInsert.add(custSupportItem);
+//				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
+//				this.addItemPricing(custSupportItem);
 				
 				isDefaultCombination = false;
 			}
 		}else {
+			foodItemsListToBulkInsert = new ArrayList<FoodItem>();
 			boolean isDefaultCombination = true;
 			for(String combination : foodItemCustCombinations) {
 				FoodItem custSupportItem = new FoodItem();
@@ -686,8 +920,9 @@ public class FoodItemService {
 					System.out.println("Base Item updated with combination : " + foodItem.getCombination() + " : " + foodItem.getFoodItemName());
 				}
 				
-				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
-				this.addItemPricing(custSupportItem);
+				foodItemsListToBulkInsert.add(custSupportItem);
+//				custSupportItem = foodItemRepository.addFoodItem(custSupportItem);
+//				this.addItemPricing(custSupportItem);
 				
 				isDefaultCombination = false;
 			}
@@ -716,6 +951,8 @@ public class FoodItemService {
 				}
 			} */
 		}
+		
+		foodItemRepository.addFoodItems(foodItemsListToBulkInsert);
 		
 		System.out.println("Combinations : " + foodItemCustCombinations);
 		
@@ -749,6 +986,8 @@ public class FoodItemService {
 		}
 		
 		foodItemRepository.addItemCustomizationPricing(foodItemCustPricing);
+		
+		addFoodItemsToCache(foodItem.getFoodStallId());
 	}
 	
 	public void addItemCustomizationPricing(FoodItem foodItem, FoodItemCustomiseDetails customizationDetails, FoodItemPricing existingItemPriceDetails, List<FoodItemCustomizationPricing> existingCustPricingDetails) throws TFException {
@@ -759,10 +998,10 @@ public class FoodItemService {
 		Long foodItemId = foodItem.getFoodItemId();
 		
 		List<String> customiseTypes = customizationDetails.getCustomiseTypes();
-		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems());
-		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications());
-		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions());
-		Map<String, List<String>> customiseFoodItemsSelectButtons = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsSelectButtons());
+		Map<String, List<String>> customizeFoodItems = this.processCustomizationLists(customizationDetails.getCustomiseFoodItems(), customiseTypes);
+		Map<String, List<String>> customiseFoodItemsCustomerSpecifications = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsCustomerSpecifications(), customiseTypes);
+		Map<String, List<String>> customiseFoodItemsDescriptions = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsDescriptions(), customiseTypes);
+		Map<String, List<String>> customiseFoodItemsSelectButtons = this.processCustomizationLists(customizationDetails.getCustomiseFoodItemsSelectButtons(), customiseTypes);
 		
 		List<String> addOnItems = customizationDetails.getAddOnItemsIds();
 		
@@ -930,6 +1169,7 @@ public class FoodItemService {
 		}
 		
 		foodItemRepository.addItemCustomizationPricing(foodItemCustPricing);
+		addFoodItemsToCache(foodItem.getFoodStallId());
 	}
 	
 	public List<String> prepareCombinations(List<String> combinations, List<String> list, boolean isSingleCustType) {
@@ -989,22 +1229,31 @@ public class FoodItemService {
 		return combinations;
 	}
 	
-	private Map<String, List<String>> processCustomizationLists(List<String> dataList){
+	private Map<String, List<String>> processCustomizationLists(List<String> dataList, List<String> customiseTypes){
 		Map<String, List<String>> dataMap = new LinkedHashMap<String, List<String>>();
-		
+		Map<String, List<String>> sortedDataMap = new LinkedHashMap<String, List<String>>();
 		for(String data : dataList) {
 			String dataTokens[] = data.split("~");
+			
+			System.out.println("dataTokens : " + data);
 			
 			if(!dataMap.containsKey(dataTokens[0])) {
 				dataMap.put(dataTokens[0], new ArrayList<String>());
 			}
 			
 			List<String> processedList = dataMap.get(dataTokens[0]);
-			processedList.add(dataTokens[1]);
+			if(dataTokens.length == 2) {
+				processedList.add(dataTokens[1]);
+			}else {
+				processedList.add("");
+			}
+			
 			dataMap.put(dataTokens[0], processedList);
 		}
 		
-		return dataMap;
+		customiseTypes.forEach(c -> sortedDataMap.put(c, dataMap.get(c)));
+		
+		return sortedDataMap;
 	}
 	
 	public void deleteFoodItem(Long foodItemId) {
@@ -1084,12 +1333,16 @@ public class FoodItemService {
 			
 			Map<String, String> customizationDescriptionsMap = new HashMap<String, String>();
 			
+			System.out.println("descriptions : " + descriptions);
+			
 			for(String desc : descriptions) {
 				String descTokens[] = desc.split("~");
 				
 				String keyToken = descTokens[0];
-				String valToken = descTokens[1];
-				
+				String valToken = "";
+				if(descTokens.length == 2) {
+					valToken = descTokens[1];
+				}				
 				customizationDescriptionsMap.put(keyToken, valToken);				
 			}
 			

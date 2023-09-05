@@ -22,6 +22,7 @@ import com.endeavour.tap4food.app.model.admin.TermsNConditions;
 import com.endeavour.tap4food.app.model.fooditem.FoodItem;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
+import com.endeavour.tap4food.app.model.fooditem.PreProcessedFoodItems;
 import com.endeavour.tap4food.app.model.offer.FoodItemsList;
 import com.endeavour.tap4food.app.model.offer.Offer;
 import com.endeavour.tap4food.user.app.security.model.User;
@@ -83,12 +84,27 @@ public class UserRepository {
 	
 	public List<FoodItem> getFoodItems(Long fsId){
 		
-		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("baseItem").exists(false)));
+		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("baseItem").exists(false), Criteria.where("status").ne("DELETED")));
 		
 		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
 		
 		return foodItems;
 	}
+	public List<FoodItem> getFoodItemsExcludepic(Long fsId) {
+	    Query query = new Query(Criteria.where("foodStallId").is(fsId)
+	            .andOperator(
+	                Criteria.where("baseItem").exists(false),
+	                Criteria.where("status").ne("DELETED")
+	            )
+	        );
+	    
+	    query.fields().exclude("pic");  // Exclude the "pic" field
+	    
+	    List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
+	    
+	    return foodItems;
+	}
+
 	
 	public FoodItem getFoodItem(Long foodItemId){
 		
@@ -214,5 +230,11 @@ public class UserRepository {
 		List<TermsNConditions> content = mongoTemplate.findAll(TermsNConditions.class);
 		
 		return content.get(0);
+	}
+	
+	public PreProcessedFoodItems getPreProcessedData(Long foodStallId) {
+		Query query = new Query(Criteria.where("foodStallId").is(foodStallId));
+		
+		return mongoTemplate.findOne(query, PreProcessedFoodItems.class);
 	}
 }

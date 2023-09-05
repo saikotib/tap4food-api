@@ -92,4 +92,6 @@ public class FoodStall {
 
 	@DBRef
 	private FoodStallTimings foodStallTimings;
+	
+	private Set<String> keywords;
 }

@@ -1,10 +1,14 @@
 package com.endeavour.tap4food.merchant.app.controller;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +26,13 @@ import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomiseDetails;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemCustomizationPricing;
 import com.endeavour.tap4food.app.model.fooditem.FoodItemPricing;
 import com.endeavour.tap4food.app.request.dto.FoodItemEditRequest;
+import com.endeavour.tap4food.app.response.dto.CategorisedFoodItemsResponse;
 import com.endeavour.tap4food.app.response.dto.FoodItemDataToEdit;
 import com.endeavour.tap4food.app.response.dto.FoodItemResponse;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
 import com.endeavour.tap4food.app.util.ImageConstants;
 import com.endeavour.tap4food.merchant.app.service.FoodItemService;
+import com.endeavour.tap4food.merchant.app.service.MenuCacheService;
 
 import io.swagger.annotations.Api;
 
@@ -37,6 +43,9 @@ public class MenuController {
 	
 	@Autowired
 	private FoodItemService foodItemService;
+	
+	@Autowired
+	private MenuCacheService menuCacheService;
 
 	@RequestMapping(value = "/create-food-item", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> createFoodItem(@RequestParam("merchant-id") Long merchantId,
@@ -147,6 +156,20 @@ public class MenuController {
 	public ResponseEntity<ResponseHolder> getFoodItems(@RequestParam("fs-id") Long fsId){
 		
 		List<FoodItemResponse> foodItems = foodItemService.getFoodItems(fsId);
+//		List<FoodItemResponse> foodItems = menuCacheService.getFoodItemsListFromCache(fsId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-categorized-food-items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getCategorisedFoodItems(@RequestParam("fs-id") Long fsId){
+		
+		List<CategorisedFoodItemsResponse> foodItems = foodItemService.getCategorisedItems(fsId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
@@ -173,10 +196,40 @@ public class MenuController {
 	public ResponseEntity<ResponseHolder> getFoodItemPricingInfo(@RequestParam("fs-id") Long fsId){
 		
 		List<FoodItemPricing> foodItems = foodItemService.getFoodItemPricingDetails(fsId);
+//		List<FoodItemPricing> foodItems = menuCacheService.getItemsPricingListFromCache(fsId);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")
 				.data(foodItems)
+				.build();
+		
+		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/download-fooditems-pricing-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Resource> downloadFoodItemPricingInfo(@RequestParam("fs-id") Long fsId){
+		
+		ByteArrayInputStream foodItems = foodItemService.downloadFoodItemPricingDetails(fsId);
+		
+		InputStreamResource file = new InputStreamResource(foodItems);
+		
+		String fileName = "fooditem-pricing-details-" + fsId + "-" + System.currentTimeMillis() + ".csv";
+		
+		
+		return ResponseEntity.ok()
+		        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+		        .contentType(MediaType.parseMediaType("application/csv"))
+		        .body(file);
+	}
+	
+	@RequestMapping(value = "/upload-fooditems-pricing-details", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> uploadFoodItemPricingInfo(@RequestParam("fs-id") Long fsId, @RequestParam("file") MultipartFile file) throws TFException{
+		
+		foodItemService.readPricingFile(fsId, file);
+				
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data("updated")
 				.build();
 		
 		return new ResponseEntity<ResponseHolder>(response, HttpStatus.OK);

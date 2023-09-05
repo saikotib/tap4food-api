@@ -98,6 +98,15 @@ public class OrderRepository {
 		return orders;
 	}
 	
+	public Customer getCustomer(Long orderId){
+		
+		Query query = new Query(Criteria.where("orderId").is(orderId));
+		
+		Customer customer = mongoTemplate.findOne(query, Customer.class);
+		
+		return customer;
+	}
+	
 	public void saveNotification(MessageNotification notification) {
 		mongoTemplate.save(notification);
 	}

@@ -41,7 +41,17 @@ public class OrderDto {
 	
 	private String paymentId;
 	
+	private String paymentMode;
+	
+	private Double settledAmount;
+	
+	private Double commission;
+	
 	private List<OrderedItem> orderedItems;
+	
+	private String otp;
+	
+	private String deliveryTime;
 	
 	@JsonProperty("isOtpVerified")
 	private boolean isOtpVerified;

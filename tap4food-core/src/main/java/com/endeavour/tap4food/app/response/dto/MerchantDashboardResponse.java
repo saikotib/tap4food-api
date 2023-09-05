@@ -1,6 +1,9 @@
 package com.endeavour.tap4food.app.response.dto;
 
+import java.util.List;
 import java.util.Map;
+
+import com.endeavour.tap4food.app.model.order.Order;
 
 import lombok.Data;
 
@@ -18,6 +21,8 @@ public class MerchantDashboardResponse {
 	private long todayOrders;
 	
 	private String subscription;
+	
+	private List<Order> allOrdersList;
 	
 	private Map<String, OrderReport> orderStatistics;		// Key is month here
 	

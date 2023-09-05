@@ -18,6 +18,7 @@ import com.endeavour.tap4food.app.model.order.CartItemCustomization;
 import com.endeavour.tap4food.app.model.order.Customer;
 import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.app.model.order.OrderedOfferItems;
+import com.endeavour.tap4food.app.util.CommonUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,7 +85,7 @@ public class ManageOrderRepository {
 		
 		return orderedOfferItems;
 	}
-	
+		
 	public Order updateOrderStatus(Long orderId, String status) throws TFException {
 		Order order = this.getOrder(orderId);
 		
@@ -96,13 +97,24 @@ public class ManageOrderRepository {
 			order.setOtpVerified(true);
 		}else {
 			order.setStatus(status);
-		}	
+		}
 		
-		mongoTemplate.save(order);
-		
+		if(status.equalsIgnoreCase("READY")) {
+			String otp = CommonUtil.generateOTP();
+			order.setOtp(otp);
+		}else {
+			order.setOtp("");
+		}
+		this.updateOrder(order);
 		log.info("Order status is updated : {}", status);
 		return order;
 	} 
+	
+	public void updateOrder(Order order) {
+		
+		mongoTemplate.save(order);
+		
+	}
 	
 	public List<MessageNotification> getNotifications(Long foodStallId){
 		
@@ -143,5 +155,6 @@ public class ManageOrderRepository {
 		
 		return complaints;
 	}
+	
 	
 }

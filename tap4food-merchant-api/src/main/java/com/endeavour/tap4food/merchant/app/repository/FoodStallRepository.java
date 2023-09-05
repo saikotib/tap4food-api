@@ -61,6 +61,10 @@ public class FoodStallRepository {
 		
 		return menuListing;
 	}
+	
+	public void saveKeywords(FoodStall stall) {
+		mongoTemplate.save(stall);
+	}
 
 	public FoodStall createNewFoodStall(Long merchantId, FoodStall foodStall) throws TFException {
 

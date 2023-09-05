@@ -15,7 +15,10 @@ public class PlaceOrderRequest {
 
 	private Double subTotalAmount;
 
-	private Double taxAmount;
+	@JsonProperty("cTaxAmount")
+	private Double cTaxAmount;
+	@JsonProperty("sTaxAmount")
+	private Double sTaxAmount;
 
 	private Double grandTotal;
 
