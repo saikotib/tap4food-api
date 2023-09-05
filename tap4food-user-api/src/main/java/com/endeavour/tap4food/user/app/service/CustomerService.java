@@ -97,7 +97,7 @@ public class CustomerService {
 				
 		//The SMS logic come here..
 		
-		String message = String.format("%s is the OTP to login to your Tap4Food.please enter the OTP to verify your mobile number. Tap4Food", otp).replaceAll("\\s", "%20");
+		String message = String.format("%s is the OTP to login to your Tap4Food.please enter the OTP to verify your mobile number. INTECH", otp).replaceAll("\\s", "%20");
 		
 		commonService.sendSMS(phoneNumber, message);
 		
