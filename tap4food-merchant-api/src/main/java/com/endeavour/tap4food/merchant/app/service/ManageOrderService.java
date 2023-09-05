@@ -239,6 +239,7 @@ public class ManageOrderService {
 		
 		List<Order> allOrders = manageOrderRepository.getOrders(foodStallId);
 		
+		System.out.println("Size of orders"+allOrders.size());
 		for(Order order : allOrders) {
 			OrderDto orderDto = new OrderDto();
 			
