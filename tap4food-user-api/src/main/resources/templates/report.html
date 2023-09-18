@@ -12,6 +12,32 @@
 <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
 </head>
 <body>
+<style>
+  /* Add CSS styles for the button */
+  .ok-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff; /* Blue background color */
+    color: #fff; /* White text color */
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 5px; /* Rounded corners */
+  }
+
+  /* Add hover effect for the button */
+  .ok-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+  }
+  .bottom-middle {
+            text-align: center;
+            position: relative;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+</style>
+
 	<div class="container">
 		<div class="row">
 			<div
@@ -21,13 +47,7 @@
 						<!--                     <strong th:text="${result}"></strong> -->
 						<br>
 					</div>
-					<div class="col-xs-6 col-sm-6 col-md-6 text-right">
-						<p>
-							<!-- <em>Receipt #: 34522677W</em> -->
-							<a th:href="${redirectUrl}"
-								style="font-size: larger; font-weight: bold;">OK</a>
-						</p>
-					</div>
+					
 
 				</div>
 				
@@ -53,6 +73,14 @@
 						</tbody>
 					</table>
 				</div>
+				<div class="bottom-middle">
+						<p>
+							<!-- <em>Receipt #: 34522677W</em> -->
+							<a th:href="${redirectUrl}"
+								 class="ok-button"> Go to My Orders</a>
+						</p>
+					</div>
+				
 			</div>
 		</div>
 	</div>
