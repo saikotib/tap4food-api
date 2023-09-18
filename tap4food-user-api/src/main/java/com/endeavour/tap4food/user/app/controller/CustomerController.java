@@ -134,8 +134,8 @@ public class CustomerController {
 	@RequestMapping(value = "/get-foodstall-menu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseHolder> getFoodStallMenu(@RequestParam("fs-id") Long fsId) {
 
-		Map<String, List<FoodItem>> foodItemsMap = customerService.getFoodItems(fsId);
-//		Map<String, List<FoodItemDto>> foodItemsDtoMap = customerService.getFoodItemsMapped(fsId);
+//		Map<String, List<FoodItem>> foodItemsMap = customerService.getFoodItems(fsId);
+		Map<String, List<FoodItemDto>> foodItemsMap = customerService.getFoodItemsMapped(fsId);
 		ResponseHolder response = ResponseHolder.builder().status("success")
 				.timestamp(String.valueOf(LocalDateTime.now())).data(foodItemsMap).build();
 

@@ -19,6 +19,7 @@ import com.endeavour.tap4food.app.model.notifications.MessageNotification;
 import com.endeavour.tap4food.app.response.dto.OrderDto;
 import com.endeavour.tap4food.app.response.dto.OrderFeedbackDto;
 import com.endeavour.tap4food.app.response.dto.ResponseHolder;
+import com.endeavour.tap4food.merchant.app.payload.response.PaytmTransactionResponse;
 import com.endeavour.tap4food.merchant.app.service.ManageOrderService;
 
 import io.swagger.annotations.Api;
@@ -135,4 +136,18 @@ public class OrderController {
 		
 		return ResponseEntity.ok().body(response);		
 	}
+	
+	@RequestMapping(value = "/order-transaction-details", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseHolder> getOrderTransancationDetails(@RequestParam("orderId") Long orderId) throws TFException{
+		
+		PaytmTransactionResponse transactionStatus = manageOrderService.transactionStatus(orderId);
+		
+		ResponseHolder response = ResponseHolder.builder()
+				.status("success")
+				.data(transactionStatus)
+				.build();
+		
+		return ResponseEntity.ok().body(response);		
+	}
+	
 }

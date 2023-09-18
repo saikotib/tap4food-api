@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.endeavour.tap4food.app.model.order.Order;
 import com.endeavour.tap4food.user.app.config.PaytmDetailPojo;
+import com.endeavour.tap4food.user.app.config.PaytmResponse;
 import com.endeavour.tap4food.user.app.service.OrderService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paytm.pg.merchant.PaytmChecksum;
 
 @Controller
@@ -51,6 +54,8 @@ public class PaymentController {
 		ModelAndView modelAndView = new ModelAndView("redirect:" + paytmDetailPojo.getPaytmUrl());
 		TreeMap<String, String> parameters = new TreeMap<>();
 		paytmDetailPojo.getDetails().forEach((k, v) -> parameters.put(k, v));
+		paytmDetailPojo.getDetails().forEach((k, v) -> System.out.println(k + " : " + v));
+//		parameters.put("CALLBACK_URL", "https://securegw-stage.paytm.in/theia/paytmCallback?ORDER_ID="+orderId);
 		parameters.put("MOBILE_NO", mobileNumber);
 		parameters.put("EMAIL", email);
 		parameters.put("ORDER_ID", orderId);
@@ -118,18 +123,19 @@ public class PaymentController {
 		orderService.updateOrderPaymentStatus(parameters, paymentStatus, Long.parseLong(parameters.get("ORDERID")));
 		String url = "";
 //		url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-//		url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-		url = String.format("http://localhost:3000/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
+		url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
+//		url = String.format("http://localhost:3000/customer/payment_response?orderId=%s&status=%s&stallId=%s",
+//				parameters.get("ORDERID"), status, order.getFoodStallId());
 
 //		if (!"TXN_SUCCESS".equalsIgnoreCase(parameters.get("STATUS"))) {
 //
-////			url = String.format("https://user.tap4food.com/customer/cart?orderId=%s&status=%s&stallId=%s",
-////					parameters.get("ORDERID"), status, order.getFoodStallId());
+//			url = String.format("https://user.tap4food.com/customer/cart?orderId=%s&status=%s&stallId=%s",
+//				parameters.get("ORDERID"), status, order.getFoodStallId());
 //
 //			url = String.format("http://localhost:3000/customer/cart?orderId=%s&status=%s&stallId=%s",
 //					parameters.get("ORDERID"), status, order.getFoodStallId());
-////			url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-////			url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
+//		url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
+//			url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
 //			
 //			
 //		} else {
@@ -149,6 +155,30 @@ public class PaymentController {
 		return "report";
 	}
 
+	@PostMapping(value = "/transaction")
+	public ResponseEntity<PaytmResponse> getTokenTest(@RequestParam("orderID") String orderID,
+			@RequestParam("customerID") String customerID, @RequestParam("txnAmountinput") String txnAmountinput) {
+
+		PaytmService patymService = new PaytmService();
+		String transactionToken = patymService.getTransactionToken(orderID, customerID, txnAmountinput);
+		ObjectMapper objectMapper = new ObjectMapper();
+		PaytmResponse response = null;
+		try {
+			// Deserialize the JSON string into a PaytmTransactionResponse object
+			response = objectMapper.readValue(transactionToken, PaytmResponse.class);
+
+			// Now, you can access the transaction token from the response object
+
+			return ResponseEntity.ok(response);
+			// You can use the 'transactionToken' as needed in your application
+		} catch (Exception e) {
+			// Handle any exceptions that may occur during JSON parsing
+			e.printStackTrace();
+		}
+		System.out.println(transactionToken);
+		return   ResponseEntity.ok(response);
+	}
+
 	private String getCheckSum(TreeMap<String, String> parameters) throws Exception {
 		return PaytmChecksum.generateSignature(parameters, paytmDetailPojo.getMerchantKey());
 	}
@@ -156,4 +186,5 @@ public class PaymentController {
 	private boolean validateCheckSum(TreeMap<String, String> parameters, String paytmChecksum) throws Exception {
 		return PaytmChecksum.verifySignature(parameters, paytmDetailPojo.getMerchantKey(), paytmChecksum);
 	}
+
 }

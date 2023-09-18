@@ -59,7 +59,7 @@ public class OrderService {
 		Long newOrderSeq = orderRepository.getNewOrderId();
 		
 		order.setId(newOrderSeq);
-		order.setOrderId(newOrderSeq + 100000);
+		order.setOrderId(newOrderSeq + 800000);
 		order.setGrandTotal(orderRequest.getGrandTotal());
 		order.setOrderedTime(DateUtil.getPresentDateAndTimeInIST());
 		order.setTimeZone("IST");
