@@ -571,8 +571,12 @@ public class ManageOrderService {
 							transactionParameters.put("Commission", transaction.getCOMMISSION());
 							transactionParameters.put("SettlementAmount", settlementAmount);
 							transactionParameters.put("gst", taxes);
-							System.out.println(order);
-							order.getPayTmTransactionParameters().forEach((k, v) -> transactionParameters.put(k, v));
+							System.out.println(order.getPayTmTransactionParameters());
+//							order.getPayTmTransactionParameters().forEach((k, v) -> System.out.println(k + v));
+							if(order.getPayTmTransactionParameters() != null) {
+								order.getPayTmTransactionParameters().forEach((k, v) -> transactionParameters.put(k, v));
+							}
+							
 
 							order.setPayTmTransactionParameters(transactionParameters);
 

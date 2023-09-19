@@ -31,6 +31,7 @@ public class PaytmService {
 	            body.put("orderId", orderID);
 	            body.put("redirect", false);
 	            body.put("callbackUrl", "https://dev.tap4food.com/tf/api/customer/payments/pgresponse");
+//	            body.put("callbackUrl", "https://tap4food.com/tf/api/customer/payments/pgresponse");
 //	            body.put("callbackUrl", "http://localhost/tf/api/customer/payments/pgresponse");
 
 	            JSONObject txnAmount = new JSONObject();

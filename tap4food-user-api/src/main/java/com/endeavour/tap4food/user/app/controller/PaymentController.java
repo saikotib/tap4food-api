@@ -124,29 +124,8 @@ public class PaymentController {
 		String url = "";
 //		url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
 		url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-//		url = String.format("http://localhost:3000/customer/payment_response?orderId=%s&status=%s&stallId=%s",
-//				parameters.get("ORDERID"), status, order.getFoodStallId());
+//		url = String.format("http://localhost:3000/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
 
-//		if (!"TXN_SUCCESS".equalsIgnoreCase(parameters.get("STATUS"))) {
-//
-//			url = String.format("https://user.tap4food.com/customer/cart?orderId=%s&status=%s&stallId=%s",
-//				parameters.get("ORDERID"), status, order.getFoodStallId());
-//
-//			url = String.format("http://localhost:3000/customer/cart?orderId=%s&status=%s&stallId=%s",
-//					parameters.get("ORDERID"), status, order.getFoodStallId());
-//		url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-//			url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-//			
-//			
-//		} else {
-////			url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-////			url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-//			url = String.format("http://localhost:3000/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-//
-////			url = String.format("https://user.tap4food.com/customer/home");
-//
-//			
-//		}
 
 		model.addAttribute("parameters", paymentParamsMap);
 		model.addAttribute("redirectUrl", url);
