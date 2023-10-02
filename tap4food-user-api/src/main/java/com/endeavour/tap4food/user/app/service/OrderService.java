@@ -59,7 +59,7 @@ public class OrderService {
 		Long newOrderSeq = orderRepository.getNewOrderId();
 		
 		order.setId(newOrderSeq);
-		order.setOrderId(newOrderSeq + 800000);
+		order.setOrderId(newOrderSeq + 1500);
 		order.setGrandTotal(orderRequest.getGrandTotal());
 		order.setOrderedTime(DateUtil.getPresentDateAndTimeInIST());
 		order.setTimeZone("IST");
@@ -93,6 +93,7 @@ public class OrderService {
 		order.setSubTotalAmount(orderRequest.getSubTotalAmount());
 		order.setCTaxAmount((orderRequest.getCTaxAmount()));
 		order.setSTaxAmount(orderRequest.getSTaxAmount());
+		order.setPackagingPrice(orderRequest.getPackagingPrice());
 		
 		List<PlaceOrderRequest.SelectedCartItem> selectedCartItems = orderRequest.getCartItems();
 		
@@ -430,9 +431,13 @@ public class OrderService {
 			notification.setReciever(String.valueOf(order.getFoodStallId()));
 			notification.setStatus("NEW");
 			
-			webSocketNotificationService.sendNotificationToMerchant(notification);
-			
-			this.addToNotifications(customer.getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
+			  try {
+		            webSocketNotificationService.sendNotificationToMerchant(notification);
+		            this.addToNotifications(customer.getPhoneNumber(), order.getFoodStallId(), "New order is placed", order.getOrderId(), "NEW");
+		        } catch (Exception e) {
+		            // Handle the exception here, e.g., log the error or take appropriate action.
+		            e.printStackTrace(); // Example: Printing the stack trace
+		        }
 		}
 		
 		return order;

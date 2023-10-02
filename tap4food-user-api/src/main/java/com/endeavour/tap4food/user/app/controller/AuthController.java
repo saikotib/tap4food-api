@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,6 +44,7 @@ import io.swagger.annotations.Api;
 @RestController
 @RequestMapping("/auth/user")
 @Api(tags = "AuthenticationController", description = "Authentication Controller for user loging & signup")
+@CrossOrigin
 public class AuthController {
 	
 	@Autowired

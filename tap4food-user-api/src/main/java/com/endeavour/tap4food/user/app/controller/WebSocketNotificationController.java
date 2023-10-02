@@ -6,11 +6,13 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.endeavour.tap4food.app.model.notifications.Notification;
 import com.endeavour.tap4food.user.app.service.WebSocketNotificationService;
 
 @Controller
+@CrossOrigin
 public class WebSocketNotificationController {
 
 	@Autowired

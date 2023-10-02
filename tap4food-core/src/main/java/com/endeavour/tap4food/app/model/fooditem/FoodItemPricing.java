@@ -32,6 +32,8 @@ public class FoodItemPricing {
 		
 	private Double price;
 	
+	private Double packagingPrice;
+	
 	private String notes;
 	
 	private String status;

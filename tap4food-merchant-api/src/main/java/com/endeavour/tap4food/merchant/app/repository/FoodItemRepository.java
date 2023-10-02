@@ -145,6 +145,8 @@ public class FoodItemRepository {
 						Criteria.where("status").ne("DELETED"))
 				);
 		
+		query.fields().exclude("pic"); 
+		
 		List<FoodItem> foodItems = mongoTemplate.find(query, FoodItem.class);
 		
 		return foodItems;
@@ -172,16 +174,30 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
+//	public Double getFoodItemPrice(Long foodItemId) {
+//		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+//		
+//		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
+//		if(Objects.isNull(foodItem)) {
+//			return Double.valueOf(0);
+//		}else {
+//			return foodItem.getPrice();
+//		}		
+//	}
 	public Double getFoodItemPrice(Long foodItemId) {
-		Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
-		
-		FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
-		if(Objects.isNull(foodItem)) {
-			return Double.valueOf(0);
-		}else {
-			return foodItem.getPrice();
-		}		
+	    Query query = new Query(Criteria.where("foodItemId").is(foodItemId));
+	    
+	    // Use fields() to specify that you want only the "price" field
+	    query.fields().include("price");
+	    
+	    FoodItemPricing foodItem = mongoTemplate.findOne(query, FoodItemPricing.class);
+	    if (Objects.isNull(foodItem)) {
+	        return Double.valueOf(0);
+	    } else {
+	        return foodItem.getPrice();
+	    }
 	}
+
 	
 	public Double getFoodItemPrice(String pricingId) {
 		Query query = new Query(Criteria.where("_id").is(pricingId));
@@ -229,12 +245,12 @@ public class FoodItemRepository {
 		return foodItem;
 	}
 	
-	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double itemPrice) {
+	public FoodItemPricing updateFoodItemPrice(Long fsId, String pricingId, Double itemPrice, Double newPackagingPrice) {
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("_id").is(pricingId)));
 		
 		FoodItemPricing itemPricingObject = mongoTemplate.findOne(query, FoodItemPricing.class);
 		itemPricingObject.setPrice(itemPrice);
-		
+		itemPricingObject.setPackagingPrice(newPackagingPrice);
 		String notes = Objects.isNull(itemPricingObject.getNotes())? "Price update : " + itemPrice : itemPricingObject.getNotes() + " ## " + "New Price updated :" + itemPrice;
 		
 		itemPricingObject.setNotes(notes);

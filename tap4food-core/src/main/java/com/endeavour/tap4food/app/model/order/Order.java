@@ -25,6 +25,8 @@ public class Order {
 	
 	private Double cTaxAmount;
 	
+	private Double packagingPrice;
+	
 	private Double grandTotal;
 		
 	private boolean selfPickup;

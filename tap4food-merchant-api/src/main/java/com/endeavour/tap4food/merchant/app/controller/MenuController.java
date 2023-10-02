@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,6 +40,7 @@ import io.swagger.annotations.Api;
 @RestController
 @RequestMapping("/api/menu")
 @Api(tags = "MenuController", description = "MenuController")
+@CrossOrigin
 public class MenuController {
 	
 	@Autowired
@@ -236,9 +238,9 @@ public class MenuController {
 	}
 	
 	@RequestMapping(value = "/update-fooditem-price", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseHolder> updateFoodItemPrice(@RequestParam("fs-id") Long fsId, @RequestParam("pricing-id") String pricingId, @RequestParam("price") Double price) throws TFException{
+	public ResponseEntity<ResponseHolder> updateFoodItemPrice(@RequestParam("fs-id") Long fsId, @RequestParam("pricing-id") String pricingId, @RequestParam("price") Double price, @RequestParam("packagingPrice") Double packagingPrice) throws TFException{
 		
-		FoodItemPricing foodItemPricing = foodItemService.updateFoodItemPrice(fsId, pricingId, price);
+		FoodItemPricing foodItemPricing = foodItemService.updateFoodItemPrice(fsId, pricingId, price,packagingPrice);
 		
 		ResponseHolder response = ResponseHolder.builder()
 				.status("success")

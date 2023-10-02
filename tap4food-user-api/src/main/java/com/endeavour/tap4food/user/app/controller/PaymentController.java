@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ import com.paytm.pg.merchant.PaytmChecksum;
 
 @Controller
 @RequestMapping("/api/customer/payments")
+@CrossOrigin
 public class PaymentController {
 
 	@Autowired
@@ -122,8 +124,8 @@ public class PaymentController {
 
 		orderService.updateOrderPaymentStatus(parameters, paymentStatus, Long.parseLong(parameters.get("ORDERID")));
 		String url = "";
-//		url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
-		url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
+		url = String.format("https://user.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
+//		url = String.format("https://user.dev.tap4food.com/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
 //		url = String.format("http://localhost:3000/customer/payment_response?orderId=%s&status=%s&stallId=%s",parameters.get("ORDERID"), status, order.getFoodStallId());
 
 

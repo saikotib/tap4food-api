@@ -812,6 +812,7 @@ public class CustomerService {
 		            .availableCustomisation(foodItem.isAvailableCustomisation())
 		            .addOns(foodItem.getAddOns())
 		            .price(foodItem.getPrice())
+		            .packagingPrice(foodItem.getPackagingPrice())
 		            .isDefaultCombination(foodItem.isDefaultCombination())
 		            .status(foodItem.getStatus())
 		            .taxType(foodItem.getTaxType())

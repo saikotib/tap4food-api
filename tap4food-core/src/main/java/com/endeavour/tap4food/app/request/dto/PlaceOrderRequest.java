@@ -21,6 +21,8 @@ public class PlaceOrderRequest {
 	private Double sTaxAmount;
 
 	private Double grandTotal;
+	
+	private Double packagingPrice;
 
 	private boolean selfPickup;
 	

@@ -87,7 +87,12 @@ public class ManageOrderService {
 			orderDto.setOtpVerified(order.isOtpVerified());
 			orderDto.setOrderedTime(order.getOrderedTime());
 			orderDto.setOtp(order.getOtp());
-
+			if(order.getPackagingPrice() != null) {
+			orderDto.setPackagingPrice(order.getPackagingPrice());
+			}else {
+				
+				orderDto.setPackagingPrice(Double.valueOf(0.0));
+			}
 			if (Objects.isNull(order.getTax())) {
 				orderDto.setTax(Double.valueOf(5));
 			} else {
@@ -255,6 +260,12 @@ public class ManageOrderService {
 			orderDto.setOrderedTime(order.getOrderedTime());
 			orderDto.setPaymentId(order.getTransactionId());
 			orderDto.setSubTotal(order.getSubTotalAmount());
+			if(order.getPackagingPrice() != null) {
+				orderDto.setPackagingPrice(order.getPackagingPrice());
+				}else {
+					
+					orderDto.setPackagingPrice(Double.valueOf(0.0));
+				}
 			double calculatedTax = order.getTax() * 0.01 * order.getSubTotalAmount();
 
 			BigDecimal taxBigDecimal = new BigDecimal(calculatedTax);

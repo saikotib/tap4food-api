@@ -62,6 +62,8 @@ public class FoodItemDto {
 	
 	private boolean isDefaultCombination;
 	
+	private Double packagingPrice;
+	
 	private String status;
 	
 	private String taxType;

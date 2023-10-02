@@ -58,6 +58,8 @@ public class OrderDto {
 	
 	private Double tax;
 	
+	private Double packagingPrice;
+	
 	private Double taxAmount;
 	
 	@Data

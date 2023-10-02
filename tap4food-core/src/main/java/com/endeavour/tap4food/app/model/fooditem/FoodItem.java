@@ -69,6 +69,8 @@ public class FoodItem {
 	
 	private Double price;
 	
+	private Double packagingPrice;
+	
 	private boolean isDefaultCombination;
 	
 	private String status;
