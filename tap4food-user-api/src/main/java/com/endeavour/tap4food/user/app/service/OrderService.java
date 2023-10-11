@@ -59,7 +59,7 @@ public class OrderService {
 		Long newOrderSeq = orderRepository.getNewOrderId();
 		
 		order.setId(newOrderSeq);
-		order.setOrderId(newOrderSeq + 1500);
+		order.setOrderId(newOrderSeq + 1000000);
 		order.setGrandTotal(orderRequest.getGrandTotal());
 		order.setOrderedTime(DateUtil.getPresentDateAndTimeInIST());
 		order.setTimeZone("IST");
@@ -272,6 +272,10 @@ public class OrderService {
 			orderDto.setTotalItems(order.getTotalItems());
 			orderDto.setSelfPickup(order.isSelfPickup());
 			orderDto.setOrderedTime(order.getOrderedTime());
+			if(order.getPackagingPrice() != null) {
+				orderDto.setPackagingPrice(order.getPackagingPrice());
+			}
+			;
 			if(order.getTax() == null) {
 				orderDto.setTax(Double.valueOf(5));
 			}else {

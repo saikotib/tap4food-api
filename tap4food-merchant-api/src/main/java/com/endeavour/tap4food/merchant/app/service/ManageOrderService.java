@@ -266,7 +266,7 @@ public class ManageOrderService {
 					
 					orderDto.setPackagingPrice(Double.valueOf(0.0));
 				}
-			double calculatedTax = order.getTax() * 0.01 * order.getSubTotalAmount();
+			double calculatedTax = order.getTax() * 0.01 * order.getSubTotalAmount() + orderDto.getPackagingPrice() * 0.05;
 
 			BigDecimal taxBigDecimal = new BigDecimal(calculatedTax);
 			BigDecimal roundedTax = taxBigDecimal.setScale(2, RoundingMode.HALF_UP);

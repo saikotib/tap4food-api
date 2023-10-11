@@ -79,6 +79,8 @@ public class FoodStall {
 	
 	private String endDate;
 	
+	private boolean hasDineIn;
+	
 	@JsonProperty("isOpened")
 	private boolean isOpened;
 	

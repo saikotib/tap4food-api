@@ -676,6 +676,7 @@ public class MerchantService {
 	public void saveSettings(Long merchantId, String key) {
 		
 		MerchantSettings existingSettings = this.getSettings(merchantId);
+
 		
 		if(Objects.isNull(existingSettings)) {
 			existingSettings = new MerchantSettings();
@@ -692,7 +693,20 @@ public class MerchantService {
 		}else if(key.equalsIgnoreCase("PRINT")) {
 			existingSettings.setPrintType(existingSettings.getPrintType().equalsIgnoreCase("Manual") ? "Auto" : "Manual");
 		}
-
+		else if(key.equalsIgnoreCase("DINE_IN")) {
+			existingSettings.setHasDineIn(!existingSettings.isHasDineIn());
+			FoodStall foodStall = foodStallRepository.getFoodStallByMerchantId(merchantId);
+			
+			foodStall.setHasDineIn(!foodStall.isHasDineIn());
+			
+			System.out.println(foodStall.isHasDineIn());
+			try {
+				foodStallRepository.updateFoodStall(foodStall);
+			} catch (TFException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		existingSettings.setMerchantId(merchantId);
 		
 		merchantRepository.saveSettings(existingSettings);

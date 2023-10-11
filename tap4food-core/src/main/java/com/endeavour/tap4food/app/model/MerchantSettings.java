@@ -20,6 +20,8 @@ public class MerchantSettings {
 	
 	private boolean orderNotifications;
 	
+	private boolean hasDineIn;
+	
 	private boolean remainderNotifications;
 	
 	private String printType;

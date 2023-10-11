@@ -217,6 +217,7 @@ public class FoodItemRepository {
 		return foodItems;
 	}
 	
+	
 	public List<FoodItemPricing> getFoodItemPricingDetailsV2(Long fsId){
 		
 		Query query = new Query(Criteria.where("foodStallId").is(fsId).andOperator(Criteria.where("foodItemId").exists(true),

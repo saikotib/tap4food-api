@@ -132,6 +132,7 @@ public class FoodStallRepository {
 		existingStall.setLocation(foodStall.getLocation());
 		existingStall.setManagerId(foodStall.getManagerId());
 		existingStall.setDeliveryTime(foodStall.getDeliveryTime());
+		existingStall.setHasDineIn(foodStall.isHasDineIn());
 		
 		mongoTemplate.save(existingStall);
 
@@ -1079,5 +1080,17 @@ public class FoodStallRepository {
 		foodCourt.setFoodCourtId(nextFoodCourtSeq);
 
 		return mongoTemplate.save(foodCourt);
+	}
+
+	public FoodStall getFoodStallByMerchantId(Long merchantId) {
+		Query query = new Query(Criteria.where("merchantId").is(merchantId));
+		FoodStall foodStall = mongoTemplate.findOne(query, FoodStall.class);
+
+		if(foodStall.getTax() == null) {
+			foodStall.setTax(Double.valueOf(5));
+		}
+		
+		return foodStall;
+	
 	}
 }
